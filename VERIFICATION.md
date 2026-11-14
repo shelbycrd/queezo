@@ -91,3 +91,33 @@ Before migration, SQLite's backup API saved `/data/queezo-before-auth-20261113.d
 The isolated verification stack, disposable accounts, and temporary database volume were removed after checking the volume's Compose project label. The real `queezo` volume and its backup were retained. The running frontend displays the login page; create the first real account using the CLI documented in `AUTH_SETUP.md`.
 
 See `AUTH_IMPLEMENTATION.md` for the changed-file inventory, implementation details, and remaining operational setup. Login preview: `outputs/queezo-login-preview.jpg`.
+
+## Frontend redesign verification — November 14, 2026
+
+- Final backend suite: **341 passed**, one third-party Starlette/AnyIO deprecation warning, in the isolated `queezo-ui-check` Docker project. The suite includes media validation, additive photo-column migration, ownership of recent cards and activity, hidden answer photos, snapshot preservation, and streak behavior, alongside the existing authentication, Flashcards, and GWA regressions.
+- Final frontend suite: **38 passed** with `node --test frontend/tests/*.test.mjs`. This includes safe text/list rendering, image URL constraints, study shortcut mapping, immediate grade shorthand normalization, and existing authentication/Pomodoro coverage. All frontend JavaScript passed syntax checks.
+- Browser checks in the isolated project verified a populated Home carousel that actually scrolls with its arrows, Online/Offline Friends empty states, portrait deck tiles, and a PNG photo selected and previewed in the inline card editor. List formatting was also exercised.
+- The redesigned screens share the sidebar and main-page layout. All UI files are in `frontend/`; backend changes support card photos and account-private study days. Nginx accepts the two permitted image payloads within its 5 MiB request limit.
+- Before upgrading the saved database, SQLite's backup API created `/data/queezo-before-ui-20261114.db`. The pre-upgrade inventory was **1 user, 3 decks, 11 cards, 5 study sessions, and 69 reviews**. The isolated preview uses its own data volume and disposable account.
+
+Friends tabs are presentation placeholders with honest empty states; connections and live online presence are not implemented. The generated page-turn sound is implemented, but speaker output has not been verified. Native OS notifications remain subject to the previously recorded browser/OS limitations.
+
+Final browser and deployment checks:
+
+- Saved a question with a PNG photo and a bulleted answer. Next Card saved the card, reset the composer, and displayed both sides in the saved-card list. Study beside it opened the saved deck with an empty draft.
+- Enter revealed the answer below the still-visible question. The card's computed transform and animation were both `none`. Keys 1 and 2 rated unrevealed cards and advanced; key 3 worked both after Enter and directly from an unrevealed card. A one-card session completed after two Easy ratings.
+- Typed `175`, `225`, and `100` character by character: the grade fields immediately became `1.75`, `2.25`, and `1.00`. Enter added the next course and focused its subject. Three units at 1.75 plus two at 2.25 returned **1.95**, Passing, and **76.25%**. A single 1.00 returned **1.00** and **100%**. No static honor-band guide was present.
+- A six-second study timer automatically entered its short break, displayed an in-app completion alert, and credited exactly one pomodoro to its task. The dashboard displayed the recorded study day and a one-day streak. Restored 25 / 5 / 15 minute durations and paused the preview timer. Desktop notification permission was left unchanged.
+- Verified Home, deck tiles, GWA, and Pomodoro at a 390px viewport with no document overflow; checked Home at 820px and the desktop layout at 1280px. Narrow deck tiles remained portrait-shaped. Timer and task bounding boxes confirmed tasks below the timer. Reset temporary viewport overrides afterwards.
+- Upgraded the actual `queezo` stack at `http://localhost:8080` with `docker compose up -d --build --wait`. All three services are healthy and `nginx -t` passed. SQLite integrity is `ok`; post-upgrade counts match the backup exactly: **1 user, 3 decks, 11 cards, 5 study sessions, and 69 reviews**. The nullable photo columns were added successfully.
+- Saved redesign previews under `outputs/`: `queezo-home-redesign.jpg`, `queezo-decks-redesign.jpg`, `queezo-study-redesign.jpg`, `queezo-gwa-redesign.jpg`, and `queezo-pomodoro-redesign.jpg`. Populated previews use disposable data from the isolated project, not the user's saved account.
+- The preview console reported no warnings or errors. Confirmed the upgraded app's themed login page at `http://localhost:8080`. Copied the pre-upgrade backup to the ignored `outputs/backups/queezo-before-ui-20261114.db`.
+- Removed only the isolated `queezo-ui-check` containers, network, and disposable volume after verifying its Compose project label. The main `queezo` stack and saved volume remain running.
+
+## Frontend refinements — November 14, 2026
+
+- Removed sparkle decorations and the requested Home, Flashcards, GWA, and Pomodoro captions. Home now lists latest decks sorted newest first.
+- Deck search filters titles without creating data; Search and Create Deck are separate controls. Browser QA covered matching/no-match searches and creating a deck through the separate dialog in an isolated preview.
+- Study, Short break, and Long break are clickable timer modes. Selecting another mode loads its full duration and waits for Start; unfinished study intervals receive no credit. Browser QA verified 25/5/15 mode selection, running a selected break, refresh persistence, and unchanged task progress after switching.
+- All 40 frontend tests passed, including manual mode persistence, no false study credit, and cycle continuation. Changed JavaScript syntax checks and git diff whitespace checks passed.
+- Rebuilt only the main frontend with its existing backend and saved volume retained; the frontend is healthy at http://localhost:8080. Removed the isolated preview after verifying its volume label. Preview: outputs/queezo-deck-search.jpg.

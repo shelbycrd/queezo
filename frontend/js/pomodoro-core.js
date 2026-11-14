@@ -47,8 +47,6 @@ export function restoreState(saved) {
     if (new Set(tasks.map(task => task.id)).size !== tasks.length) return createState();
     const assigned = tasks.find(task => task.id === saved.assignedTaskId && task.completed < task.target);
     if (saved.phase === 'study' && saved.completedInCycle === 4) return createState();
-    if (saved.phase === 'long' && saved.completedInCycle !== 4) return createState();
-    if (saved.phase === 'short' && ![1,2,3].includes(saved.completedInCycle)) return createState();
     return {version:1, settings, phase:saved.phase, intervalMs:saved.intervalMs,
       remainingMs:saved.remainingMs, deadline:saved.running ? saved.deadline : null,
       running:saved.running, completedInCycle:saved.completedInCycle,
@@ -85,6 +83,15 @@ export function resetTimer(state) {
   state.assignedTaskId = null;
 }
 
+export function selectPhase(state, phase) {
+  if (!PHASES.includes(phase)) throw new Error('Choose a valid timer mode.');
+  if (state.phase === phase) return;
+  state.phase = phase;
+  if (phase === 'study' && state.completedInCycle === 4) state.completedInCycle = 0;
+  resetTimer(state);
+  state.lastNotice = null;
+}
+
 export function setSettings(state, settings) {
   const validated = validateSettings(settings);
   const untouched = !state.running && state.remainingMs === state.intervalMs;
@@ -118,7 +125,7 @@ export function advanceTimer(state, now = Date.now()) {
     }
     state.phase = state.completedInCycle === 4 ? 'long' : 'short';
   } else {
-    if (previousPhase === 'long') state.completedInCycle = 0;
+    if (previousPhase === 'long' || state.completedInCycle === 4) state.completedInCycle = 0;
     state.phase = 'study';
   }
   const upcoming = nextTask(state);

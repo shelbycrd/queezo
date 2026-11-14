@@ -11,7 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.database import get_db, init_database
 from app.errors import validation_error
-from app.routers import decks, study
+from app.routers import activity, decks, study
 from app.auth.router import router as auth_router
 from app.auth.config import get_settings
 from app.auth.middleware import PrivateResponseHeaders
@@ -27,6 +27,7 @@ async def lifespan(_):
 app = FastAPI(title="Queezo App 1: Flashcards API", version="1.1.0", lifespan=lifespan)
 app.include_router(decks.router)
 app.include_router(study.router)
+app.include_router(activity.router)
 app.include_router(auth_router)
 app.add_middleware(PrivateResponseHeaders)
 

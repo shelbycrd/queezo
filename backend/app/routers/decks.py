@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -96,6 +96,14 @@ def add_card(deck_id: int, data: CardInput, user: User = Depends(require_user), 
     return card_view(card)
 
 
+@router.get("/cards/recent")
+def recent_cards(limit: int = Query(default=12, ge=1, le=30), user: User = Depends(require_user),
+                 db: Session = Depends(get_db)):
+    rows = db.execute(select(Flashcard, Deck.title).join(Deck, Flashcard.deck_id == Deck.id).where(
+        Deck.owner_id == user.id).order_by(Flashcard.created_at.desc(), Flashcard.id.desc()).limit(limit))
+    return [{**card_view(card), 'deck_title':title} for card, title in rows]
+
+
 @router.get("/cards/{card_id}")
 def get_card(card_id: int, user: User = Depends(require_user), db: Session = Depends(get_db)):
     return card_view(require(db, Flashcard, card_id, user))
@@ -104,7 +112,8 @@ def get_card(card_id: int, user: User = Depends(require_user), db: Session = Dep
 @router.patch("/cards/{card_id}")
 def edit_card(card_id: int, data: CardPatch, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
     card = require(db, Flashcard, card_id, user)
-    merged = {"card_type": card.card_type, "front": card.front, "back": card.back}
+    merged = {"card_type": card.card_type, "front": card.front, "back": card.back,
+              "front_image":card.front_image, "back_image":card.back_image}
     merged.update(data.model_dump(exclude_unset=True))
     try:
         validated = CardInput(**merged)

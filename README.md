@@ -6,7 +6,7 @@ Two independently runnable FastAPI apps share this repository:
 - **App 2 — GWA Calculator:** `app.gwa.main:app`, a stateless weighted-average calculator. It uses the shared database for authentication, without storing calculation records. App 2 currently implements GWA rather than Notes management.
 - **App 3 — Pomodoro Timer:** a browser-based timer and task queue at `/#pomodoro`. It runs locally in the frontend and stores its state in this browser, without a separate backend service.
 
-The lightweight frontend prototype provides an Apps page, two-sided Flashcards, a GWA Calculator connected to App 2, and a Pomodoro Timer. Open `http://localhost:8080` after starting Docker. GWA calculations and unfinished course entries are not saved across navigation or refresh; Pomodoro settings, task progress, and timer state are saved locally in the browser.
+The lightweight frontend prototype provides Home, two-sided Flashcards, a GWA Calculator connected to App 2, and a Pomodoro Timer. All UI files live in `frontend/`. A shared left sidebar and main page use the same rounded, lavender theme, without coins, hearts, or a dashboard search bar. Open `http://localhost:8080` after starting Docker. GWA calculations and unfinished course entries are not saved across navigation or refresh; Pomodoro settings, task progress, and timer state are saved locally per account in the browser.
 
 ## Accounts and private data
 
@@ -42,11 +42,13 @@ The first build needs internet to download images and Python dependencies.
 
 ### Try the frontend prototype
 
-Choose **Flashcards** to create a deck and add a required question and answer. Reveal the answer before rating your recall. The removed one-sided option is no longer shown.
+**Home** shows your latest decks in a horizontal carousel with previous/next arrows. The study streak counts days with a rated flashcard or a completed study Pomodoro, using Asia/Manila calendar days. The Friends container has Online and Offline tabs with empty states; friend connections and live presence are not implemented.
 
-Choose **GWA Calculator**, enter units and grades for at least one course, and select **What's my GWA?** Subject names are optional. **Add course** and **Remove** keep the list between 1 and 15 courses. **Clear** starts a new calculation. The summary shows your GWA, honor standing, performance, total units, and a 0–100 grade-scale bar. Editing inputs hides the previous summary until you recalculate.
+Choose **Flashcards** to search your decks by title. Use the separate **Create Deck** button to name and create a new deck. Portrait deck tiles show the title and card count. Enter a required question and answer directly in the deck editor; optional photos and bullet/numbered lists are supported on both sides. **Next Card** saves the card, plays a short page-turn sound, and clears the editor for another card. Saved cards appear below, and **Study deck** sits beside **Next Card**. During study, **Enter** immediately reveals the answer below the question without flipping or animation. **1**, **2**, and **3** rate Hard, Normal, and Easy and advance; they also reveal first when needed. There are no multiple-choice answers.
 
-Choose **Pomodoro** to add tasks with a target number of study intervals, then select **Start**. Timer settings default to 25 / 5 / 15 minutes and can be changed under **Timer settings**. The timer automatically alternates study and breaks and moves through the task queue without confirmation.
+Choose **GWA Calculator**, enter units and grades for at least one course, and select **What's my GWA?** Subject names are optional. Valid three-digit shorthand converts immediately: `175` → `1.75`, `225` → `2.25`, and `100` → `1.00`. Enter in a valid course row moves to the next course or adds one, up to 15. **Add course** and **Remove** keep the list between 1 and 15 courses. **Clear** starts a new calculation. The summary shows your GWA, classification, course count, total units, and a 0–100 grade-scale bar. The static honor-band guide is omitted. Editing inputs hides the previous summary until you recalculate.
+
+Choose **Pomodoro** to use the large centered timer, with tasks beneath it. Select **Study**, **Short break**, or **Long break**, then select **Start**. Changing modes resets unfinished time without adding study credit. Add tasks with a target number of study intervals. Timer settings default to 25 / 5 / 15 minutes and can be changed under **Timer settings**. The timer automatically alternates study and breaks and moves through the task queue without confirmation.
 
 After source changes, rebuild with `docker compose up -d --build --wait frontend`, then refresh the browser (Ctrl+F5 if it still shows the previous version).
 
@@ -63,6 +65,8 @@ Documentation is then at `http://localhost:8000/docs` and `http://localhost:8001
 
 All cards require a nonblank front and back, each at most 10,000 characters. `card_type` can be omitted and defaults to `two_sided`. If supplied, only `two_sided` is accepted. Creation and updates reject `one_sided`, null sides, and blank sides with HTTP 422. Partial updates keep omitted fields.
 
+Optional `front_image` and `back_image` fields accept PNG, JPEG, or WebP base64 data URLs up to **1.5 MiB per image**. Omitted image fields are preserved during a partial update; explicit null removes an image. User text is rendered as text with a small bullet/numbered-list format, not arbitrary HTML. Study snapshots preserve photos alongside text, and answer photos remain hidden until reveal. Startup adds nullable photo columns to older databases without replacing existing rows.
+
 Example body for `POST /api/decks/{deck_id}/cards`:
 
 ```json
@@ -73,6 +77,8 @@ Example body for `POST /api/decks/{deck_id}/cards`:
 ```
 
 Deck/card routes retain `/api/decks`, `/api/decks/{id}/cards`, and `/api/cards/{id}`. Decks hold at most 150 cards. Dashboard counts and the latest 50 sessions per deck remain available.
+
+`GET /api/cards/recent?limit=12` returns the current account's newest cards (limit 1–30). `GET /api/dashboard/activity` returns the account's streak and active days in Asia/Manila. Rated flashcards mark a study day; the authenticated, CSRF-protected `POST /api/activity/pomodoro` marks a completed study interval without accepting client-provided dates. Streaks also include existing owned review history.
 
 Start practice with `POST /api/decks/{id}/study`. Use the returned `presentation_number` and `presentation_token` in `POST /api/study/{id}/reveal`, then include those identifiers and `difficulty` in `POST /api/study/{id}/rate`. Ratings are `easy`, `normal`, or `hard`. Answers are omitted from study responses before reveal. Rating before reveal or submitting stale/duplicate identifiers returns HTTP 409. There is no one-sided readiness flow.
 
@@ -113,7 +119,7 @@ The conversion validates all answers before writing and commits atomically. Inco
 
 ## App 2: GWA Calculator
 
-`POST /api/gwa/calculate` implements the future **What's my GWA?** action. Send between **1 and 15 courses**:
+`POST /api/gwa/calculate` implements **What's my GWA?**. Send between **1 and 15 courses**:
 
 ```json
 {
@@ -131,7 +137,7 @@ The conversion validates all answers before writing and commits atomically. Inco
 
 The backend computes **GWA = sum(grade × units) / sum(units)** using decimal arithmetic. The example produces 7.75 weighted grade-units / 5 units = **1.55**, **Third Honor**, and **86.25%** on the visualization bar.
 
-The response includes the entered courses and weighted contributions, course count, total units, total weighted grades, numeric `gwa`, two-decimal `gwa_display`, `classification`, `performance` (including Excellent and Just passing), `honor`, `is_passing`, `honor_eligible`, `failed_course_count`, and numeric `percentage` for a future bar.
+The response includes the entered courses and weighted contributions, course count, total units, total weighted grades, numeric `gwa`, two-decimal `gwa_display`, `classification`, `performance` (including Excellent and Just passing), `honor`, `is_passing`, `honor_eligible`, `failed_course_count`, and numeric `percentage` for the visualization bar. The frontend keeps the summary compact; these API fields and classification rules are retained even though the static honor-band guide is not shown.
 
 | Unrounded GWA | Classification |
 | --- | --- |
@@ -162,7 +168,7 @@ That means **four study sessions, three short breaks, and one long break**. The 
 - Add a task title and a target of 1–99 pomodoros. Only completed study intervals count. Tasks can span multiple four-session cycles.
 - At a task's target, a notification announces completion and the next task. The next task starts with the next study interval after the scheduled break; no confirmation is requested. When all tasks finish, the cycle continues as free study.
 - A task added during an already-running free study interval begins with the next study interval, without retroactive credit. Reset a current task's study timer before removing that task.
-- Timer state, task progress, and settings are saved under `queezo.pomodoro.v1` in local browser storage. They survive navigation and refresh in the same browser; they are not saved to the server or synced to other devices. Web Locks serialize updates across same-origin tabs where supported.
+- Timer state, task progress, and settings are saved in account-scoped local browser storage. They survive navigation and refresh in the same browser; they are not synced to other devices. A completed study interval also records a server-side study day for the Home streak, without uploading task titles or timer settings. Web Locks serialize updates across same-origin tabs where supported.
 - Countdown uses an absolute deadline, rather than decrementing once per callback. If the browser sleeps or is closed, alerts may be delayed. On return, an expired interval is counted once and the next interval starts fresh; unattended overnight cycles are not credited.
 
 Every interval change and task completion displays an in-app notification, including while using the other Queezo apps. **Enable desktop notifications** requests browser permission only when clicked. With permission, system alerts use a service worker when available, with a desktop Notification fallback. Clicking a notification opens the timer. A blocked/unsupported notification API keeps the in-app alerts active.
@@ -187,3 +193,5 @@ docker compose config --quiet
 ```
 
 For local development, run `python -m pytest -q` from `backend/`. See `VERIFICATION.md` for recorded validation and limitations. Public registration, password recovery, account deletion, Notes management, and GWA calculation history are not implemented.
+
+Run the frontend helper and timer tests with `node --test frontend/tests/*.test.mjs`.

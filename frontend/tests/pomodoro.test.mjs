@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {addTask, advanceTimer, createState, currentTask, durationMs, nextTask, pauseTimer,
   remainingMs, removeTask, resetTimer, restoreState, setSettings, startTimer,
-  validateSettings} from '../js/pomodoro-core.js';
+  selectPhase, validateSettings} from '../js/pomodoro-core.js';
 
 test('default cycle follows 25/5/25/5/25/5/25/15 and repeats', () => {
   const state = createState();
@@ -180,9 +180,44 @@ test('invalid task titles and targets are rejected without changing the queue', 
 test('corrupt saved state is rejected without crashing the timer', () => {
   for (const value of [null, {}, {version:2}, {...createState(), tasks:[{}]},
     {...createState(), remainingMs:-1}, {...createState(), running:true, deadline:null},
-    {...createState(), phase:'long', completedInCycle:0},
+    {...createState(), phase:'unknown', completedInCycle:0},
     {...createState(), phase:'study', completedInCycle:4}]) {
     assert.deepEqual(restoreState(value), createState());
   }
   assert.deepEqual(validateSettings({study:'25',short:'5',long:'15'}), {study:25,short:5,long:15});
+});
+
+test('manual modes reset unfinished time without credit and survive refresh', () => {
+  const state = createState();
+  addTask(state, {id:'task', title:'Read', target:2});
+  startTimer(state, 0);
+  for (const phase of ['short', 'long', 'study']) {
+    selectPhase(state, phase);
+    assert.equal(state.running, false);
+    assert.equal(state.deadline, null);
+    assert.equal(state.remainingMs, state.settings[phase] * 60000);
+    assert.equal(state.assignedTaskId, null);
+    assert.equal(state.totalPomodoros, 0);
+    assert.equal(state.tasks[0].completed, 0);
+    assert.deepEqual(restoreState(state), state);
+    startTimer(state, 100);
+  }
+  const deadline = state.deadline;
+  selectPhase(state, 'study');
+  assert.equal(state.deadline, deadline);
+  assert.throws(() => selectPhase(state, 'invalid'));
+});
+
+test('manually selected breaks return to study without crediting tasks or corrupting the cycle', () => {
+  for (const phase of ['short','long']) {
+    const state = createState();
+    state.completedInCycle = 4;
+    selectPhase(state, phase);
+    startTimer(state, 0);
+    advanceTimer(state, state.deadline);
+    assert.equal(state.phase, 'study');
+    assert.equal(state.completedInCycle, 0);
+    assert.equal(state.totalPomodoros, 0);
+    assert.deepEqual(restoreState(state), state);
+  }
 });

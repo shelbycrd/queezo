@@ -1,23 +1,22 @@
 import {api} from './api.js';
 import {app, escape, mount} from './ui.js';
+import {formatGradeDisplay, normalizeGradeInput} from './gwa-input.js';
 
 const emptyCourse = () => ({subject:'', units:'', grade:''});
 
 export function gwaPage(route) {
   let courses = [emptyCourse()];
   let pending = false;
-  if (!mount(`<div class="page-heading"><div><p class="eyebrow">App 2 · GWA Calculator</p><h1>How are your grades looking?</h1><p class="muted">Add your courses. We'll do the weighted average.</p></div><span class="badge">1.00 is best · 3.00 is passing</span></div>
+  if (!mount(`<div class="page-heading"><div><p class="eyebrow">A little clarity</p><h1>GWA Calculator</h1></div></div>
     <div class="gwa-layout"><form id="gwa-form" class="panel"><fieldset id="gwa-fields"><legend class="sr-only">Courses for your GWA calculation</legend>
       <div class="section-heading course-heading"><h2>Your courses</h2><span id="course-count" class="muted" role="status"></span></div>
-      <p class="hint">Subject names are optional. Units and grades are required.</p><div id="course-rows"></div>
+      <div id="course-rows"></div>
       <div class="course-actions"><button type="button" id="add-course" class="secondary small">+ Add course</button><span class="hint">Up to 15 courses</span></div>
       <p id="gwa-error" class="inline-error" role="alert" hidden></p>
       <div class="form-actions"><button type="button" id="reset-gwa" class="secondary">Clear</button><button type="submit" id="calculate-gwa">What's my GWA?</button></div>
-      <p class="hint formula">GWA = sum of (grade × units) ÷ total units</p>
     </fieldset></form>
-    <aside class="gwa-sidebar"><section id="gwa-placeholder" class="panel result-placeholder"><div class="result-symbol" aria-hidden="true">∑</div><h2>A clearer picture, in a moment.</h2><p class="muted">Enter at least one course and calculate to see your GWA, honor standing, and grade scale.</p></section>
+    <aside class="gwa-sidebar"><section id="gwa-placeholder" class="panel result-placeholder"><div class="result-symbol" aria-hidden="true">∑</div><h2>Your result belongs here.</h2><p class="muted">Add a course and calculate your GWA.</p></section>
       <section id="gwa-result" class="panel gwa-result" tabindex="-1" aria-label="Your GWA summary" hidden></section>
-      <section class="panel honor-guide" aria-label="Honor bands"><h2>The honor bands</h2><dl><div><dt>First Honor</dt><dd>1.00–1.25</dd></div><div><dt>Second Honor</dt><dd>over 1.25–1.50</dd></div><div><dt>Third Honor</dt><dd>over 1.50–1.75</dd></div></dl><p class="hint">3.00 is just passing. Grades above 3.00 are failed. Honor labels use these GWA bands; your school may have additional rules.</p></section>
     </aside></div>`, route)) return;
 
   const form = app.querySelector('#gwa-form');
@@ -52,13 +51,14 @@ export function gwaPage(route) {
     form.querySelector('#add-course').disabled = courses.length >= 15;
   }
 
-  form.querySelector('#add-course').addEventListener('click', () => {
+  function addCourse() {
     if (pending || courses.length >= 15) return;
     captureCourses();
     courses.push(emptyCourse());
     renderRows(); clearResult();
     rows.querySelector(`#subject-${courses.length - 1}`).focus();
-  });
+  }
+  form.querySelector('#add-course').addEventListener('click', addCourse);
 
   rows.addEventListener('click', event => {
     const remove = event.target.closest('[data-remove]');
@@ -70,7 +70,25 @@ export function gwaPage(route) {
     rows.querySelector(`#subject-${Math.min(index, courses.length - 1)}`).focus();
   });
 
-  rows.addEventListener('input', clearResult);
+  rows.addEventListener('input', event => {
+    if (event.target.dataset.field === 'grade') event.target.value = normalizeGradeInput(event.target.value);
+    clearResult();
+  });
+  rows.addEventListener('focusout', event => {
+    if (event.target.dataset.field === 'grade') event.target.value = formatGradeDisplay(event.target.value);
+  });
+  rows.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || !event.target.matches('input') || event.isComposing || event.repeat || pending) return;
+    event.preventDefault();
+    const row = event.target.closest('[data-course]');
+    if (!row) return;
+    const invalid = [...row.querySelectorAll('input')].find(input => !input.checkValidity());
+    if (invalid) { invalid.reportValidity(); invalid.focus(); return; }
+    const next = row.nextElementSibling;
+    if (next) next.querySelector('[data-field="subject"]').focus();
+    else if (courses.length < 15) addCourse();
+    else submit.focus();
+  });
   form.querySelector('#reset-gwa').addEventListener('click', () => {
     if (pending) return;
     courses = [emptyCourse()];
@@ -94,13 +112,13 @@ export function gwaPage(route) {
       const percentage = Math.max(0, Math.min(100, summary.percentage));
       result.classList.toggle('is-failed', !summary.is_passing);
       result.innerHTML = `<p class="eyebrow">Your GWA</p><h2 class="gwa-value">${escape(summary.gwa_display)}</h2>
-        <span class="result-badge">${escape(summary.classification)}</span><p class="performance">${escape(summary.performance)}</p>
+        <span class="result-badge">${escape(summary.classification)}</span>
         <div class="gwa-totals"><div><span class="muted">Courses</span><strong>${summary.course_count}</strong></div><div><span class="muted">Total units</span><strong>${summary.total_units}</strong></div></div>
         <div class="scale-heading"><h3>Grade scale</h3><strong>${percentage.toFixed(2)}%</strong></div>
         <progress class="gwa-progress" max="100" value="${percentage}" aria-label="Grade scale score"></progress><div class="scale-labels"><span>0%</span><span>100%</span></div>
-        <p class="hint">1.00 = 100% · 5.00 = 0%. A visual scale, not an official percentage grade.</p>
+        <p class="hint">1.00 = 100% · 5.00 = 0%. Visual grade scale.</p>
         ${summary.failed_course_count ? `<p class="course-warning">${summary.failed_course_count} ${summary.failed_course_count === 1 ? 'course is' : 'courses are'} above 3.00. Honor standing here uses your overall GWA.</p>` : ''}
-        <p class="hint">GWA is rounded to two decimals. Honor standing uses the unrounded average.</p>`;
+        `;
       placeholder.hidden = true;
       result.hidden = false;
       result.focus({preventScroll:true});

@@ -10,6 +10,7 @@ let channel;
 function adopt(user) {
   const previous = authenticatedUser();
   setAuthenticatedUser(user);
+  document.body.classList.toggle('signed-in', Boolean(user));
   document.querySelector('#main-navigation').hidden = !user;
   document.querySelector('#account-controls').hidden = !user;
   document.querySelector('#account-email').textContent = user?.email || '';

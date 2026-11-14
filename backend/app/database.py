@@ -34,11 +34,13 @@ def init_database(target=engine):
     from app import models  # Register models before creating tables.
     from app.migrate_cards import legacy_cards
     from app.ownership_migration import migrate_ownership
+    from app.media_migration import migrate_card_images
 
     Base.metadata.create_all(target)
     with target.begin() as connection:
         connection.execute(text("PRAGMA journal_mode=WAL")).scalar()
         migrate_ownership(connection)
+        migrate_card_images(connection)
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_login_throttles_window_started ON login_throttles (window_started)"))
         legacy = {table: [row["id"] for row in rows] for table, rows in legacy_cards(connection).items() if rows}
         if legacy:

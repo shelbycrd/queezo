@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#315b45">
+  <meta name="theme-color" content="#7867df">
   <title>Queezo · Study companion</title>
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/pomodoro.css">
   <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/theme.css">
   <script type="module" src="/js/app.js"></script>
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#dashboard" aria-label="Queezo dashboard"><span class="brand-mark">Q</span>Queezo</a>
+    <a class="brand" href="#dashboard" aria-label="Queezo home"><span class="brand-mark">Q</span>queezo<span class="brand-period">.</span></a>
     <nav id="main-navigation" aria-label="Main navigation" hidden>
-      <a href="#dashboard" data-nav="dashboard">Apps</a>
-      <a href="#decks" data-nav="decks">Flashcards</a>
-      <a href="#gwa" data-nav="gwa">GWA Calculator</a>
-      <a href="#pomodoro" data-nav="pomodoro">Pomodoro</a>
+      <span class="nav-caption">YOUR SPACE</span>
+      <a href="#dashboard" data-nav="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg></span>Home</a>
+      <a href="#decks" data-nav="decks"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="15" height="15" rx="3"/><path d="M17 3H6a3 3 0 0 0-3 3v11M10 11h7m-7 4h4"/></svg></span>Flashcards</a>
+      <a href="#gwa" data-nav="gwa"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8 7h8m-8 5h2m4 0h2m-8 4h2m4 0h2"/></svg></span>GWA Calculator</a>
+      <a href="#pomodoro" data-nav="pomodoro"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M9 2h6m-3 0v3m0 4v5l3 2"/></svg></span><span id="pomodoro-nav-label">Pomodoro</span></a>
     </nav>
-    <div id="account-controls" class="account-controls" hidden><span id="account-email"></span><button id="logout" type="button" class="secondary small">Log out</button></div>
+    <div id="account-controls" class="account-controls" hidden><div class="account-identity"><span class="account-avatar" id="account-avatar">Q</span><div><strong>Your space</strong><span id="account-email"></span></div></div><button id="logout" type="button" class="secondary small">Log out ↗</button></div>
   </header>
   <div id="notice" class="notice" role="alert" hidden></div>
   <aside id="pomodoro-alert" class="pomodoro-alert" aria-label="Pomodoro notification" hidden><div role="status" aria-live="polite"><strong></strong><p></p></div><div class="actions"><a href="#pomodoro">Open timer</a><button id="dismiss-pomodoro-alert" type="button" class="secondary small" aria-label="Dismiss timer notification">Dismiss</button></div></aside>

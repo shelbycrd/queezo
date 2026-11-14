@@ -16,9 +16,13 @@ def deck_view(db, deck):
 
 
 def card_view(card):
-    return {"id": card.id, "deck_id": card.deck_id, "card_type": card.card_type,
+    result = {"id": card.id, "deck_id": card.deck_id, "card_type": card.card_type,
             "front": card.front, "back": card.back,
             "created_at": iso(card.created_at), "updated_at": iso(card.updated_at)}
+    for side in ('front_image', 'back_image'):
+        if getattr(card, side):
+            result[side] = getattr(card, side)
+    return result
 
 
 def session_view(db, session):
@@ -30,9 +34,13 @@ def session_view(db, session):
     if card and session.status == "active":
         current = {"id": card.id, "card_type": card.card_type, "front": card.front,
                    "review_count": card.review_count, "target_reviews": card.target_reviews}
+        if card.front_image:
+            current['front_image'] = card.front_image
         # Do not include the answer key at all before a two-sided reveal.
         if session.revealed:
             current["back"] = card.back
+            if card.back_image:
+                current['back_image'] = card.back_image
     return {"id": session.id, "deck_id": session.deck_id, "deck_title": session.deck_title,
             "status": session.status, "started_at": iso(session.started_at),
             "total_cards": session.total_cards, "completed_cards": completed,

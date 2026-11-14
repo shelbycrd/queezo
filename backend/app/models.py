@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -28,6 +28,8 @@ class Flashcard(Base):
     card_type: Mapped[str] = mapped_column(String(16), default="two_sided")
     front: Mapped[str] = mapped_column(Text)
     back: Mapped[str] = mapped_column(Text)
+    front_image: Mapped[str | None] = mapped_column(Text, nullable=True)
+    back_image: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
     __table_args__ = (
@@ -69,6 +71,8 @@ class StudySessionCard(Base):
     card_type: Mapped[str] = mapped_column(String(16), default="two_sided")
     front: Mapped[str] = mapped_column(Text)
     back: Mapped[str] = mapped_column(Text)
+    front_image: Mapped[str | None] = mapped_column(Text, nullable=True)
+    back_image: Mapped[str | None] = mapped_column(Text, nullable=True)
     initial_order: Mapped[int] = mapped_column(Integer)
     review_count: Mapped[int] = mapped_column(Integer, default=0)
     latest_difficulty: Mapped[str | None] = mapped_column(String(8), nullable=True)
@@ -122,3 +126,9 @@ class LoginThrottle(Base):
     key: Mapped[str] = mapped_column(String(80), primary_key=True)
     window_started: Mapped[datetime] = mapped_column(DateTime, index=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ActivityDay(Base):
+    __tablename__ = "activity_days"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    day: Mapped[date] = mapped_column(Date, primary_key=True)

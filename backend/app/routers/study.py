@@ -12,6 +12,7 @@ from app.routers.decks import owned_query, require
 from app.schemas import PresentationInput, RatingInput
 from app.services.presenters import session_view, summary_view
 from app.services.study_scheduler import apply_rating, choose_next
+from app.services.activity import mark_study_day
 
 router = APIRouter(prefix="/api", tags=["Study sessions"])
 
@@ -48,6 +49,7 @@ def start_study(deck_id: int, user: User = Depends(require_user), db: Session = 
     db.flush()
     snapshots = [StudySessionCard(session_id=session.id, flashcard_id=card.id,
                  card_type=card.card_type, front=card.front, back=card.back,
+                 front_image=card.front_image, back_image=card.back_image,
                  initial_order=index) for index, card in enumerate(cards)]
     db.add_all(snapshots)
     db.flush()
@@ -82,6 +84,7 @@ def rate(session_id: str, data: RatingInput, user: User = Depends(require_user),
     db.add(StudyReview(session_id=session.id, session_card_id=current.id,
            difficulty=data.difficulty, presentation_number=data.presentation_number,
            presentation_token=data.presentation_token))
+    mark_study_day(db, user.id)
     rng = random.Random(f"{session.random_seed}:{session.total_reviews}")
     apply_rating(current, data.difficulty, session.virtual_position, rng)
     session.total_reviews += 1
