@@ -1,4 +1,5 @@
 export const app = document.querySelector('#app');
+export const backIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>';
 export const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 
 export function notice(message, success = false) {
@@ -11,6 +12,12 @@ export function notice(message, success = false) {
 export function mount(html, route) {
   if (route && location.hash !== route) return false;
   app.innerHTML = html;
+  const parts = (route || '').slice(1).split('/');
+  app.classList.toggle('has-subpage-back', ['deck','study','summary'].includes(parts[0]));
+  if (route && ['deck','summary'].includes(parts[0])) {
+    const target = parts[0] === 'deck' ? (parts.length > 2 ? `#deck/${parts[1]}` : '#decks') : parts[0] === 'summary' ? app.querySelector('a[href^="#deck/"]')?.getAttribute('href') || '#decks' : '#dashboard';
+    app.insertAdjacentHTML('afterbegin', `<a class="subpage-back" href="${escape(target)}" aria-label="Go back">${backIcon}</a>`);
+  }
   return true;
 }
 

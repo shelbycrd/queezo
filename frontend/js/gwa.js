@@ -7,10 +7,10 @@ const emptyCourse = () => ({subject:'', units:'', grade:''});
 export function gwaPage(route) {
   let courses = [emptyCourse()];
   let pending = false;
-  if (!mount(`<div class="page-heading"><div><p class="eyebrow">A little clarity</p><h1>GWA Calculator</h1></div></div>
+  if (!mount(`<div class="page-heading"><div><h1>GWA Calculator</h1></div></div>
     <div class="gwa-layout"><form id="gwa-form" class="panel"><fieldset id="gwa-fields"><legend class="sr-only">Courses for your GWA calculation</legend>
       <div class="section-heading course-heading"><h2>Your courses</h2><span id="course-count" class="muted" role="status"></span></div>
-      <div id="course-rows"></div>
+      <div class="course-table-heading" aria-hidden="true"><span></span><div><span>Subject <small>(optional)</small></span><span>Units</span><span>Grade</span></div><span></span></div><div id="course-rows"></div>
       <div class="course-actions"><button type="button" id="add-course" class="secondary small">+ Add course</button><span class="hint">Up to 15 courses</span></div>
       <p id="gwa-error" class="inline-error" role="alert" hidden></p>
       <div class="form-actions"><button type="button" id="reset-gwa" class="secondary">Clear</button><button type="submit" id="calculate-gwa">What's my GWA?</button></div>
@@ -42,10 +42,10 @@ export function gwaPage(route) {
 
   function renderRows() {
     rows.innerHTML = courses.map((course, index) => `<div class="course-row" data-course="${index}">
-      <div class="course-row-heading"><span class="course-number">Course ${index + 1}</span><button type="button" class="remove-course" data-remove="${index}" aria-label="Remove course ${index + 1}" ${courses.length === 1 ? 'disabled' : ''}>Remove</button></div>
-      <div class="course-inputs"><div class="subject-field"><label for="subject-${index}">Subject <span class="muted">(optional)</span></label><input id="subject-${index}" data-field="subject" aria-label="Subject for course ${index + 1}" maxlength="120" placeholder="e.g. Mathematics" value="${escape(course.subject)}"></div>
-      <div><label for="units-${index}">Units</label><input id="units-${index}" data-field="units" aria-label="Units for course ${index + 1}" type="number" inputmode="decimal" min="0.0001" max="99999999.9999" step="0.0001" required placeholder="3" value="${escape(course.units)}"></div>
-      <div><label for="grade-${index}">Grade</label><input id="grade-${index}" data-field="grade" aria-label="Grade for course ${index + 1}" type="number" inputmode="decimal" min="1" max="5" step="0.000001" required placeholder="1.75" value="${escape(course.grade)}"></div></div>
+      <div class="course-row-heading"><span class="course-number">${index + 1}</span><button type="button" class="remove-course" data-remove="${index}" aria-label="Remove course ${index + 1}" ${courses.length === 1 ? 'disabled' : ''}>×</button></div>
+      <div class="course-inputs"><div class="subject-field"><label class="sr-only" for="subject-${index}">Subject <span class="muted">(optional)</span></label><input id="subject-${index}" data-field="subject" aria-label="Subject for course ${index + 1}" maxlength="120" placeholder="e.g. Mathematics" value="${escape(course.subject)}"></div>
+      <div><label class="sr-only" for="units-${index}">Units</label><input id="units-${index}" data-field="units" aria-label="Units for course ${index + 1}" type="number" inputmode="decimal" min="0.0001" max="99999999.9999" step="0.0001" required placeholder="3" value="${escape(course.units)}"></div>
+      <div><label class="sr-only" for="grade-${index}">Grade</label><input id="grade-${index}" data-field="grade" aria-label="Grade for course ${index + 1}" type="number" inputmode="decimal" min="1" max="5" step="0.000001" required placeholder="1.75" value="${escape(course.grade)}"></div></div>
     </div>`).join('');
     form.querySelector('#course-count').textContent = `${courses.length} / 15 courses`;
     form.querySelector('#add-course').disabled = courses.length >= 15;

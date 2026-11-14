@@ -21,7 +21,7 @@ export const currentTask = state => state.tasks.find(task => task.id === state.a
 
 export function createState() {
   return {version:1, settings:{...DEFAULT_SETTINGS}, phase:'study', intervalMs:1500000,
-    remainingMs:1500000, deadline:null, running:false, completedInCycle:0,
+    remainingMs:1500000, deadline:null, running:false, awaitingStart:false, completedInCycle:0,
     totalPomodoros:0, assignedTaskId:null, tasks:[], lastNotice:null};
 }
 
@@ -30,6 +30,8 @@ export function restoreState(saved) {
   try {
     const settings = validateSettings(saved.settings);
     if (!PHASES.includes(saved.phase) || typeof saved.running !== 'boolean' ||
+        (saved.awaitingStart !== undefined && typeof saved.awaitingStart !== 'boolean') ||
+        (saved.awaitingStart && (saved.running || saved.remainingMs !== saved.intervalMs)) ||
         !Number.isFinite(saved.intervalMs) || saved.intervalMs < 600 || saved.intervalMs > 10800000 ||
         !Number.isFinite(saved.remainingMs) || saved.remainingMs < 0 || saved.remainingMs > saved.intervalMs ||
         (saved.running && !Number.isFinite(saved.deadline)) ||
@@ -49,7 +51,7 @@ export function restoreState(saved) {
     if (saved.phase === 'study' && saved.completedInCycle === 4) return createState();
     return {version:1, settings, phase:saved.phase, intervalMs:saved.intervalMs,
       remainingMs:saved.remainingMs, deadline:saved.running ? saved.deadline : null,
-      running:saved.running, completedInCycle:saved.completedInCycle,
+      running:saved.running, awaitingStart:saved.awaitingStart === true, completedInCycle:saved.completedInCycle,
       totalPomodoros:saved.totalPomodoros,
       assignedTaskId:saved.phase === 'study' ? assigned?.id || null : null, tasks,
       lastNotice:saved.lastNotice && typeof saved.lastNotice.title === 'string' &&
@@ -66,6 +68,7 @@ export function startTimer(state, now = Date.now()) {
   if (state.phase === 'study' && !state.assignedTaskId) state.assignedTaskId = nextTask(state)?.id || null;
   state.deadline = now + state.remainingMs;
   state.running = true;
+  state.awaitingStart = false;
 }
 
 export function pauseTimer(state, now = Date.now()) {
@@ -78,6 +81,7 @@ export function pauseTimer(state, now = Date.now()) {
 export function resetTimer(state) {
   state.running = false;
   state.deadline = null;
+  state.awaitingStart = false;
   state.intervalMs = durationMs(state.settings, state.phase);
   state.remainingMs = state.intervalMs;
   state.assignedTaskId = null;
@@ -96,7 +100,11 @@ export function setSettings(state, settings) {
   const validated = validateSettings(settings);
   const untouched = !state.running && state.remainingMs === state.intervalMs;
   state.settings = validated;
-  if (untouched) resetTimer(state);
+  if (untouched) {
+    const awaitingStart = state.awaitingStart;
+    resetTimer(state);
+    state.awaitingStart = awaitingStart;
+  }
 }
 
 export function addTask(state, {id, title, target}) {
@@ -129,18 +137,19 @@ export function advanceTimer(state, now = Date.now()) {
     state.phase = 'study';
   }
   const upcoming = nextTask(state);
-  state.assignedTaskId = state.phase === 'study' ? upcoming?.id || null : null;
+  state.assignedTaskId = null;
   state.intervalMs = durationMs(state.settings, state.phase);
   state.remainingMs = state.intervalMs;
-  // If a browser wakes late, count the interval that actually ran once, then
-  // start the next one now. Never fabricate a whole night's study completions.
-  state.deadline = now + state.intervalMs;
+  // Credit only the interval that ran. The next phase needs an explicit Start.
+  state.deadline = null;
+  state.running = false;
+  state.awaitingStart = true;
   const title = completedTask ? 'Task complete' : `${PHASE_NAMES[previousPhase]} finished`;
   let message = completedTask
     ? `“${completedTask.title}” completed (${completedTask.target}/${completedTask.target} pomodoros). ${upcoming ? `Moving on to “${upcoming.title}”.` : 'All tasks are complete. You can continue with free study.'} `
     : previousPhase === 'study' ? `Pomodoro ${state.completedInCycle} of 4 complete. ` : '';
-  message += `${PHASE_NAMES[state.phase]} started: ${state.settings[state.phase]} minutes.`;
-  if (state.phase === 'study' && upcoming) message += ` Current task: ${upcoming.title}.`;
+  message += `${PHASE_NAMES[state.phase]} is ready: ${state.settings[state.phase]} minutes. Start when you’re ready.`;
+  if (state.phase === 'study' && upcoming) message += ` Next task: ${upcoming.title}.`;
   state.lastNotice = {id:`${now}-${state.totalPomodoros}-${state.phase}`, title, message, at:now};
   return state.lastNotice;
 }

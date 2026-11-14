@@ -4,20 +4,28 @@ import {addTask, advanceTimer, createState, currentTask, durationMs, nextTask, p
   remainingMs, removeTask, resetTimer, restoreState, setSettings, startTimer,
   selectPhase, validateSettings} from '../js/pomodoro-core.js';
 
+// Simulate the user's explicit Start for every new phase in cycle tests.
+function finishPhase(state) {
+  startTimer(state, 0);
+  return advanceTimer(state, state.deadline);
+}
+
 test('default cycle follows 25/5/25/5/25/5/25/15 and repeats', () => {
   const state = createState();
   const seen = [];
   startTimer(state, 0);
   for (let i = 0; i < 16; i++) {
     seen.push([state.phase, state.intervalMs / 60000]);
-    assert.ok(advanceTimer(state, state.deadline));
+    assert.ok(finishPhase(state));
+    assert.equal(state.running, false);
+    assert.equal(state.awaitingStart, true);
   }
   const cycle = [['study',25],['short',5],['study',25],['short',5],['study',25],['short',5],['study',25],['long',15]];
   assert.deepEqual(seen, [...cycle,...cycle]);
   assert.equal(state.totalPomodoros, 8);
   assert.equal(state.completedInCycle, 0);
   assert.equal(state.phase, 'study');
-  assert.equal(state.running, true);
+  assert.equal(state.running, false);
 });
 
 test('only completed study intervals count toward tasks and advancement needs no confirmation', () => {
@@ -25,36 +33,36 @@ test('only completed study intervals count toward tasks and advancement needs no
   addTask(state, {id:'assignment', title:'Do assignment', target:2});
   addTask(state, {id:'reading', title:'Read a chapter', target:1});
   startTimer(state, 0);
-  advanceTimer(state, state.deadline);
+  finishPhase(state);
   assert.equal(state.tasks[0].completed, 1);
   assert.equal(state.tasks[1].completed, 0);
   assert.equal(state.phase, 'short');
-  advanceTimer(state, state.deadline);
+  finishPhase(state);
   assert.equal(state.tasks[0].completed, 1);
-  assert.equal(state.assignedTaskId, 'assignment');
-  const event = advanceTimer(state, state.deadline);
+  assert.equal(state.assignedTaskId, null);
+  const event = finishPhase(state);
   assert.equal(state.tasks[0].completed, 2);
   assert.equal(nextTask(state).id, 'reading');
   assert.equal(event.title, 'Task complete');
   assert.match(event.message, /Do assignment.*2\/2.*Moving on to.*Read a chapter/);
-  assert.equal(state.running, true);
-  advanceTimer(state, state.deadline);
-  assert.equal(state.assignedTaskId, 'reading');
-  const final = advanceTimer(state, state.deadline);
+  assert.equal(state.running, false);
+  finishPhase(state);
+  assert.equal(state.assignedTaskId, null);
+  const final = finishPhase(state);
   assert.match(final.message, /All tasks are complete/);
   assert.equal(nextTask(state), null);
-  assert.equal(state.running, true);
+  assert.equal(state.running, false);
 });
 
 test('task targets cross cycle boundaries without being reset', () => {
   const state = createState();
   addTask(state, {id:'long', title:'Long assignment', target:5});
   startTimer(state, 0);
-  for (let i = 0; i < 8; i++) advanceTimer(state, state.deadline);
+  for (let i = 0; i < 8; i++) finishPhase(state);
   assert.equal(state.tasks[0].completed, 4);
   assert.equal(state.completedInCycle, 0);
-  assert.equal(state.assignedTaskId, 'long');
-  advanceTimer(state, state.deadline);
+  assert.equal(state.assignedTaskId, null);
+  finishPhase(state);
   assert.equal(state.tasks[0].completed, 5);
   assert.equal(nextTask(state), null);
 });
@@ -108,8 +116,49 @@ test('late browser wake-up credits one actual interval, not fabricated overnight
   assert.equal(event.title, 'Study finished');
   assert.equal(state.totalPomodoros, 1);
   assert.equal(state.phase, 'short');
-  assert.equal(state.deadline, now + 5 * 60000);
+  assert.equal(state.deadline, null);
+  assert.equal(state.remainingMs, 5 * 60000);
+  assert.equal(state.awaitingStart, true);
   assert.equal(advanceTimer(state, now), null);
+});
+
+test('every phase waits indefinitely for Start, including after refresh, without extra credit', () => {
+  for (const phase of ['study','short','long']) {
+    const state = createState();
+    if (phase !== 'study') selectPhase(state, phase);
+    addTask(state, {id:'task',title:'Review',target:2});
+    startTimer(state, 0);
+    advanceTimer(state, state.deadline);
+    const saved = restoreState(JSON.parse(JSON.stringify(state)));
+    assert.equal(saved.awaitingStart, true);
+    assert.equal(saved.running, false);
+    assert.equal(saved.deadline, null);
+    const before = JSON.stringify(saved);
+    assert.equal(advanceTimer(saved, 999999999), null);
+    assert.equal(JSON.stringify(saved), before);
+    assert.equal(saved.totalPomodoros, phase === 'study' ? 1 : 0);
+    startTimer(saved, 1000000000);
+    assert.equal(saved.awaitingStart, false);
+    assert.equal(saved.running, true);
+    assert.equal(saved.deadline, 1000000000 + saved.intervalMs);
+    pauseTimer(saved, 1000000100);
+    assert.equal(saved.remainingMs, saved.intervalMs - 100);
+    assert.equal(saved.awaitingStart, false);
+  }
+});
+
+test('waiting keeps its prompt through settings changes, reset clears it, and older saves still restore', () => {
+  const state = createState();
+  startTimer(state,0);
+  advanceTimer(state,state.deadline);
+  setSettings(state,{study:20,short:7,long:12});
+  assert.equal(state.awaitingStart,true);
+  assert.equal(state.remainingMs,420000);
+  resetTimer(state);
+  assert.equal(state.awaitingStart,false);
+  const legacy = {...state};
+  delete legacy.awaitingStart;
+  assert.deepEqual(restoreState(legacy),state);
 });
 
 test('settings changes preserve active/partially paused intervals and apply on reset', () => {
@@ -138,9 +187,11 @@ test('tasks added during free study start next study rather than receiving retro
   const state = createState();
   startTimer(state, 0);
   addTask(state, {id:'new', title:'New task', target:2});
-  advanceTimer(state, state.deadline);
+  finishPhase(state);
   assert.equal(state.tasks[0].completed, 0);
-  advanceTimer(state, state.deadline);
+  finishPhase(state);
+  assert.equal(state.assignedTaskId, null);
+  startTimer(state, 0);
   assert.equal(state.assignedTaskId, 'new');
   assert.equal(currentTask(state).id, 'new');
 });

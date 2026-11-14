@@ -2,7 +2,8 @@ import {api} from './api.js';
 import {app, busy, escape, mount, notice, plural} from './ui.js';
 import {icon} from './icons.js';
 
-const swatch = id => ['lilac','peach','mint','blue'][Number(id) % 4];
+import {deckTile} from './deck-view.js';
+import {chooseStudy} from './study-options.js';
 
 export async function dashboard(route) {
   const [stats, activity, recent] = await Promise.all([api('/dashboard'),api('/dashboard/activity'),api('/decks')]);
@@ -13,12 +14,13 @@ export async function dashboard(route) {
     const key = day.toISOString().slice(0,10);
     return `<div class="week-day ${activity.active_days.includes(key) ? 'studied' : ''}"><span>${day.toLocaleDateString('en',{weekday:'narrow',timeZone:'UTC'})}</span><span class="day-dot" aria-label="${key}: ${activity.active_days.includes(key) ? 'studied' : 'no study recorded'}">${activity.active_days.includes(key) ? '✓' : '·'}</span></div>`;
   }).join('');
-  if (!mount(`<div class="page-heading"><div><p class="eyebrow">Your study space</p><h1>Home</h1></div></div>
-    <section class="home-welcome"><div><h2>What will you<br>learn today?</h2><p>Pick up a card, find your rhythm,<br>and take it one small step at a time.</p><div class="actions"><a class="button" href="#decks">Open flashcards ${icon('arrow')}</a><a class="text-link" href="#pomodoro">Start focusing</a></div></div><div class="welcome-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-card art-back"></div><div class="art-card art-front"><span>Q</span><i></i><i></i><i></i></div></div></section>
+  if (!mount(`<div class="page-heading"><div><h1>Home</h1></div></div>
+    <section class="home-welcome"><div><h2>What will you<br>learn today?</h2><p>Pick up a card and take it<br>one small step at a time.</p><div class="actions"><a class="button" href="#decks">Open flashcards ${icon('arrow')}</a><a class="text-link" href="#pomodoro">Start focusing</a></div></div><div class="welcome-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-card art-back"></div><div class="art-card art-front"><span>Q</span><i></i><i></i><i></i></div></div></section>
     <section class="recent-section"><div class="section-heading"><div><h2>Your latest decks</h2><p class="muted">Your most recently created decks.</p></div><div class="carousel-controls"><button type="button" id="recent-prev" class="icon-button secondary" aria-label="Previous decks">←</button><button type="button" id="recent-next" class="icon-button secondary" aria-label="Next decks">→</button></div></div>
-    ${recent.length ? `<div class="recent-track" id="recent-track" tabindex="0" aria-label="Latest decks, newest first">${recent.slice(0,12).map(deck => `<article class="recent-card ${swatch(deck.id)}"><div class="recent-card-top">${icon('cards')}<span>${plural(deck.card_count,'flashcard')}</span></div><h3 class="recent-question">${escape(deck.title)}</h3><a class="recent-card-link" href="#deck/${deck.id}">Open deck ${icon('arrow')}</a></article>`).join('')}</div>` : '<div class="empty"><div class="empty-icon">'+icon('cards')+'</div><h3>Your first deck starts here.</h3><p class="muted">Create a deck and add something you want to remember.</p><a class="button secondary" href="#decks">Create a deck</a></div>'}</section>
+    ${recent.length ? `<div class="recent-track" id="recent-track" tabindex="0" aria-label="Latest decks, newest first">${recent.slice(0,12).map(deckTile).join('')}</div>` : '<div class="empty"><div class="empty-icon">'+icon('cards')+'</div><h3>Your first deck starts here.</h3><p class="muted">Create a deck and add something you want to remember.</p><a class="button secondary" href="#decks">Create a deck</a></div>'}</section>
     <div class="home-lower"><section class="panel streak-panel"><div class="section-heading"><h2>Your study rhythm</h2></div><div class="streak-number">${activity.study_streak}<span> day${activity.study_streak === 1 ? '' : 's'} in a row</span></div><p class="muted">${activity.active_today ? 'You made time to learn today. Keep it going!' : 'A flashcard review or finished pomodoro keeps your streak going.'}</p><div class="study-week">${days}</div><div class="home-counts"><span><strong>${stats.deck_count}</strong> decks</span><span><strong>${stats.card_count}</strong> flashcards</span></div></section>
       <section class="panel friends-panel"><div class="section-heading"><h2>Your study circle</h2><span class="badge">Coming soon</span></div><div class="friend-tabs" aria-label="Friend presence"><button type="button" id="friends-online" aria-pressed="true">Online <span>0</span></button><button type="button" id="friends-offline" aria-pressed="false">Offline <span>0</span></button></div><div class="friends-empty"><div class="empty-icon">${icon('friends')}</div><h3 id="friends-message">No friends online yet.</h3><p class="muted">A little room for learning together.<br>Your friends will appear here once connected.</p></div></section></div>`, route)) return;
+  app.querySelectorAll('[data-study]').forEach(button => button.addEventListener('click', () => busy(button.parentElement, () => startStudy(button.dataset.study))));
   const track = app.querySelector('#recent-track');
   const prev = app.querySelector('#recent-prev'), next = app.querySelector('#recent-next');
   const update = () => { prev.disabled = !track || track.scrollLeft <= 1; next.disabled = !track || track.scrollLeft + track.clientWidth >= track.scrollWidth - 2; };
@@ -34,11 +36,11 @@ export async function dashboard(route) {
 export async function decks(route) {
   const items = await api('/decks');
   items.sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id-a.id);
-  if (!mount(`<div class="page-heading"><div><p class="eyebrow">A place for every subject</p><h1>Your flashcards</h1></div><span class="deck-total">${plural(items.length,'deck')}</span></div>
+  if (!mount(`<div class="page-heading"><div><h1>Your Decks</h1></div><span class="deck-total">${plural(items.length,'deck')}</span></div>
     <div class="deck-tools"><form id="deck-search" class="new-deck-form" role="search"><div><label for="deck-search-input">Search decks</label><input id="deck-search-input" type="search" placeholder="Search your decks…" autocomplete="off"></div><button type="submit" class="secondary">Search</button></form><button id="open-create-deck" type="button">${icon('plus')} Create Deck</button></div>
     <dialog id="create-deck-dialog" class="create-deck-dialog"><form id="new-deck"><h2>Create a deck</h2><label for="deck-title">Deck title</label><input id="deck-title" name="title" required maxlength="120" autocomplete="off"><div class="actions"><button id="cancel-create-deck" type="button" class="secondary">Cancel</button><button type="submit">Create Deck</button></div></form></dialog>
     <p id="deck-search-empty" class="empty" hidden>No decks match your search.</p>
-    ${items.length ? `<div class="deck-grid">${items.map(deck => `<article class="deck-card portrait-deck ${swatch(deck.id)}"><a class="deck-cover" href="#deck/${deck.id}" aria-label="Open ${escape(deck.title)}"><span class="deck-cover-icon">${icon('cards')}</span><span class="deck-cover-lines" aria-hidden="true"></span><span class="deck-cover-label">MADE TO REMEMBER</span></a><div class="deck-card-body"><h2><a href="#deck/${deck.id}">${escape(deck.title)}</a></h2><p class="muted">${plural(deck.card_count,'flashcard')}</p><div class="actions"><a class="button secondary small" href="#deck/${deck.id}">Open deck</a><button class="small" data-study="${deck.id}" ${deck.card_count ? '' : 'disabled'}>Study ${icon('arrow')}</button></div></div></article>`).join('')}</div>` : '<div class="empty"><h2>Something worth remembering?</h2><p class="muted">Create your first deck, then add your questions and answers.</p></div>'}`,route)) return;
+    ${items.length ? `<div class="deck-grid">${items.map(deckTile).join('')}</div>` : '<div class="empty"><h2>Something worth remembering?</h2><p class="muted">Create your first deck, then add your questions and answers.</p></div>'}`,route)) return;
   const dialog = app.querySelector('#create-deck-dialog');
   app.querySelector('#open-create-deck').addEventListener('click', () => dialog.showModal());
   app.querySelector('#cancel-create-deck').addEventListener('click', () => dialog.close());
@@ -61,6 +63,5 @@ export async function decks(route) {
 }
 
 export async function startStudy(deckId) {
-  const session = await api(`/decks/${deckId}/study`,{method:'POST'});
-  location.hash=`#study/${session.id}`;
+  await chooseStudy(deckId);
 }

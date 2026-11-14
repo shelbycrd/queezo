@@ -1,7 +1,7 @@
 import {api} from './api.js';
 import {startStudy} from './decks.js';
 import {app, busy, date, duration, escape, mount, notice, plural} from './ui.js';
-import {insertList, MAX_IMAGE_BYTES, renderCardContent, safeImageUrl} from './card-content.js';
+import {MAX_IMAGE_BYTES, renderCardContent, safeImageUrl} from './card-content.js';
 import {playPageTurn, preparePageSound} from './audio.js';
 
 export const deckPage = (deckId, route) => deckWorkspace(deckId, null, route);
@@ -9,7 +9,7 @@ export const cardForm = (deckId, cardId, route) => deckWorkspace(deckId, cardId,
 
 function editorSide(side, title, placeholder, text) {
   return `<section class="editor-side"><label for="${side}">${title}</label><textarea id="${side}" name="${side}" required maxlength="10000" placeholder="${placeholder}">${escape(text)}</textarea>
-    <div class="editor-toolbar"><label class="photo-picker" for="${side}-photo">＋ Photo<input class="sr-only" type="file" id="${side}-photo" accept="image/png,image/jpeg,image/webp" aria-label="Add photo to ${title.toLowerCase()}"></label><button class="secondary small" type="button" data-list="${side}">• Bullets</button><button class="secondary small" type="button" data-list="${side}" data-ordered="true">1. List</button></div>
+    <div class="editor-toolbar"><label class="photo-picker" for="${side}-photo">＋ Photo<input class="sr-only" type="file" id="${side}-photo" accept="image/png,image/jpeg,image/webp" aria-label="Add photo to ${title.toLowerCase()}"></label></div>
     <div id="${side}-image-preview" class="image-preview" hidden></div></section>`;
 }
 
@@ -39,8 +39,8 @@ async function deckWorkspace(deckId, cardId, route) {
     <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>${escape(deck.title)}</h1><p class="muted"><span data-card-count>${cards.length}</span> / 150 cards</p></div><div class="actions"><button id="rename" class="secondary small">Rename</button><button id="delete-deck" class="danger small">Delete deck</button></div></div>
     <form id="card-form" class="card-composer panel" novalidate><fieldset class="editor-fields"><legend class="sr-only">${editing ? 'Edit flashcard' : 'Create a flashcard'}</legend><div class="composer-heading"><h2>${editing ? 'Edit this card' : 'Make something memorable'}</h2><span class="badge">Question + answer</span></div>
       <div class="editor-sides">${editorSide('front','Question','What do you want to remember?', editing?.front || '')}${editorSide('back','Answer','Write the answer here…', editing?.back || '')}</div>
-      <p class="hint">Both sides need text. Photos and lists can help bring an idea into focus.</p><div class="composer-actions"><span id="card-count" class="muted"><span data-card-count>${cards.length}</span> cards saved</span><div class="actions">${editing ? `<a href="#deck/${deckId}" class="button secondary">Cancel edit</a>` : ''}<button type="submit" id="next-card" data-intent="save">${editing ? 'Save changes' : 'Next Card →'}</button><button type="submit" id="study-deck" data-intent="study" class="secondary">Study deck</button></div></div></fieldset></form>
-    <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>${cards.length}</span>)</span></h2><span class="muted">Most recent first</span></div><div id="saved-cards" class="card-list"></div>
+      <p class="hint">Both sides need text. Add a photo to either side if you need one.</p><div class="composer-actions"><span id="card-count" class="muted"><span data-card-count>${cards.length}</span> cards saved</span><div class="actions">${editing ? `<a href="#deck/${deckId}" class="button secondary">Cancel edit</a>` : ''}<button type="submit" id="next-card" data-intent="save">${editing ? 'Save changes' : 'Next Card →'}</button><button type="submit" id="study-deck" data-intent="study" class="secondary">Study deck</button></div></div></fieldset></form>
+    <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>${cards.length}</span>)</span></h2><label class="sr-only" for="card-order">Card order</label><select id="card-order" class="card-order"><option value="desc">Most recent first</option><option value="asc">Least recent first</option></select></div><div id="saved-cards" class="card-list"></div>
     <details class="session-history"><summary>Recent study sessions <span class="muted">(${sessions.length})</span></summary>${sessions.length ? `<div class="panel"><ul class="history-list">${sessions.map(session => `<li><div><p>${escape(date(session.started_at))} · <strong>${escape(session.status)}</strong></p><p class="muted">${plural(session.total_reviews,'review')} · ${session.total_unique_cards} cards studied · ${duration(session.duration_seconds)}</p></div><a class="button secondary small" href="#${session.status === 'active' ? 'study' : 'summary'}/${session.session_id}">${session.status === 'active' ? 'Resume' : 'Summary'}</a></li>`).join('')}</ul></div>` : '<p class="muted">Your sessions will appear here.</p>'}</details></div>`, route)) return;
 
   const form = app.querySelector('#card-form');
@@ -48,6 +48,7 @@ async function deckWorkspace(deckId, cardId, route) {
   const savedCards = app.querySelector('#saved-cards');
   const images = {front:editing?.front_image || null, back:editing?.back_image || null};
   const revisions = {front:0, back:0};
+  let newestFirst = true;
   let pending = false;
   let photosPending = 0;
 
@@ -61,7 +62,7 @@ async function deckWorkspace(deckId, cardId, route) {
     }
   }
   function renderSaved() {
-    savedCards.innerHTML = cards.length ? [...cards].reverse().map((card, index) => `<article class="saved-card ${card.id === editing?.id ? 'is-editing' : ''}"><div class="saved-card-heading"><span class="badge">Card ${cards.length - index}</span><div class="actions"><a class="button secondary small" href="#deck/${deckId}/edit/${card.id}">Edit</a><button type="button" class="danger small" data-delete="${card.id}">Delete</button></div></div><div class="saved-card-sides"><div class="saved-side"><span class="content-label">Question</span>${renderCardContent(card.front, card.front_image, 'Question photo')}</div><div class="saved-side answer"><span class="content-label">Answer</span>${renderCardContent(card.back, card.back_image, 'Answer photo')}</div></div></article>`).join('') : '<div class="empty"><h2>Your first card starts above.</h2><p class="muted">Write a question and its answer, then choose Next Card.</p></div>';
+    savedCards.innerHTML = cards.length ? [...cards].sort((a,b) => (newestFirst ? -1 : 1) * (a.id-b.id)).map((card, index) => `<article class="saved-card ${card.id === editing?.id ? 'is-editing' : ''}"><div class="saved-card-heading"><span class="badge">Card ${cards.indexOf(card) + 1}</span><div class="actions"><a class="button secondary small" href="#deck/${deckId}/edit/${card.id}">Edit</a><button type="button" class="danger small" data-delete="${card.id}">Delete</button></div></div><div class="saved-card-sides"><div class="saved-side"><span class="content-label">Question</span>${renderCardContent(card.front, card.front_image, 'Question photo')}</div><div class="saved-side answer"><span class="content-label">Answer</span>${renderCardContent(card.back, card.back_image, 'Answer photo')}</div></div></article>`).join('') : '<div class="empty"><h2>Your first card starts above.</h2><p class="muted">Write a question and its answer, then choose Next Card.</p></div>';
     updateCount();
   }
   function renderPhoto(side) {
@@ -92,13 +93,7 @@ async function deckWorkspace(deckId, cardId, route) {
       const side = remove.dataset.removeImage;
       revisions[side]++; images[side] = null; renderPhoto(side);
     }
-    const list = event.target.closest('[data-list]');
-    if (list && !pending) {
-      const textarea = form.elements[list.dataset.list];
-      if (textarea.disabled) return;
-      const result = insertList(textarea.value, textarea.selectionStart, textarea.selectionEnd, list.dataset.ordered === 'true');
-      textarea.value = result.value; textarea.focus(); textarea.setSelectionRange(result.start, result.end);
-    }
+
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -152,6 +147,7 @@ async function deckWorkspace(deckId, cardId, route) {
       cards = cards.filter(card => card.id !== Number(button.dataset.delete)); renderSaved();
     });
   });
+  app.querySelector('#card-order').addEventListener('change', event => { newestFirst = event.target.value === 'desc'; renderSaved(); });
   renderSaved();
   if (route.endsWith('/add') || editing) form.elements.front.focus();
 }

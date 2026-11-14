@@ -1,7 +1,7 @@
 import {app, escape, mount} from './ui.js';
 import {api} from './api.js';
 import {addTask, advanceTimer, createState, currentTask, nextTask, pauseTimer, PHASE_NAMES,
-  remainingMs, removeTask, resetTimer, restoreState, selectPhase, setSettings, startTimer} from './pomodoro-core.js';
+  remainingMs, removeTask, resetTimer, restoreState, setSettings, startTimer} from './pomodoro-core.js';
 
 const STORAGE_PREFIX = 'queezo.pomodoro.v1.user.';
 let storageKey = null;
@@ -68,7 +68,7 @@ async function notify(event, generation) {
   } catch { /* The in-app alert is always available if system alerts fail. */ }
 }
 
-function transact(action = () => {}) {
+function transact(action = () => {}, {skipOnCompletion = false} = {}) {
   const generation = accountGeneration;
   const key = storageKey;
   const operation = async () => {
@@ -78,7 +78,7 @@ function transact(action = () => {}) {
       const previousPomodoros = state.totalPomodoros;
       const event = advanceTimer(state);
       let failure;
-      try { action(state); } catch (error) { failure = error; }
+      try { if (!event || !skipOnCompletion) action(state); } catch (error) { failure = error; }
       // Commit a completed interval even if the following user action is invalid.
       save(); renderPage(); updateClock();
       if (event && state.totalPomodoros > previousPomodoros && generation === accountGeneration && storageKey === key) {
@@ -164,15 +164,15 @@ export function stopPomodoroView() { renderPage = () => {}; }
 
 export function pomodoroPage(route) {
   if (!storageKey) return;
-  if (!mount(`<div class="page-heading"><div><p class="eyebrow">Find your rhythm</p><h1>Pomodoro</h1></div></div>
+  if (!mount(`<div class="page-heading"><div><h1>Pomodoro</h1></div></div>
     <div class="pomodoro-layout pomodoro-focus-layout"><div class="pomodoro-main"><section class="panel timer-panel pomodoro-focus-timer" aria-label="Pomodoro timer">
-      <div class="pomodoro-modes" aria-label="Timer intervals"><button type="button" class="pomodoro-mode" data-pomodoro-mode="study" aria-pressed="false">Study</button><button type="button" class="pomodoro-mode" data-pomodoro-mode="short" aria-pressed="false">Short break</button><button type="button" class="pomodoro-mode" data-pomodoro-mode="long" aria-pressed="false">Long break</button></div>
+      <div class="pomodoro-modes" aria-label="Timer intervals"><span class="pomodoro-mode" data-pomodoro-mode="study">Study</span><span class="pomodoro-mode" data-pomodoro-mode="short">Short break</span><span class="pomodoro-mode" data-pomodoro-mode="long">Long break</span></div>
       <div class="timer-top"><span id="pomodoro-phase" class="sr-only"></span><span id="pomodoro-state" class="muted"></span></div>
       <div id="pomodoro-time" class="pomodoro-time" role="timer" aria-label="Time remaining" aria-live="off">25:00</div>
       <progress id="pomodoro-progress" aria-label="Current timer progress" max="1500000" value="0"></progress>
       <p id="pomodoro-current" class="pomodoro-current"></p><div class="timer-actions"><button id="pomodoro-toggle" type="button">Start</button><button id="pomodoro-reset" type="button" class="secondary">Reset timer</button></div>
       <div class="cycle-info"><span id="pomodoro-cycle"></span><span id="pomodoro-total" class="muted"></span></div><div id="pomodoro-dots" class="pomodoro-dots" aria-label="Study sessions completed this cycle"></div>
-      <p class="hint">Four study sessions, then a long break. The cycle continues automatically.</p>
+      <p class="hint">Four study sessions, then a long break. Start each next phase when you’re ready.</p>
     </section>
     <details class="panel pomodoro-settings"><summary>Timer settings <span class="muted">minutes</span></summary><form id="pomodoro-settings-form"><div class="timer-settings-inputs">
       <div><label for="study-minutes">Study timer</label><input id="study-minutes" name="study" type="number" min="0.01" max="180" step="0.01" required value="${state.settings.study}"></div>
@@ -201,28 +201,27 @@ export function pomodoroPage(route) {
     app.querySelectorAll('[data-pomodoro-mode]').forEach(mode => {
       const active = mode.dataset.pomodoroMode === state.phase;
       mode.classList.toggle('active', active);
-      mode.setAttribute('aria-pressed', String(active));
       if (active) mode.setAttribute('aria-current', 'true');
       else mode.removeAttribute('aria-current');
     });
-    app.querySelector('#pomodoro-state').textContent = state.running ? 'Running' : state.remainingMs < state.intervalMs ? 'Paused' : 'Ready';
-    toggle.textContent = state.running ? 'Pause' : state.remainingMs < state.intervalMs ? 'Resume' : 'Start';
+    app.querySelector('#pomodoro-state').textContent = state.running ? 'Running' : state.awaitingStart ? 'Ready for the next phase' : state.remainingMs < state.intervalMs ? 'Paused' : 'Ready';
+    toggle.textContent = state.running ? 'Pause' : state.awaitingStart ? `Start ${PHASE_NAMES[state.phase].toLowerCase()}` : state.remainingMs < state.intervalMs ? 'Resume' : 'Start';
     const task = state.phase === 'study' ? currentTask(state) : nextTask(state);
     const assigned = state.assignedTaskId && state.phase === 'study';
     app.querySelector('#pomodoro-current').textContent = task
-      ? `${state.phase !== 'study' || (state.running && !assigned) ? 'Up next' : 'Current task'}: ${task.title}`
+      ? `${state.awaitingStart || state.phase !== 'study' || (state.running && !assigned) ? 'Up next' : 'Current task'}: ${task.title}`
       : 'Free study · add a task whenever you need one';
     app.querySelector('#pomodoro-progress').max = state.intervalMs;
     app.querySelector('#pomodoro-cycle').textContent = `${state.completedInCycle} of 4 study sessions complete`;
     app.querySelector('#pomodoro-total').textContent = `${state.totalPomodoros} total`;
     app.querySelector('#pomodoro-dots').innerHTML = [1,2,3,4].map(number => `<span class="pomodoro-dot ${number <= state.completedInCycle ? 'complete' : ''}">${number}</span>`).join('');
-    const fingerprint = JSON.stringify([state.tasks, state.assignedTaskId, state.running, state.phase]);
+    const fingerprint = JSON.stringify([state.tasks, state.assignedTaskId, state.running, state.phase, state.awaitingStart]);
     if (fingerprint !== renderedTasks) {
       renderedTasks = fingerprint;
       taskList.innerHTML = state.tasks.length ? `<ol class="task-queue">${state.tasks.map(item => {
         const done = item.completed === item.target;
         const active = !done && task?.id === item.id;
-        return `<li class="queued-task ${done ? 'task-done' : active ? 'task-active' : ''}"><div class="task-heading"><h3>${escape(item.title)}</h3><span class="badge">${done ? 'Done' : active ? state.phase === 'study' ? 'Current' : 'Next' : 'Queued'}</span></div><div class="task-progress-label"><span>${item.completed} / ${item.target} pomodoros</span><button type="button" class="remove-course" data-remove-task="${escape(item.id)}" ${state.assignedTaskId === item.id ? 'disabled title="Reset the study timer to remove this task"' : ''} aria-label="Remove task: ${escape(item.title)}">Remove</button></div><progress max="${item.target}" value="${item.completed}" aria-label="Progress for ${escape(item.title)}"></progress></li>`;
+        return `<li class="queued-task ${done ? 'task-done' : active ? 'task-active' : ''}"><div class="task-heading"><h3>${escape(item.title)}</h3><span class="badge">${done ? 'Done' : active ? state.phase === 'study' && !state.awaitingStart ? 'Current' : 'Next' : 'Queued'}</span></div><div class="task-progress-label"><span>${item.completed} / ${item.target} pomodoros</span><button type="button" class="remove-course" data-remove-task="${escape(item.id)}" ${state.assignedTaskId === item.id ? 'disabled title="Reset the study timer to remove this task"' : ''} aria-label="Remove task: ${escape(item.title)}">Remove</button></div><progress max="${item.target}" value="${item.completed}" aria-label="Progress for ${escape(item.title)}"></progress></li>`;
       }).join('')}</ol>` : '<div class="task-empty"><p>No tasks queued yet.</p><p class="hint">Add a task above or start a free study session.</p></div>';
     }
     app.querySelector('#pomodoro-task-count').textContent = `${state.tasks.filter(item => item.completed < item.target).length} remaining`;
@@ -238,16 +237,12 @@ export function pomodoroPage(route) {
     updateClock();
   }
 
-  async function act(action) {
+  async function act(action, options) {
     error.hidden = true;
-    try { await transact(action); }
+    try { await transact(action, options); }
     catch (failure) { if (error.isConnected) { error.textContent = failure.message; error.hidden = false; } }
   }
-  app.querySelectorAll('[data-pomodoro-mode]').forEach(button => button.addEventListener('click', () => act(value => {
-    selectPhase(value, button.dataset.pomodoroMode);
-    document.querySelector('#pomodoro-alert').hidden = true;
-  })));
-  toggle.addEventListener('click', () => act(value => value.running ? pauseTimer(value) : startTimer(value)));
+  toggle.addEventListener('click', () => act(value => value.running ? pauseTimer(value) : startTimer(value), {skipOnCompletion:true}));
   app.querySelector('#pomodoro-reset').addEventListener('click', () => act(resetTimer));
   settingsForm.addEventListener('submit', async event => {
     event.preventDefault();

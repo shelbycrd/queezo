@@ -1,7 +1,15 @@
 let context;
+const SOUND_KEY = 'queezo.button-sounds';
+export function soundsEnabled() {
+  try { return localStorage.getItem(SOUND_KEY) !== 'off'; } catch { return true; }
+}
+export function setSoundsEnabled(enabled) {
+  try { localStorage.setItem(SOUND_KEY, enabled ? 'on' : 'off'); } catch { /* Keep the page usable without storage. */ }
+}
 
 // Create/resume during a user gesture; playback happens only after saving succeeds.
 export function preparePageSound() {
+  if (!soundsEnabled()) return;
   try {
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) return;
@@ -11,7 +19,7 @@ export function preparePageSound() {
 }
 
 export function playPageTurn() {
-  if (!context || context.state !== 'running') return;
+  if (!soundsEnabled() || !context || context.state !== 'running') return;
   try {
     const duration = 0.16;
     const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
@@ -29,4 +37,13 @@ export function playPageTurn() {
     source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
     source.start();
   } catch { /* The visual workflow remains available on muted/unsupported browsers. */ }
+}
+
+export function initButtonFeedback() {
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button,.button,.photo-picker');
+    if (!button || button.disabled) return;
+    button.classList.add('is-pressed');
+    setTimeout(() => button.classList.remove('is-pressed'), 130);
+  }, {capture:true});
 }

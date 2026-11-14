@@ -6,6 +6,10 @@ import {gwaPage} from './gwa.js';
 import {initPomodoro, pomodoroPage, setPomodoroUser, stopPomodoroView} from './pomodoro.js';
 import {authenticatedUser} from './auth-state.js';
 import {initAuth, loginPage, restoreSession} from './auth.js';
+import {initButtonFeedback} from './audio.js';
+import {accountPage, initAccountMenu} from './account-pages.js';
+import {initCommunicationPanels, resetCommunicationPanels} from './chat-preview.js';
+import {closeStudyOptions} from './study-options.js';
 
 let authReady = false;
 
@@ -34,6 +38,7 @@ async function navigate() {
     else if (parts[0] === 'decks') await decks(route);
     else if (parts[0] === 'gwa') gwaPage(route);
     else if (parts[0] === 'pomodoro') pomodoroPage(route);
+    else if (['profile','help','settings'].includes(parts[0])) accountPage(parts[0], route);
     else if (parts[0] === 'notes') { location.replace('#gwa'); return; }
     else if (parts[0] === 'deck' && /^\d+$/.test(parts[1])) {
       if (parts[2] === 'add') await cardForm(parts[1], null, route);
@@ -50,8 +55,13 @@ async function navigate() {
   app.focus({preventScroll:true});
 }
 
+initButtonFeedback();
+initAccountMenu();
+initCommunicationPanels();
 initPomodoro();
 initAuth((previous, user) => {
+  resetCommunicationPanels();
+  closeStudyOptions();
   stopStudyListeners();
   stopPomodoroView();
   app.innerHTML = '';
