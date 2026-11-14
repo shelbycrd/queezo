@@ -1,0 +1,44 @@
+# Local environment configuration; commit only sanitized examples.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python environments, caches, and test output.
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+.coverage
+.coverage.*
+htmlcov/
+
+# Private application data and database backups.
+data/
+backups/
+/outputs/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.sql
+*.bak
+
+# Dependencies, runtime logs, and machine-generated files.
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local credentials and private keys.
+/secrets/
+*.key
+*.pem
+*.p12
+*.pfx
