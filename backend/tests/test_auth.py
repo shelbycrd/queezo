@@ -61,9 +61,10 @@ def test_argon2id_password_hash_and_minimum_length(anonymous_client):
         assert PASSWORD not in saved.password_hash
         assert verify_password(saved.password_hash, PASSWORD) is True
         assert verify_password(saved.password_hash, 'incorrect-password-42!') is False
-    for password in ['', 'x' * 11]:
+    for password in ['', 'x' * 10]:
         with pytest.raises(ValueError):
             validate_password(password)
+    validate_password('x' * 11)
     validate_password('x' * 12)
 
 

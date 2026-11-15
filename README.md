@@ -10,13 +10,15 @@ The lightweight frontend prototype provides Home, two-sided Flashcards, a GWA Ca
 
 ## Accounts and private data
 
-Accounts are created exclusively through the secure CLI. There is no public signup or password-recovery page. After starting Docker, create your account in an interactive PowerShell terminal:
+Create an account at `http://localhost:8080/#signup`, or use the secure CLI in an interactive PowerShell terminal:
 
 ```powershell
 docker compose exec backend python -m app.cli create-user
 ```
 
-Enter a valid email and a password of at least 12 characters, then confirm it. Passwords stay hidden in the terminal. Log in at `http://localhost:8080`; the session lasts seven days and survives refreshes and backend restarts. **Log out** revokes it immediately.
+Enter a display name, unique username, unique email, and matching passwords with **more than 10 characters** (11 minimum). Display names may repeat. Usernames and emails are unique without regard to capitalization; usernames use 3–32 letters, numbers, or underscores. Each account receives a random unique UID. The signup page includes an optional red/yellow/green strength estimate; it recommends longer passwords and discourages predictable patterns without adding composition requirements. Signup signs you in automatically. CLI passwords stay hidden in the terminal. Sessions last seven days and survive refreshes and backend restarts; **Log out** revokes the current session immediately.
+
+CLI commands include `list-users`, `show-user --uid UID`, `revoke-sessions --uid UID`, and `delete-user --uid UID`. Deletion requires repeating the exact UID and permanently removes that account's owned decks and history. See [AUTH_SETUP.md](AUTH_SETUP.md) for commands and migration details. Email verification and password recovery are not implemented.
 
 Flashcards and study history are isolated by account using backend SQL ownership checks. GWA calculation also requires login and remains stateless. Existing records are preserved as unassigned legacy data; they do not automatically belong to the first account. To inspect and explicitly assign selected old decks, see [AUTH_SETUP.md](AUTH_SETUP.md). That guide also covers HTTPS production settings, cookie security, troubleshooting, and the pre-authentication backup.
 
@@ -35,24 +37,24 @@ The `backend` service runs App 1, `gwa` runs App 2, and Nginx routes both APIs t
 - GWA API documentation: `http://localhost:8080/gwa/docs`
 - Flashcards health: `GET /api/health`
 - GWA health: `GET /api/gwa/health`
-- Login / logout: `POST /api/auth/login`, `POST /api/auth/logout`
+- Signup / login / logout: `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`
 - Restore current session: `GET /api/auth/me`
 
 The first build needs internet to download images and Python dependencies.
 
-The account menu is at the top right, with Profile, Help, and Log out. Chat and notification buttons sit beside it. The chat drawer is a frontend-only local preview, with newest activity first; messages are not sent. Settings is at the bottom of the sidebar and includes a saved card page-turn sound toggle. Primary action buttons use a raised press effect; secondary Open deck, Add course, and Clear controls stay flat. Navigation and button clicks are silent.
+The account menu is at the top right, with Profile, Help, and Log out. Profile shows your display name, username, UID, and email. Chat and notification buttons sit beside it. The chat drawer is a frontend-only local preview, with newest activity first; messages are not sent. Settings is at the bottom of the sidebar and includes a saved study-sound toggle for card page turns and Pomodoro play/pause. Primary action buttons use a raised press effect; secondary Open deck, Add course, and Clear controls stay flat. Navigation and other button clicks are silent.
 
 ### Try the frontend prototype
 
 **Home** shows your latest decks in a horizontal carousel with previous/next arrows. The study streak counts days with a rated flashcard or a completed study Pomodoro, using Asia/Manila calendar days. The Friends container has Online and Offline tabs with empty states; friend connections and live presence are not implemented.
 
-Choose **Flashcards** to search your decks by title. Use the separate **Create Deck** button to name and create a new deck. Portrait deck tiles show the title and card count. Enter a required question and answer directly in the deck editor; optional photos and typed bullet/numbered lists are rendered on both sides; formatting toolbar buttons are omitted. **Next Card** saves the card, plays a short page-turn sound, and clears the editor for another card. Saved cards appear below, and **Study deck** sits beside **Next Card**. Use the card order selector for most recent first or least recent first. Study opens a mode picker: Unlimited time, or Time bounded per question (seconds) or for the whole deck (minutes). Question expiry reveals the answer for a manual rating; deck expiry ends the session. Timing is managed by the browser and survives a refresh in the same tab; it is a prototype rather than server-enforced timing. During study, **Enter** immediately reveals the answer below the question without flipping or animation. **1**, **2**, and **3** rate Hard, Normal, and Easy and advance; they also reveal first when needed. There are no multiple-choice answers.
+Choose **Flashcards** to search your decks by title. Use the separate **Create Deck** button to name and create a new deck. Portrait deck tiles show the title and card count. Enter a required question and answer directly in the deck editor; optional photos and typed bullet/numbered lists are rendered on both sides; formatting toolbar buttons are omitted. **Next Card** saves the card, plays a short page-turn sound, and clears the editor for another card. Saved cards appear below, and **Study deck** sits beside **Next Card**. Use the card order selector for most recent first or least recent first. Study opens a mode picker: Unlimited time, or Time bounded per question (seconds) or for the whole deck (minutes). Limit fields stay visible and editable with either choice; Unlimited does not apply a time limit. Question expiry reveals the answer for a manual rating; deck expiry ends the session. Timing is managed by the browser and survives a refresh in the same tab; it is a prototype rather than server-enforced timing. During study, **Enter** immediately reveals the answer below the question without flipping or animation. **1**, **2**, and **3** rate Hard, Normal, and Easy and advance; they also reveal first when needed. There are no multiple-choice answers.
 
 Choose **GWA Calculator**, enter units and grades for at least one course, and select **What's my GWA?** Subject names are optional. Valid three-digit shorthand converts immediately: `175` → `1.75`, `225` → `2.25`, and `100` → `1.00`. Enter in a valid course row moves to the next course or adds one, up to 15. **Add course** and **Remove** keep the list between 1 and 15 courses. **Clear** starts a new calculation. The summary shows your GWA, classification, course count, total units, and a 0–100 grade-scale bar. The static honor-band guide is omitted. Editing inputs hides the previous summary until you recalculate.
 
-Choose **Pomodoro** to use the large centered timer, with tasks beneath it. The Study, Short break, and Long break labels indicate the current phase; they are not buttons. Add tasks with a target number of study intervals, then select **Start**. Timer settings default to 25 / 5 / 15 minutes and can be changed under **Timer settings**. At each phase boundary the timer waits. Its main button becomes Start short break, Start long break, or Start study; pressing it begins that phase and returns the button to Pause/Resume. Task completion still advances the task queue automatically.
+Choose **Pomodoro** to use the large centered timer, with tasks beneath it. The Study, Short break, and Long break labels indicate the current phase; they are not buttons. Add tasks with a target number of study intervals, then press the central play icon. Timer settings default to 25 / 5 / 15 minutes and can be changed under **Timer settings**. The three controls are Reset timer on the left, play/pause in the middle, and Skip on the right. Running/Paused status labels are omitted. At each phase boundary the timer waits for play. Skip moves to the next phase without awarding study or task credit. Task completion still advances the task queue automatically.
 
-After source changes, rebuild with `docker compose up -d --build --wait frontend`, then refresh the browser (Ctrl+F5 if it still shows the previous version).
+After frontend-only source changes, rebuild with `docker compose up -d --build --no-deps --wait frontend`, then refresh the browser (Ctrl+F5 if it still shows the previous version). Backend/account changes require `docker compose up -d --build --wait`.
 
 For independent development, install `backend/requirements.txt` in a Python 3.12 virtual environment, then run these commands in separate terminals from `backend/`:
 

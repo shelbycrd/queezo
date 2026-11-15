@@ -1,6 +1,6 @@
 # Account setup
 
-Queezo now requires an account to use its study apps. Accounts are created only from the backend CLI. There is no public registration, password recovery, account deletion, or admin page.
+Queezo requires an account to use its study apps. Users can register on the website or an operator can create accounts through the backend CLI. Account deletion and session revocation are operator CLI commands. Email verification, password recovery, password resets, and a web admin page are not implemented.
 
 ## Start locally
 
@@ -16,17 +16,48 @@ The supplied Compose configuration is for local HTTP development at `http://loca
 
 ## Create your first account
 
-Run this in an interactive terminal:
+Open `http://localhost:8080/#signup` or choose **Create an account** on the login page. Enter:
+
+- Display name: 1–80 characters; other users may use the same name.
+- Username: 3–32 letters, numbers, or underscores; unique without regard to capitalization.
+- Email: a valid address, unique without regard to capitalization.
+- Password: more than 10 characters (**11 minimum**, at most 1,024).
+- Confirm password: must match exactly.
+
+The red/yellow/green meter gives an advisory estimate only. It recommends 12 or more characters, varied character types, and avoiding common words, sequences, repeated patterns, and personal information. It does not add composition requirements or send passwords to a strength-checking service. A long, unique password or passphrase is preferable to a predictable substitution pattern; see [OWASP authentication guidance](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html). The estimate is a reminder, not a guarantee.
+
+**Sign up** saves the account and signs the user in. Each account receives a random unique UUID shown on **Profile** and in CLI listings. No default credentials are created automatically.
+
+Alternatively, run this in an interactive terminal:
 
 ```powershell
 docker compose exec backend python -m app.cli create-user
 ```
 
-Enter your email, a password of at least **12 characters**, and the password confirmation. Password input stays invisible, including the cursor: type normally and press Enter. The CLI refuses terminals that would echo passwords. Do not add `-T`, pipe input, or supply a password as a command argument.
+Enter your email, display name, username, password of at least **11 characters**, and password confirmation. Password input stays invisible, including the cursor: type normally and press Enter. The CLI refuses terminals that would echo passwords. Do not add `-T`, pipe input, or supply a password as a command argument.
 
-Email addresses are normalized and unique regardless of capitalization. A duplicate email, invalid address, short password, or mismatched confirmation creates no account. No real account or default credentials are created automatically.
+Emails and usernames are normalized before validation, with database uniqueness guards to handle concurrent requests. Duplicate email/username, invalid fields, short passwords, and mismatched confirmation create no account. Signup requests are restricted to trusted origins and limited to 10 attempts per client IP in 15 minutes.
 
 Open `http://localhost:8080`, log in with the account you just created, and use **Log out** when finished. Login opens the dashboard; refreshing restores a valid login and keeps the current authenticated page.
+
+## Manage accounts from the CLI
+
+Run these from the project directory. Replace `UID` with an actual UID from `list-users`:
+
+```powershell
+docker compose exec backend python -m app.cli list-users
+docker compose exec backend python -m app.cli show-user --uid UID
+docker compose exec backend python -m app.cli revoke-sessions --uid UID
+docker compose exec backend python -m app.cli delete-user --uid UID
+```
+
+Listings include UID, username, display name, email, and creation time, with no password hashes or session secrets. `show-user` also reports deck and session counts. `revoke-sessions` signs that account out on all devices without deleting study content.
+
+`delete-user` prompts for the exact UID. It permanently deletes the account, its login sessions, decks, cards, study history, and server activity records. Other accounts and unassigned legacy decks are preserved. Browser-local Pomodoro files are not remotely erased. For deliberate noninteractive deletion, pass `--confirm UID` with the same UID; keep a database backup before deleting anything you might need later.
+
+Existing accounts keep their email, password, internal ID, and owned data. The additive profile migration assigns missing random UIDs, available `user_<id>` usernames, and display names based on the email prefix. Existing complete profiles are left intact. Profile and `list-users` show the assigned identities; editing these identities is not yet exposed in the website.
+
+Before the November 15 signup upgrade, a consistent backup was saved at `/data/queezo-before-signup-20261115.db`, also copied to `outputs/backups/queezo-before-signup-20261115.db`. The upgrade preserved all original columns and rows for 2 users, 7 decks, 32 cards, 21 study sessions, and 148 reviews. Backups contain private data and password hashes; keep them out of Git.
 
 ## Existing decks are preserved
 
@@ -88,7 +119,7 @@ Production requires a separately configured HTTPS reverse proxy/TLS endpoint; th
 
 ## Troubleshooting and tests
 
-- **Cannot log in:** create an account with the CLI first. Check the email/password; generic errors deliberately do not identify which was wrong.
+- **Cannot log in:** create an account on the website or with the CLI first. Check the email/password; login still uses email, and generic errors deliberately do not identify which was wrong.
 - **Secure password entry unavailable:** use ordinary interactive PowerShell and the command above without redirected input or `-T`.
 - **Login succeeds but immediately disappears:** HTTP development needs `AUTH_ENV=development` and `AUTH_COOKIE_SECURE=false`. Production requires HTTPS and Secure cookies.
 - **Origin/CSRF error:** open the exact configured hostname and port; check `.env`, restart services, and refresh the page.

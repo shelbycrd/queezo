@@ -96,6 +96,18 @@ export function selectPhase(state, phase) {
   state.lastNotice = null;
 }
 
+export function skipPhase(state) {
+  const previous = state.phase;
+  if (previous === 'study') state.phase = state.completedInCycle === 4 ? 'long' : 'short';
+  else {
+    if (previous === 'long' || state.completedInCycle === 4) state.completedInCycle = 0;
+    state.phase = 'study';
+  }
+  resetTimer(state);
+  state.awaitingStart = true;
+  state.lastNotice = null;
+}
+
 export function setSettings(state, settings) {
   const validated = validateSettings(settings);
   const untouched = !state.running && state.remainingMs === state.intervalMs;

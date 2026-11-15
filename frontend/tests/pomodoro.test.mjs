@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {addTask, advanceTimer, createState, currentTask, durationMs, nextTask, pauseTimer,
   remainingMs, removeTask, resetTimer, restoreState, setSettings, startTimer,
-  selectPhase, validateSettings} from '../js/pomodoro-core.js';
+  selectPhase, skipPhase, validateSettings} from '../js/pomodoro-core.js';
 
 // Simulate the user's explicit Start for every new phase in cycle tests.
 function finishPhase(state) {
@@ -159,6 +159,47 @@ test('waiting keeps its prompt through settings changes, reset clears it, and ol
   const legacy = {...state};
   delete legacy.awaitingStart;
   assert.deepEqual(restoreState(legacy),state);
+});
+
+test('skip moves to the next phase without crediting skipped study or binding the next task early', () => {
+  const state = createState();
+  addTask(state,{id:'task',title:'Review notes',target:2});
+  startTimer(state,0);
+  pauseTimer(state,1000);
+  skipPhase(state);
+  assert.equal(state.phase,'short');
+  assert.equal(state.running,false);
+  assert.equal(state.awaitingStart,true);
+  assert.equal(state.deadline,null);
+  assert.equal(state.remainingMs,300000);
+  assert.equal(state.assignedTaskId,null);
+  assert.equal(state.tasks[0].completed,0);
+  assert.equal(state.totalPomodoros,0);
+  assert.equal(state.completedInCycle,0);
+  assert.deepEqual(restoreState(JSON.parse(JSON.stringify(state))),state);
+  skipPhase(state);
+  assert.equal(state.phase,'study');
+  assert.equal(state.assignedTaskId,null);
+  startTimer(state,2000);
+  assert.equal(state.assignedTaskId,'task');
+  advanceTimer(state,state.deadline);
+  assert.equal(state.tasks[0].completed,1);
+  assert.equal(state.totalPomodoros,1);
+});
+
+test('skipping a long break resets the cycle while preserving all earned study credit', () => {
+  const state = createState();
+  for (let index=0;index<7;index++) finishPhase(state);
+  assert.equal(state.phase,'long');
+  assert.equal(state.completedInCycle,4);
+  startTimer(state,100);
+  skipPhase(state);
+  assert.equal(state.phase,'study');
+  assert.equal(state.completedInCycle,0);
+  assert.equal(state.totalPomodoros,4);
+  assert.equal(state.awaitingStart,true);
+  assert.equal(state.remainingMs,1500000);
+  assert.deepEqual(restoreState(state),state);
 });
 
 test('settings changes preserve active/partially paused intervals and apply on reset', () => {

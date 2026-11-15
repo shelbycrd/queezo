@@ -23,7 +23,7 @@ def cli_engine(tmp_path, monkeypatch):
 def configure_prompts(monkeypatch, email='  CLI.User@EXAMPLE.COM ', passwords=None):
     passwords = iter(passwords or ['A secure test password 2026', 'A secure test password 2026'])
     prompts = []
-    monkeypatch.setattr('builtins.input', lambda prompt: email)
+    monkeypatch.setattr('builtins.input', lambda prompt: 'cli_user' if prompt.startswith('Username') else 'CLI User' if prompt.startswith('Display') else email)
 
     def password_prompt(prompt):
         prompts.append(prompt)

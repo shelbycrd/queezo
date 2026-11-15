@@ -5,7 +5,7 @@ import {app, mount, notice} from './ui.js';
 import {gwaPage} from './gwa.js';
 import {initPomodoro, pomodoroPage, setPomodoroUser, stopPomodoroView} from './pomodoro.js';
 import {authenticatedUser} from './auth-state.js';
-import {initAuth, loginPage, restoreSession} from './auth.js';
+import {initAuth, loginPage, signupPage, restoreSession} from './auth.js';
 import {initButtonFeedback} from './audio.js';
 import {accountPage, initAccountMenu} from './account-pages.js';
 import {initCommunicationPanels, resetCommunicationPanels} from './chat-preview.js';
@@ -21,12 +21,12 @@ async function navigate() {
   const route = location.hash || '#dashboard';
   const parts = route.slice(1).split('/');
   if (!authenticatedUser()) {
-    if (route !== '#login') { location.replace('#login'); return; }
-    loginPage(route);
+    if (!['#login','#signup'].includes(route)) { location.replace('#login'); return; }
+    if (route === '#signup') signupPage(route); else loginPage(route);
     app.focus({preventScroll:true});
     return;
   }
-  if (parts[0] === 'login') { location.replace('#dashboard'); return; }
+  if (['login','signup'].includes(parts[0])) { location.replace('#dashboard'); return; }
   document.querySelectorAll('[data-nav]').forEach(link => {
     const section = ['deck','study','summary'].includes(parts[0]) ? 'decks' : parts[0];
     if (link.dataset.nav === section) link.setAttribute('aria-current','page');

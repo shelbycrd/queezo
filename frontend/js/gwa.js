@@ -26,6 +26,11 @@ export function gwaPage(route) {
   const placeholder = app.querySelector('#gwa-placeholder');
   const error = form.querySelector('#gwa-error');
   const submit = form.querySelector('#calculate-gwa');
+  function validateGrade(input) {
+    const text = input.value;
+    const valid = !text || (/^\d+(?:\.\d{0,6})?$/.test(text) && Number(text) >= 1 && Number(text) <= 5);
+    input.setCustomValidity(valid ? '' : 'Enter a grade from 1.00 to 5.00.');
+  }
 
   function captureCourses() {
     courses = [...rows.querySelectorAll('[data-course]')].map(row => Object.fromEntries(
@@ -45,10 +50,11 @@ export function gwaPage(route) {
       <div class="course-row-heading"><span class="course-number">${index + 1}</span><button type="button" class="remove-course" data-remove="${index}" aria-label="Remove course ${index + 1}" ${courses.length === 1 ? 'disabled' : ''}>×</button></div>
       <div class="course-inputs"><div class="subject-field"><label class="sr-only" for="subject-${index}">Subject <span class="muted">(optional)</span></label><input id="subject-${index}" data-field="subject" aria-label="Subject for course ${index + 1}" maxlength="120" placeholder="e.g. Mathematics" value="${escape(course.subject)}"></div>
       <div><label class="sr-only" for="units-${index}">Units</label><input id="units-${index}" data-field="units" aria-label="Units for course ${index + 1}" type="number" inputmode="decimal" min="0.0001" max="99999999.9999" step="0.0001" required placeholder="3" value="${escape(course.units)}"></div>
-      <div><label class="sr-only" for="grade-${index}">Grade</label><input id="grade-${index}" data-field="grade" aria-label="Grade for course ${index + 1}" type="number" inputmode="decimal" min="1" max="5" step="0.000001" required placeholder="1.75" value="${escape(course.grade)}"></div></div>
+      <div><label class="sr-only" for="grade-${index}">Grade</label><input id="grade-${index}" data-field="grade" aria-label="Grade for course ${index + 1}" type="text" inputmode="decimal" maxlength="16" required placeholder="1.75" value="${escape(course.grade)}"></div></div>
     </div>`).join('');
     form.querySelector('#course-count').textContent = `${courses.length} / 15 courses`;
     form.querySelector('#add-course').disabled = courses.length >= 15;
+    rows.querySelectorAll('[data-field="grade"]').forEach(validateGrade);
   }
 
   function addCourse() {
@@ -71,11 +77,22 @@ export function gwaPage(route) {
   });
 
   rows.addEventListener('input', event => {
-    if (event.target.dataset.field === 'grade') event.target.value = normalizeGradeInput(event.target.value);
+    if (event.target.dataset.field === 'grade') {
+      const input = event.target;
+      const original = input.value;
+      if (!event.inputType?.startsWith('delete') && !event.isComposing) {
+        const normalized = normalizeGradeInput(original);
+        if (normalized !== original) {
+          input.value = normalized;
+          input.setSelectionRange(normalized.length,normalized.length);
+        }
+      }
+      validateGrade(input);
+    }
     clearResult();
   });
   rows.addEventListener('focusout', event => {
-    if (event.target.dataset.field === 'grade') event.target.value = formatGradeDisplay(event.target.value);
+    if (event.target.dataset.field === 'grade') { event.target.value = formatGradeDisplay(event.target.value); validateGrade(event.target); }
   });
   rows.addEventListener('keydown', event => {
     if (event.key !== 'Enter' || !event.target.matches('input') || event.isComposing || event.repeat || pending) return;

@@ -2,6 +2,14 @@
 
 Implemented November 13, 2026, directly in the existing Queezo project.
 
+## November 15 account creation update
+
+Public signup is now available at `/#signup` and `POST /api/auth/signup`. It collects display name, unique case-insensitive username/email, an 11-character-minimum password, and matching confirmation. A local red/yellow/green strength estimate is advisory. Each user receives a random unique UUID, and signup signs the user in using the existing Argon2id/session protections. Trusted-origin checks, a 16 KiB request limit, and a persistent signup IP limiter protect the route.
+
+CLI provisioning now also collects display name and username. `list-users`, `show-user`, `revoke-sessions`, and exact-UID-confirmed `delete-user` are available. Deletion removes only the selected account and its owned records. The additive profile migration preserved existing credentials, IDs, and academic data; all preexisting table columns/rows matched the backup after upgrade (2 accounts, 7 decks, 32 cards, 21 study sessions, 148 reviews).
+
+The sections below document the original November 13 implementation; their CLI-only registration and 12-character minimum describe that earlier release. [AUTH_SETUP.md](AUTH_SETUP.md) is the current operator guide. Email verification, password recovery/reset, and a web admin interface remain unimplemented.
+
 ## Result
 
 The local Docker stack is running with a theme-matched login form and logout control. Accounts can only be provisioned by the CLI. There is no signup, reset, account-deletion endpoint, or admin interface. App 1 and App 2 retain their routes, calculations, study behavior, and layouts behind authentication.

@@ -1,4 +1,6 @@
 let context;
+let timerBuffer;
+let timerLoad;
 const SOUND_KEY = 'queezo.button-sounds';
 export function soundsEnabled() {
   try { return localStorage.getItem(SOUND_KEY) !== 'off'; } catch { return true; }
@@ -37,6 +39,36 @@ export function playPageTurn() {
     source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
     source.start();
   } catch { /* The visual workflow remains available on muted/unsupported browsers. */ }
+}
+
+export async function playTimerPress() {
+  if (!soundsEnabled()) return;
+  preparePageSound();
+  if (!context) return;
+  try {
+    timerLoad ||= fetch('/audio/creamy-keyboard.mp3').then(response => {
+      if (!response.ok) throw new Error('Audio unavailable');
+      return response.arrayBuffer();
+    }).then(bytes => context.decodeAudioData(bytes)).then(buffer => {
+      const samples = buffer.getChannelData(0);
+      let peak = 0;
+      for (const sample of samples) peak = Math.max(peak,Math.abs(sample));
+      const onset = samples.findIndex(sample => Math.abs(sample) >= Math.max(0.008,peak * 0.18));
+      const offset = Math.max(0,onset / buffer.sampleRate - 0.008);
+      timerBuffer = {buffer,offset,duration:Math.min(0.24,buffer.duration-offset)};
+      return timerBuffer;
+    });
+    const clip = await timerLoad;
+    if (!soundsEnabled() || context.state !== 'running' || clip.duration <= 0) return;
+    const source = context.createBufferSource(); source.buffer = clip.buffer;
+    const gain = context.createGain(); const now = context.currentTime;
+    gain.gain.setValueAtTime(0.55,now);
+    gain.gain.setValueAtTime(0.55,now + Math.max(0,clip.duration - 0.025));
+    gain.gain.linearRampToValueAtTime(0,now + clip.duration);
+    source.connect(gain); gain.connect(context.destination);
+    source.onended = () => { source.disconnect(); gain.disconnect(); };
+    source.start(now,clip.offset,clip.duration);
+  } catch { timerLoad = null; /* Audio never blocks the timer. */ }
 }
 
 export function initButtonFeedback() {

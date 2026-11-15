@@ -1,4 +1,5 @@
 from datetime import date, datetime, timezone
+from uuid import uuid4
 
 from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -107,6 +108,9 @@ class StudyReview(Base):
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
+    uid: Mapped[str] = mapped_column(String(36), unique=True, default=lambda: str(uuid4()))
+    username: Mapped[str] = mapped_column(String(32, collation="NOCASE"), unique=True, default=lambda: 'user_' + uuid4().hex[:20])
+    display_name: Mapped[str] = mapped_column(String(80), default='Learner')
     email: Mapped[str] = mapped_column(String(254, collation="NOCASE"), unique=True)
     password_hash: Mapped[str] = mapped_column(String(512))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

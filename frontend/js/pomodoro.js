@@ -1,7 +1,8 @@
 import {app, escape, mount} from './ui.js';
 import {api} from './api.js';
+import {playTimerPress} from './audio.js';
 import {addTask, advanceTimer, createState, currentTask, nextTask, pauseTimer, PHASE_NAMES,
-  remainingMs, removeTask, resetTimer, restoreState, setSettings, startTimer} from './pomodoro-core.js';
+  remainingMs, removeTask, resetTimer, restoreState, setSettings, skipPhase, startTimer} from './pomodoro-core.js';
 
 const STORAGE_PREFIX = 'queezo.pomodoro.v1.user.';
 let storageKey = null;
@@ -167,10 +168,10 @@ export function pomodoroPage(route) {
   if (!mount(`<div class="page-heading"><div><h1>Pomodoro</h1></div></div>
     <div class="pomodoro-layout pomodoro-focus-layout"><div class="pomodoro-main"><section class="panel timer-panel pomodoro-focus-timer" aria-label="Pomodoro timer">
       <div class="pomodoro-modes" aria-label="Timer intervals"><span class="pomodoro-mode" data-pomodoro-mode="study">Study</span><span class="pomodoro-mode" data-pomodoro-mode="short">Short break</span><span class="pomodoro-mode" data-pomodoro-mode="long">Long break</span></div>
-      <div class="timer-top"><span id="pomodoro-phase" class="sr-only"></span><span id="pomodoro-state" class="muted"></span></div>
+      <span id="pomodoro-phase" class="sr-only"></span>
       <div id="pomodoro-time" class="pomodoro-time" role="timer" aria-label="Time remaining" aria-live="off">25:00</div>
       <progress id="pomodoro-progress" aria-label="Current timer progress" max="1500000" value="0"></progress>
-      <p id="pomodoro-current" class="pomodoro-current"></p><div class="timer-actions"><button id="pomodoro-toggle" type="button">Start</button><button id="pomodoro-reset" type="button" class="secondary">Reset timer</button></div>
+      <p id="pomodoro-current" class="pomodoro-current"></p><div class="timer-actions"><button id="pomodoro-reset" type="button" class="secondary flat-button">Reset timer</button><button id="pomodoro-toggle" type="button" aria-label="Start" title="Start"></button><button id="pomodoro-skip" type="button" class="secondary flat-button" title="Skip to the next phase">Skip</button></div>
       <div class="cycle-info"><span id="pomodoro-cycle"></span><span id="pomodoro-total" class="muted"></span></div><div id="pomodoro-dots" class="pomodoro-dots" aria-label="Study sessions completed this cycle"></div>
       <p class="hint">Four study sessions, then a long break. Start each next phase when you’re ready.</p>
     </section>
@@ -204,8 +205,12 @@ export function pomodoroPage(route) {
       if (active) mode.setAttribute('aria-current', 'true');
       else mode.removeAttribute('aria-current');
     });
-    app.querySelector('#pomodoro-state').textContent = state.running ? 'Running' : state.awaitingStart ? 'Ready for the next phase' : state.remainingMs < state.intervalMs ? 'Paused' : 'Ready';
-    toggle.textContent = state.running ? 'Pause' : state.awaitingStart ? `Start ${PHASE_NAMES[state.phase].toLowerCase()}` : state.remainingMs < state.intervalMs ? 'Resume' : 'Start';
+    const actionLabel = state.running ? 'Pause' : state.awaitingStart ? `Start ${PHASE_NAMES[state.phase].toLowerCase()}` : state.remainingMs < state.intervalMs ? 'Resume' : 'Start';
+    toggle.setAttribute('aria-label', actionLabel);
+    toggle.title = actionLabel;
+    toggle.innerHTML = state.running
+      ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.7a1 1 0 0 1 1.5-.86l12 7.3a1 1 0 0 1 0 1.72l-12 7.3A1 1 0 0 1 7 19.3z"/></svg>';
     const task = state.phase === 'study' ? currentTask(state) : nextTask(state);
     const assigned = state.assignedTaskId && state.phase === 'study';
     app.querySelector('#pomodoro-current').textContent = task
@@ -242,8 +247,15 @@ export function pomodoroPage(route) {
     try { await transact(action, options); }
     catch (failure) { if (error.isConnected) { error.textContent = failure.message; error.hidden = false; } }
   }
-  toggle.addEventListener('click', () => act(value => value.running ? pauseTimer(value) : startTimer(value), {skipOnCompletion:true}));
+  toggle.addEventListener('click', () => {
+    void playTimerPress();
+    void act(value => value.running ? pauseTimer(value) : startTimer(value), {skipOnCompletion:true});
+  });
   app.querySelector('#pomodoro-reset').addEventListener('click', () => act(resetTimer));
+  app.querySelector('#pomodoro-skip').addEventListener('click', () => act(value => {
+    skipPhase(value);
+    document.querySelector('#pomodoro-alert').hidden = true;
+  }, {skipOnCompletion:true}));
   settingsForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (!settingsForm.reportValidity()) return;
