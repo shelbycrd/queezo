@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import require_user
 from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, StudySession, StudySessionCard, User, utcnow
-from app.schemas import CardInput, CardPatch, DeckInput
+from app.schemas import CardInput, CardPatch, DeckInput, DeckPatch
+from app.services.content_policy import no_urls
+import secrets
 from app.services.presenters import card_view, deck_view, summary_view
 
 router = APIRouter(prefix="/api", tags=["Decks and flashcards"])
@@ -49,7 +51,7 @@ def list_decks(user: User = Depends(require_user), db: Session = Depends(get_db)
 
 @router.post("/decks", status_code=201)
 def create_deck(data: DeckInput, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
-    deck = Deck(title=data.title, owner_id=user.id)
+    deck = Deck(title=data.title, visibility=data.visibility, owner_id=user.id)
     db.add(deck)
     db.flush()
     return deck_view(db, deck)
@@ -61,9 +63,23 @@ def get_deck(deck_id: int, user: User = Depends(require_user), db: Session = Dep
 
 
 @router.patch("/decks/{deck_id}")
-def rename_deck(deck_id: int, data: DeckInput, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def rename_deck(deck_id: int, data: DeckPatch, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
     deck = require(db, Deck, deck_id, user)
-    deck.title = data.title
+    changes = data.model_dump(exclude_unset=True)
+    if not changes:
+        raise HTTPException(422, 'Choose a title or visibility to update.')
+    if changes.get('visibility') in {'public','unlisted'}:
+        try:
+            no_urls(changes.get('title', deck.title))
+            for card in db.scalars(select(Flashcard).where(Flashcard.deck_id == deck.id)):
+                no_urls(card.front)
+                no_urls(card.back)
+        except ValueError as error:
+            raise HTTPException(422, str(error)) from error
+        if not deck.share_token:
+            deck.share_token = secrets.token_urlsafe(32)
+    for key,value in changes.items():
+        setattr(deck, key, value)
     deck.updated_at = utcnow()
     db.flush()
     return deck_view(db, deck)

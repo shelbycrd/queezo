@@ -1,5 +1,6 @@
 from datetime import date, datetime, timezone
 from uuid import uuid4
+import secrets
 
 from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,6 +18,8 @@ class Deck(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(120))
+    visibility: Mapped[str] = mapped_column(String(8), default='private', server_default='private')
+    share_token: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, default=lambda: secrets.token_urlsafe(32))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
     __table_args__ = (CheckConstraint("length(trim(title)) BETWEEN 1 AND 120"), {"sqlite_autoincrement": True})

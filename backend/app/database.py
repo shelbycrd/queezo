@@ -36,6 +36,7 @@ def init_database(target=engine):
     from app.ownership_migration import migrate_ownership
     from app.media_migration import migrate_card_images
     from app.profile_migration import migrate_profiles
+    from app.sharing_migration import migrate_sharing
 
     Base.metadata.create_all(target)
     with target.begin() as connection:
@@ -43,6 +44,7 @@ def init_database(target=engine):
         migrate_ownership(connection)
         migrate_profiles(connection)
         migrate_card_images(connection)
+        migrate_sharing(connection)
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_login_throttles_window_started ON login_throttles (window_started)"))
         legacy = {table: [row["id"] for row in rows] for table, rows in legacy_cards(connection).items() if rows}
         if legacy:

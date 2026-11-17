@@ -1,4 +1,5 @@
 import {api} from './api.js';
+import {enhancePage} from './page-tools.js';
 import {startStudy} from './decks.js';
 import {app, busy, date, duration, escape, mount, notice, plural} from './ui.js';
 import {MAX_IMAGE_BYTES, renderCardContent, safeImageUrl} from './card-content.js';
@@ -43,6 +44,33 @@ async function deckWorkspace(deckId, cardId, route) {
     <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>${cards.length}</span>)</span></h2><label class="sr-only" for="card-order">Card order</label><select id="card-order" class="card-order"><option value="desc">Most recent first</option><option value="asc">Least recent first</option></select></div><label class="sr-only" for="saved-card-search">Find a saved card</label><input id="saved-card-search" type="search" placeholder="Find a saved question or answer…" autocomplete="off"><div id="saved-cards" class="card-list"></div><p id="saved-card-empty" class="muted" hidden>No matching cards.</p>
     <details class="session-history"><summary>Recent study sessions <span class="muted">(${sessions.length})</span></summary>${sessions.length ? `<div class="panel"><ul class="history-list">${sessions.map(session => `<li><div><p>${escape(date(session.started_at))} · <strong>${escape(session.status)}</strong></p><p class="muted">${plural(session.total_reviews,'review')} · ${session.total_unique_cards} cards studied · ${duration(session.duration_seconds)}</p></div><a class="button secondary small" href="#${session.status === 'active' ? 'study' : 'summary'}/${session.session_id}">${session.status === 'active' ? 'Resume' : 'Summary'}</a></li>`).join('')}</ul></div>` : '<p class="muted">Your sessions will appear here.</p>'}</details></div>`, route)) return;
 
+  const visibilityControls = document.createElement('section');
+  visibilityControls.className = 'visibility-controls panel';
+  visibilityControls.setAttribute('aria-label','Deck sharing');
+  visibilityControls.innerHTML = `<label for="owner-visibility">Visibility</label><select id="owner-visibility"><option value="private">Private — only you</option><option value="public">Public — Community Decks</option><option value="unlisted">Unlisted — anyone with the share link</option></select><button id="save-visibility" type="button" class="secondary small flat-button">Save visibility</button><button id="copy-share-link" type="button" class="secondary small flat-button" data-copy="">Copy share link</button><span id="visibility-message" role="status"></span>`;
+  const heading = app.querySelector('.deck-workspace .page-heading');
+  heading.after(visibilityControls);
+  enhancePage(visibilityControls);
+  const visibilitySelect = visibilityControls.querySelector('select');
+  const copyShare = visibilityControls.querySelector('#copy-share-link');
+  function syncVisibility() {
+    visibilitySelect.value = deck.visibility || 'private';
+    copyShare.disabled = deck.visibility === 'private' || !deck.share_token;
+    copyShare.dataset.copy = deck.share_token ? new URL(`/#shared/${deck.share_token}`,location.origin).href : '';
+  }
+  syncVisibility();
+  visibilityControls.querySelector('#save-visibility').onclick = async event => {
+    const button = event.currentTarget;
+    if (button.disabled) return;
+    button.disabled=true; visibilitySelect.disabled=true;
+    try {
+      const changed = await api(`/decks/${deckId}`,{method:'PATCH',body:{visibility:visibilitySelect.value}});
+      if (!visibilityControls.isConnected || location.hash !== route) return;
+      Object.assign(deck,changed); syncVisibility();
+      visibilityControls.querySelector('#visibility-message').textContent='Visibility saved ✓';
+    } catch (error) { notice(error.message); syncVisibility(); }
+    finally { button.disabled=false; visibilitySelect.disabled=false; }
+  };
   const form = app.querySelector('#card-form');
   const fields = form.querySelector('fieldset');
   const savedCards = app.querySelector('#saved-cards');

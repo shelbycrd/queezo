@@ -12,6 +12,7 @@ def iso(value):
 def deck_view(db, deck):
     count = db.scalar(select(func.count()).select_from(Flashcard).where(Flashcard.deck_id == deck.id))
     return {"id": deck.id, "title": deck.title, "card_count": count,
+            "visibility":deck.visibility, "share_token":deck.share_token,
             "created_at": iso(deck.created_at), "updated_at": iso(deck.updated_at)}
 
 

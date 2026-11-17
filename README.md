@@ -46,7 +46,7 @@ The account menu is at the top right, with Profile, Help, and Log out. Profile s
 
 ### Try the frontend prototype
 
-**Home** shows your latest decks in a horizontal carousel with previous/next arrows. The study streak counts days with a rated flashcard or a completed study Pomodoro, using Asia/Manila calendar days. The Friends container has Online and Offline tabs with empty states; friend connections and live presence are not implemented.
+**Home** shows up to 20 public Community Decks in a horizontal carousel with previous/next arrows. The study streak counts days with a rated flashcard or a completed study Pomodoro, using Asia/Manila calendar days. The Friends container has Online and Offline tabs with empty states; friend connections and live presence are not implemented.
 
 Choose **Flashcards** to search your decks by title. Use the separate **Create Deck** button to name and create a new deck. Portrait deck tiles show the title and card count. Enter a required question and answer directly in the deck editor; optional photos and typed bullet/numbered lists are rendered on both sides; formatting toolbar buttons are omitted. **Next Card** saves the card, plays a short page-turn sound, and clears the editor for another card. Saved cards appear below, and **Study deck** sits beside **Next Card**. Use the card order selector for most recent first or least recent first. Study opens a mode picker: Unlimited time, or Time bounded per question (seconds) or for the whole deck (minutes). Limit fields stay visible and editable with either choice; Unlimited does not apply a time limit. Question expiry reveals the answer for a manual rating; deck expiry ends the session. Timing is managed by the browser and survives a refresh in the same tab; it is a prototype rather than server-enforced timing. During study, **Enter** immediately reveals the answer below the question without flipping or animation. **1**, **2**, and **3** rate Hard, Normal, and Easy and advance; they also reveal first when needed. There are no multiple-choice answers.
 
@@ -199,3 +199,19 @@ docker compose config --quiet
 For local development, run `python -m pytest -q` from `backend/`. See `VERIFICATION.md` for recorded validation and limitations. Public registration, password recovery, account deletion, Notes management, and GWA calculation history are not implemented.
 
 Run the frontend helper and timer tests with `node --test frontend/tests/*.test.mjs`.
+
+## Deck visibility and Community Decks
+
+New decks default to **Private**; all decks that existed before this feature remain Private. Choose visibility in Create Deck or save a change in the owner's deck workspace:
+
+- **Private:** owner-only; shared access returns 404.
+- **Public:** readable through Community Decks and its random share link.
+- **Unlisted:** readable through its random share link, omitted from Community Decks.
+
+These views require a signed-in account, consistently with the rest of Queezo. Only owners can edit/delete originals or access their study history. Shared views offer **Save private copy** and **Study a copy**; copies have new identities and belong to the reader. Switching the original to Private blocks future reads/copies through that link; previously saved copies remain independent.
+
+Home's Community Decks carousel shows at most 20 public, assigned decks, newest-created first, with left/right scrolling. Sharing routes: `GET /api/community/decks`, `GET /api/shared/decks/{token}`, and CSRF-protected `POST /api/shared/decks/{token}/copy`. Owner deck responses now include visibility/share_token; shared responses omit owner IDs, card IDs, and study history. Deck PATCH accepts title and/or visibility, preserving omitted values.
+
+Deck titles and question/answer text reject common URL forms in backend validation: HTTP(S), other schemes, bare domains/www, IP/local hosts, protocol-relative, encoded/Unicode and common defanged links. Photo data URLs are handled separately by the existing raster-image policy. Email/password inputs retain normal account validation. This is a conservative text-content rule, not a complete security scanner; images are not OCR-scanned for links. Existing text is preserved, but publishing/copying legacy decks checks for prohibited links before committing.
+
+The sharing migration adds private-by-default visibility and random, unique share tokens without replacing old rows. A pre-upgrade database backup is kept privately in `/data/queezo-before-community-20261117.db` and ignored `outputs/backups/queezo-before-community-20261117.db`. Do not commit backups or actual share links for private material.

@@ -1,3 +1,4 @@
+import {sharedPage} from './shared-deck.js';
 import {dashboard, decks} from './decks.js';
 import {cardForm, deckPage} from './flashcards.js';
 import {studyPage, stopStudyListeners, summaryPage} from './study.js';
@@ -36,6 +37,7 @@ async function navigate() {
   try {
     if (parts[0] === 'dashboard') await dashboard(location.hash);
     else if (parts[0] === 'decks') await decks(route, parts[1] === 'new');
+    else if (parts[0] === 'shared' && /^[A-Za-z0-9_-]{32,64}$/.test(parts[1] || '')) await sharedPage(parts[1],route);
     else if (parts[0] === 'gwa') gwaPage(route);
     else if (parts[0] === 'pomodoro') pomodoroPage(route);
     else if (['profile','help','settings'].includes(parts[0])) accountPage(parts[0], route);

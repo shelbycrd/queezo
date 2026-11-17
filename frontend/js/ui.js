@@ -15,8 +15,8 @@ export function mount(html, route) {
   if (route && location.hash !== route) return false;
   app.innerHTML = html;
   const parts = (route || '').slice(1).split('/');
-  app.classList.toggle('has-subpage-back', ['deck','study','summary'].includes(parts[0]));
-  if (route && ['deck','summary'].includes(parts[0])) {
+  app.classList.toggle('has-subpage-back', ['deck','study','summary','shared'].includes(parts[0]));
+  if (route && ['deck','summary','shared'].includes(parts[0])) {
     const target = parts[0] === 'deck' ? (parts.length > 2 ? `#deck/${parts[1]}` : '#decks') : parts[0] === 'summary' ? app.querySelector('a[href^="#deck/"]')?.getAttribute('href') || '#decks' : '#dashboard';
     app.insertAdjacentHTML('afterbegin', `<a class="subpage-back" href="${escape(target)}" aria-label="Go back">${backIcon}</a>`);
   }

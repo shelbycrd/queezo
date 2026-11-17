@@ -12,7 +12,7 @@ export function gwaPage(route) {
     <div class="gwa-layout"><form id="gwa-form" class="panel"><fieldset id="gwa-fields"><legend class="sr-only">Courses for your GWA calculation</legend>
       <div class="section-heading course-heading"><h2>Your courses</h2><span id="course-count" class="muted" role="status"></span></div>
       <div class="course-table-heading" aria-hidden="true"><span></span><div><span>Subject <small>(optional)</small></span><span>Units</span><span>Grade</span></div><span></span></div><div id="course-rows"></div>
-      <div class="input-summary" id="course-live-totals" role="status"></div><div class="course-actions"><button type="button" id="add-course" class="secondary small">+ Add course</button><span class="hint">Up to 15 courses</span></div>
+      <div class="course-actions"><button type="button" id="add-course" class="secondary small">+ Add course</button><span class="hint">Up to 15 courses</span></div>
       <p id="gwa-error" class="inline-error" role="alert" hidden></p>
       <div class="form-actions"><button type="button" id="reset-gwa" class="secondary">Clear</button><button type="submit" id="calculate-gwa">What's my GWA?</button></div>
     </fieldset></form>
@@ -39,14 +39,7 @@ export function gwaPage(route) {
     ));
   }
 
-  function updateTotals() {
-    const entries = [...rows.querySelectorAll('[data-course]')];
-    const units = entries.reduce((sum,row) => { const input=row.querySelector('[data-field="units"]'); return sum+(input.checkValidity() && input.value ? Number(input.value) : 0); },0);
-    const ready = entries.filter(row => [...row.querySelectorAll('input')].every(input => input.checkValidity())).length;
-    form.querySelector('#course-live-totals').textContent = `${ready} of ${entries.length} courses ready · ${Number(units.toFixed(4))} total units`;
-  }
   function clearResult() {
-    updateTotals();
     result.hidden = true;
     placeholder.hidden = false;
     error.hidden = true;
@@ -63,7 +56,6 @@ export function gwaPage(route) {
     form.querySelector('#course-count').textContent = `${courses.length} / 15 courses`;
     form.querySelector('#add-course').disabled = courses.length >= 15;
     rows.querySelectorAll('[data-field="grade"]').forEach(validateGrade);
-    updateTotals();
   }
 
   function addCourse() {

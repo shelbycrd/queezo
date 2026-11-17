@@ -115,3 +115,6 @@ input:focus,textarea:focus,select:focus{border-color:#6a96cd}
 @keyframes quiet-spin{to{transform:rotate(360deg)}}
 @media(max-width:760px){.home-welcome{flex-direction:column;align-items:stretch;gap:20px}.quick-start{width:100%;min-width:0}.collection-tools{gap:10px;padding:10px}.collection-tools label{flex-wrap:wrap}.collection-tools select{min-width:130px}#deck-matches{margin-left:0}.password-control{gap:6px}}
 @media(prefers-reduced-motion:reduce){.study-shell[aria-busy=true] .progress-text:after{animation:none}}
+/* Sharing controls stay grouped and secondary to card authoring. */
+.visibility-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 17px;margin-bottom:20px}.visibility-controls label{margin:0;font-size:.78rem}.visibility-controls select{width:auto;max-width:100%;font-size:.78rem;padding:9px}.visibility-controls button{font-size:.73rem}.visibility-controls [role=status]{font-size:.73rem;color:#456c58}.shared-answer{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.shared-answer summary{cursor:pointer;color:#43648b;font-size:.8rem;font-weight:650}.community-empty{padding:25px}
+@media(max-width:760px){.visibility-controls{gap:8px}.visibility-controls select{width:100%}.home-welcome{min-height:0}.home-welcome>div{max-width:none}}

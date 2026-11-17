@@ -2,12 +2,11 @@ import {api} from './api.js';
 import {app, busy, escape, mount, notice, plural} from './ui.js';
 import {icon} from './icons.js';
 
-import {deckTile} from './deck-view.js';
+import {deckTile, communityTile} from './deck-view.js';
 import {chooseStudy} from './study-options.js';
 
 export async function dashboard(route) {
-  const [stats, activity, recent] = await Promise.all([api('/dashboard'),api('/dashboard/activity'),api('/decks')]);
-  recent.sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id-a.id);
+  const [stats, activity, recent] = await Promise.all([api('/dashboard'),api('/dashboard/activity'),api('/community/decks')]);
   const today = new Date(`${activity.today}T00:00:00Z`);
   const days = Array.from({length:7}, (_, i) => {
     const day = new Date(today); day.setUTCDate(day.getUTCDate() - 6 + i);
@@ -15,9 +14,9 @@ export async function dashboard(route) {
     return `<div class="week-day ${activity.active_days.includes(key) ? 'studied' : ''}"><span>${day.toLocaleDateString('en',{weekday:'narrow',timeZone:'UTC'})}</span><span class="day-dot" aria-label="${key}: ${activity.active_days.includes(key) ? 'studied' : 'no study recorded'}">${activity.active_days.includes(key) ? '✓' : '·'}</span></div>`;
   }).join('');
   if (!mount(`<div class="page-heading"><div><h1>Home</h1></div></div>
-    <section class="home-welcome"><div><h2>What will you<br>learn today?</h2><p>Pick up a card and take it<br>one small step at a time.</p><div class="actions"><a class="button" href="#decks">Open flashcards ${icon('arrow')}</a></div></div><nav class="quick-start panel" aria-label="Quick actions"><a href="#decks/new"><span>Create a deck</span><span aria-hidden="true">＋</span></a><a href="#gwa"><span>Calculate GWA</span><span aria-hidden="true">→</span></a><a href="#pomodoro"><span>Open focus timer</span><span aria-hidden="true">→</span></a></nav></section>
-    <section class="recent-section"><div class="section-heading"><div><h2>Your latest decks</h2><p class="muted">Your most recently created decks.</p></div><div class="carousel-controls"><button type="button" id="recent-prev" class="icon-button secondary" aria-label="Previous decks">←</button><button type="button" id="recent-next" class="icon-button secondary" aria-label="Next decks">→</button></div></div>
-    ${recent.length ? `<div class="recent-track" id="recent-track" tabindex="0" aria-label="Latest decks, newest first">${recent.slice(0,12).map(deckTile).join('')}</div>` : '<div class="empty"><div class="empty-icon">'+icon('cards')+'</div><h3>Your first deck starts here.</h3><p class="muted">Create a deck and add something you want to remember.</p><a class="button secondary" href="#decks">Create a deck</a></div>'}</section>
+    <section class="home-welcome"><div><h2>What will you<br>learn today?</h2><p>Pick up a card and take it<br>one small step at a time.</p><div class="actions"><a class="button" href="#decks">Open flashcards ${icon('arrow')}</a></div></div></section>
+    <section class="recent-section"><div class="section-heading"><div><h2>Community Decks</h2><p class="muted">Explore public decks.</p></div><div class="carousel-controls"><button type="button" id="recent-prev" class="icon-button secondary" aria-label="Previous decks">←</button><button type="button" id="recent-next" class="icon-button secondary" aria-label="Next decks">→</button></div></div>
+    ${recent.length ? `<div class="recent-track" id="recent-track" tabindex="0" aria-label="Community decks, newest first">${recent.slice(0,20).map(communityTile).join('')}</div>` : '<div class="empty"><div class="empty-icon">'+icon('cards')+'</div><h3>No community decks yet.</h3><p class="muted">Create a deck and choose Public to share it here.</p><a class="button secondary" href="#decks">Create a deck</a></div>'}</section>
     <div class="home-lower"><section class="panel streak-panel"><div class="section-heading"><h2>Your study rhythm</h2></div><div class="streak-number">${activity.study_streak}<span> day${activity.study_streak === 1 ? '' : 's'} in a row</span></div><p class="muted">${activity.active_today ? 'You made time to learn today. Keep it going!' : 'A flashcard review or finished pomodoro keeps your streak going.'}</p><div class="study-week">${days}</div><div class="home-counts"><span><strong>${stats.deck_count}</strong> decks</span><span><strong>${stats.card_count}</strong> flashcards</span></div></section>
       <section class="panel friends-panel"><div class="section-heading"><h2>Your study circle</h2><span class="badge">Coming soon</span></div><div class="friend-tabs" aria-label="Friend presence"><button type="button" id="friends-online" aria-pressed="true">Online <span>0</span></button><button type="button" id="friends-offline" aria-pressed="false">Offline <span>0</span></button></div><div class="friends-empty"><div class="empty-icon">${icon('friends')}</div><h3 id="friends-message">No friends online yet.</h3><p class="muted">A little room for learning together.<br>Your friends will appear here once connected.</p></div></section></div>`, route)) return;
   app.querySelectorAll('[data-study]').forEach(button => button.addEventListener('click', () => busy(button.parentElement, () => startStudy(button.dataset.study))));
@@ -38,7 +37,7 @@ export async function decks(route, createImmediately = false) {
   items.sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id-a.id);
   if (!mount(`<div class="page-heading"><div><h1>Your Decks</h1></div><span class="deck-total">${plural(items.length,'deck')}</span></div>
     <div class="deck-tools"><form id="deck-search" class="new-deck-form" role="search"><div><label for="deck-search-input">Search decks</label><input id="deck-search-input" type="search" placeholder="Search your decks…" autocomplete="off"></div><button type="submit" class="secondary">Search</button></form><button id="open-create-deck" type="button">${icon('plus')} Create Deck</button></div>
-    <dialog id="create-deck-dialog" class="create-deck-dialog"><form id="new-deck"><h2>Create a deck</h2><label for="deck-title">Deck title</label><input id="deck-title" name="title" required maxlength="120" autocomplete="off"><div class="actions"><button id="cancel-create-deck" type="button" class="secondary">Cancel</button><button type="submit">Create Deck</button></div></form></dialog>
+    <dialog id="create-deck-dialog" class="create-deck-dialog"><form id="new-deck"><h2>Create a deck</h2><label for="deck-title">Deck title</label><input id="deck-title" name="title" required maxlength="120" autocomplete="off"><label for="deck-visibility">Visibility</label><select id="deck-visibility" name="visibility"><option value="private" selected>Private — only you</option><option value="public">Public — Community Decks</option><option value="unlisted">Unlisted — anyone with the share link</option></select><p id="create-deck-error" class="inline-error" role="alert" hidden></p><div class="actions"><button id="cancel-create-deck" type="button" class="secondary">Cancel</button><button type="submit">Create Deck</button></div></form></dialog>
     <div class="collection-tools"><label for="deck-sort">Sort decks <select id="deck-sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="name">Title A–Z</option><option value="cards">Most cards</option></select></label><span id="deck-matches" role="status"></span><button id="clear-deck-search" class="secondary small flat-button" type="button" hidden>Clear search</button></div>
     <p id="deck-search-empty" class="empty" hidden>No decks match your search.</p>
     ${items.length ? `<div class="deck-grid">${items.map(deckTile).join('')}</div>` : '<div class="empty"><h2>Something worth remembering?</h2><p class="muted">Create your first deck, then add your questions and answers.</p></div>'}`,route)) return;
@@ -75,7 +74,13 @@ export async function decks(route, createImmediately = false) {
   app.querySelector('#deck-search-input').addEventListener('input', search);
   app.querySelector('#new-deck').addEventListener('submit', event => {
     event.preventDefault(); const form = event.currentTarget;
-    busy(form, async () => { const deck = await api('/decks',{method:'POST',body:{title:form.elements.title.value}}); dialog.close(); location.hash=`#deck/${deck.id}`; });
+    busy(form, async () => {
+      const error=form.querySelector('#create-deck-error'); error.hidden=true;
+      try {
+        const deck = await api('/decks',{method:'POST',body:{title:form.elements.title.value,visibility:form.elements.visibility.value}});
+        dialog.close(); location.hash=`#deck/${deck.id}`;
+      } catch (failure) { error.textContent=failure.message; error.hidden=false; }
+    });
   });
   app.querySelectorAll('[data-study]').forEach(button => button.addEventListener('click', () => busy(button.parentElement, () => startStudy(button.dataset.study))));
 }
