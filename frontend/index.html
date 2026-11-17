@@ -3,17 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#679bdf">
+  <meta name="theme-color" content="#EEF3FF">
   <title>Queezo · Study companion</title>
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/pomodoro.css">
   <link rel="stylesheet" href="/css/auth.css">
   <link rel="stylesheet" href="/css/theme.css">
+  <link rel="preload" href="/assets/fonts/Quicksand.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/css/cloud-theme.css">
   <script type="module" src="/js/app.js"></script>
 </head>
 <body>
+  <div class="ambient-shapes" aria-hidden="true">
+    <svg class="ambient-shape snowflake" viewBox="0 0 40 40"><path d="M20 3v34M5.3 11.5l29.4 17M5.3 28.5l29.4-17M15 7l5 5 5-5M15 33l5-5 5 5M7 17l7-2-2-7M28 32l-2-7 7-2M7 23l7 2-2 7M28 8l-2 7 7 2"/></svg>
+    <svg class="ambient-shape droplet" viewBox="0 0 40 40"><path d="M20 3C17 10 8 19 8 26a12 12 0 0 0 24 0C32 19 23 10 20 3Z"/><ellipse cx="17" cy="22" rx="4" ry="6" fill="white" opacity=".65"/></svg>
+    <svg class="ambient-shape star" viewBox="0 0 40 40"><path d="m20 3 5.3 10.8 11.9 1.7-8.6 8.4 2 11.8L20 30.1 9.4 35.7l2-11.8-8.6-8.4 11.9-1.7Z"/></svg>
+    <svg class="ambient-shape snowflake" viewBox="0 0 40 40"><path d="M20 3v34M5.3 11.5l29.4 17M5.3 28.5l29.4-17M15 7l5 5 5-5M15 33l5-5 5 5M7 17l7-2-2-7M28 32l-2-7 7-2M7 23l7 2-2 7M28 8l-2 7 7 2"/></svg>
+    <svg class="ambient-shape star" viewBox="0 0 40 40"><path d="m20 3 5.3 10.8 11.9 1.7-8.6 8.4 2 11.8L20 30.1 9.4 35.7l2-11.8-8.6-8.4 11.9-1.7Z"/></svg>
+    <svg class="ambient-shape droplet" viewBox="0 0 40 40"><path d="M20 3C17 10 8 19 8 26a12 12 0 0 0 24 0C32 19 23 10 20 3Z"/><ellipse cx="17" cy="22" rx="4" ry="6" fill="white" opacity=".65"/></svg>
+    <svg class="ambient-shape snowflake" viewBox="0 0 40 40"><path d="M20 3v34M5.3 11.5l29.4 17M5.3 28.5l29.4-17M15 7l5 5 5-5M15 33l5-5 5 5M7 17l7-2-2-7M28 32l-2-7 7-2M7 23l7 2-2 7M28 8l-2 7 7 2"/></svg>
+    <svg class="ambient-shape droplet" viewBox="0 0 40 40"><path d="M20 3C17 10 8 19 8 26a12 12 0 0 0 24 0C32 19 23 10 20 3Z"/><ellipse cx="17" cy="22" rx="4" ry="6" fill="white" opacity=".65"/></svg>
+    <svg class="ambient-shape star" viewBox="0 0 40 40"><path d="m20 3 5.3 10.8 11.9 1.7-8.6 8.4 2 11.8L20 30.1 9.4 35.7l2-11.8-8.6-8.4 11.9-1.7Z"/></svg>
+    <svg class="ambient-shape snowflake" viewBox="0 0 40 40"><path d="M20 3v34M5.3 11.5l29.4 17M5.3 28.5l29.4-17M15 7l5 5 5-5M15 33l5-5 5 5M7 17l7-2-2-7M28 32l-2-7 7-2M7 23l7 2-2 7M28 8l-2 7 7 2"/></svg>
+    <svg class="ambient-shape star" viewBox="0 0 40 40"><path d="m20 3 5.3 10.8 11.9 1.7-8.6 8.4 2 11.8L20 30.1 9.4 35.7l2-11.8-8.6-8.4 11.9-1.7Z"/></svg>
+    <svg class="ambient-shape droplet" viewBox="0 0 40 40"><path d="M20 3C17 10 8 19 8 26a12 12 0 0 0 24 0C32 19 23 10 20 3Z"/><ellipse cx="17" cy="22" rx="4" ry="6" fill="white" opacity=".65"/></svg>
+    <svg class="ambient-shape snowflake" viewBox="0 0 40 40"><path d="M20 3v34M5.3 11.5l29.4 17M5.3 28.5l29.4-17M15 7l5 5 5-5M15 33l5-5 5 5M7 17l7-2-2-7M28 32l-2-7 7-2M7 23l7 2-2 7M28 8l-2 7 7 2"/></svg>
+    <svg class="ambient-shape droplet" viewBox="0 0 40 40"><path d="M20 3C17 10 8 19 8 26a12 12 0 0 0 24 0C32 19 23 10 20 3Z"/><ellipse cx="17" cy="22" rx="4" ry="6" fill="white" opacity=".65"/></svg>
+    <svg class="ambient-shape star" viewBox="0 0 40 40"><path d="m20 3 5.3 10.8 11.9 1.7-8.6 8.4 2 11.8L20 30.1 9.4 35.7l2-11.8-8.6-8.4 11.9-1.7Z"/></svg>
+    <svg class="ambient-shape snowflake" viewBox="0 0 40 40"><path d="M20 3v34M5.3 11.5l29.4 17M5.3 28.5l29.4-17M15 7l5 5 5-5M15 33l5-5 5 5M7 17l7-2-2-7M28 32l-2-7 7-2M7 23l7 2-2 7M28 8l-2 7 7 2"/></svg>
+    <svg class="ambient-shape star" viewBox="0 0 40 40"><path d="m20 3 5.3 10.8 11.9 1.7-8.6 8.4 2 11.8L20 30.1 9.4 35.7l2-11.8-8.6-8.4 11.9-1.7Z"/></svg>
+    <svg class="ambient-shape droplet" viewBox="0 0 40 40"><path d="M20 3C17 10 8 19 8 26a12 12 0 0 0 24 0C32 19 23 10 20 3Z"/><ellipse cx="17" cy="22" rx="4" ry="6" fill="white" opacity=".65"/></svg>
+  </div>
   <header class="site-header">
-    <a class="brand" href="#dashboard" aria-label="Queezo home"><span class="brand-mark">Q</span>queezo<span class="brand-period">.</span></a>
+    <a class="brand" href="#dashboard" aria-label="Queezo home"><img class="brand-cloud" src="/assets/queezo-cloud.svg" alt="" width="80" height="80"><span class="brand-name">Queezo</span></a>
     <nav id="main-navigation" aria-label="Main navigation" hidden>
       <a href="#dashboard" data-nav="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg></span>Home</a>
       <a href="#decks" data-nav="decks"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="15" height="15" rx="3"/><path d="M17 3H6a3 3 0 0 0-3 3v11M10 11h7m-7 4h4"/></svg></span>Flashcards</a>

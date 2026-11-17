@@ -24,6 +24,7 @@ async function navigate() {
   if (!authenticatedUser()) {
     if (!['#login','#signup'].includes(route)) { location.replace('#login'); return; }
     if (route === '#signup') signupPage(route); else loginPage(route);
+    window.scrollTo(0,0);
     app.focus({preventScroll:true});
     return;
   }
@@ -54,6 +55,7 @@ async function navigate() {
     mount('<h1>Couldn’t load this page</h1><p class="muted">Check the message above, or try refreshing the page.</p><a class="button secondary" href="#decks">Return to Flashcards</a>');
     notice(error.message);
   }
+  window.scrollTo(0,0);
   app.focus({preventScroll:true});
 }
 

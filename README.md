@@ -215,3 +215,9 @@ Home's Community Decks carousel shows at most 20 public, assigned decks, newest-
 Deck titles and question/answer text reject common URL forms in backend validation: HTTP(S), other schemes, bare domains/www, IP/local hosts, protocol-relative, encoded/Unicode and common defanged links. Photo data URLs are handled separately by the existing raster-image policy. Email/password inputs retain normal account validation. This is a conservative text-content rule, not a complete security scanner; images are not OCR-scanned for links. Existing text is preserved, but publishing/copying legacy decks checks for prohibited links before committing.
 
 The sharing migration adds private-by-default visibility and random, unique share tokens without replacing old rows. A pre-upgrade database backup is kept privately in `/data/queezo-before-community-20261117.db` and ignored `outputs/backups/queezo-before-community-20261117.db`. Do not commit backups or actual share links for private material.
+
+## Cloud visual theme — November 18, 2026
+
+The current reference-inspired design uses a locally hosted Quicksand font, an original study-cloud mark, rounded white surfaces, a scalloped desktop sidebar, pill controls, and a restrained blue palette. The final visual layer is `frontend/css/cloud-theme.css`, loaded after the existing stylesheets. Its responsive rules cover the authenticated workspace, login/signup, deck editing/sharing, study/summary, GWA, Pomodoro, account pages, chat and notification panels. Asset provenance and font licensing are recorded in `frontend/assets/README.md`.
+
+This changes presentation while retaining the current features, URL text restrictions, deck visibility, Community Decks, timing behavior, and account handling. Route navigation begins at the top of each page so the fixed controls do not cover content left at a previous page's scroll offset. Removed Quick Actions, dashboard search, sparkles, and footer captions remain absent.
