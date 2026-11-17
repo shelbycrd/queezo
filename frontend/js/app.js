@@ -41,7 +41,7 @@ async function navigate() {
     else if (parts[0] === 'shared' && /^[A-Za-z0-9_-]{32,64}$/.test(parts[1] || '')) await sharedPage(parts[1],route);
     else if (parts[0] === 'gwa') gwaPage(route);
     else if (parts[0] === 'pomodoro') pomodoroPage(route);
-    else if (['profile','help','settings'].includes(parts[0])) accountPage(parts[0], route);
+    else if (['profile','help','settings'].includes(parts[0])) await accountPage(parts[0], route);
     else if (parts[0] === 'notes') { location.replace('#gwa'); return; }
     else if (parts[0] === 'deck' && /^\d+$/.test(parts[1])) {
       if (parts[2] === 'add') await cardForm(parts[1], null, route);

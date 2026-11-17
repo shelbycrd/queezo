@@ -221,3 +221,10 @@ Final browser and deployment checks:
 - Rebuilt only the main frontend with --no-deps; backend services and the saved data volume were retained. Verified the live login at http://localhost:8080 with the rounded font, 35px panel corners, blue heading and new mark. No main accounts or study content were created or changed during preview QA.
 - Saved outputs/queezo-cloud-home.jpg (full Home preview with disposable public decks) and outputs/queezo-cloud-pomodoro.jpg. Original design references were used for visual guidance, not embedded as page screenshots.
 - Removed the disposable queezo-cloud-preview stack and its volume after verifying the Compose project label. All three main services are healthy.
+
+## Profile layout update — November 18, 2026
+
+- Profile now has a prominent display name, username, initial avatar, Total Decks, Friends and Highest Streak, followed by this account's Public Decks using existing deck cards. Private/unlisted decks are excluded from that section. UID/email copy controls remain under Account details.
+- Friends shows unavailable/Coming soon because the repository has no connected friends service. Highest Streak is derived from all account-private calendar activity days, not just the current streak; no backend or schema changes.
+- All 52 frontend tests passed, including longest-run, duplicate-day and month/year/leap-day cases. JavaScript syntax and whitespace checks passed.
+- Disposable preview browser checks covered signup, empty profile, public deck creation appearing in the profile, total count, account details, and 390px layout without document horizontal overflow. Viewport reset afterward. Preview screenshot: outputs/queezo-profile.jpg. No real account data was modified.
