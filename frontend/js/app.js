@@ -35,7 +35,7 @@ async function navigate() {
   mount('<p class="muted" role="status">Loading…</p>');
   try {
     if (parts[0] === 'dashboard') await dashboard(location.hash);
-    else if (parts[0] === 'decks') await decks(route);
+    else if (parts[0] === 'decks') await decks(route, parts[1] === 'new');
     else if (parts[0] === 'gwa') gwaPage(route);
     else if (parts[0] === 'pomodoro') pomodoroPage(route);
     else if (['profile','help','settings'].includes(parts[0])) accountPage(parts[0], route);

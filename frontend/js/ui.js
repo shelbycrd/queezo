@@ -1,3 +1,5 @@
+import {enhancePage} from './page-tools.js';
+
 export const app = document.querySelector('#app');
 export const backIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>';
 export const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -18,12 +20,14 @@ export function mount(html, route) {
     const target = parts[0] === 'deck' ? (parts.length > 2 ? `#deck/${parts[1]}` : '#decks') : parts[0] === 'summary' ? app.querySelector('a[href^="#deck/"]')?.getAttribute('href') || '#decks' : '#dashboard';
     app.insertAdjacentHTML('afterbegin', `<a class="subpage-back" href="${escape(target)}" aria-label="Go back">${backIcon}</a>`);
   }
+  enhancePage(app);
   return true;
 }
 
 export async function busy(container, action) {
   if (container.dataset.busy === 'true') return;
   container.dataset.busy = 'true';
+  container.setAttribute('aria-busy','true');
   const buttons = [...container.querySelectorAll('button')];
   const previous = buttons.map(button => button.disabled);
   buttons.forEach(button => { button.disabled = true; });
@@ -31,6 +35,7 @@ export async function busy(container, action) {
   catch (error) { notice(error.message); }
   finally {
     container.dataset.busy = 'false';
+    container.removeAttribute('aria-busy');
     buttons.forEach((button, index) => { button.disabled = previous[index]; });
   }
 }

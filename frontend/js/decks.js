@@ -15,7 +15,7 @@ export async function dashboard(route) {
     return `<div class="week-day ${activity.active_days.includes(key) ? 'studied' : ''}"><span>${day.toLocaleDateString('en',{weekday:'narrow',timeZone:'UTC'})}</span><span class="day-dot" aria-label="${key}: ${activity.active_days.includes(key) ? 'studied' : 'no study recorded'}">${activity.active_days.includes(key) ? '✓' : '·'}</span></div>`;
   }).join('');
   if (!mount(`<div class="page-heading"><div><h1>Home</h1></div></div>
-    <section class="home-welcome"><div><h2>What will you<br>learn today?</h2><p>Pick up a card and take it<br>one small step at a time.</p><div class="actions"><a class="button" href="#decks">Open flashcards ${icon('arrow')}</a><a class="text-link" href="#pomodoro">Start focusing</a></div></div><div class="welcome-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-card art-back"></div><div class="art-card art-front"><span>Q</span><i></i><i></i><i></i></div></div></section>
+    <section class="home-welcome"><div><h2>What will you<br>learn today?</h2><p>Pick up a card and take it<br>one small step at a time.</p><div class="actions"><a class="button" href="#decks">Open flashcards ${icon('arrow')}</a></div></div><nav class="quick-start panel" aria-label="Quick actions"><a href="#decks/new"><span>Create a deck</span><span aria-hidden="true">＋</span></a><a href="#gwa"><span>Calculate GWA</span><span aria-hidden="true">→</span></a><a href="#pomodoro"><span>Open focus timer</span><span aria-hidden="true">→</span></a></nav></section>
     <section class="recent-section"><div class="section-heading"><div><h2>Your latest decks</h2><p class="muted">Your most recently created decks.</p></div><div class="carousel-controls"><button type="button" id="recent-prev" class="icon-button secondary" aria-label="Previous decks">←</button><button type="button" id="recent-next" class="icon-button secondary" aria-label="Next decks">→</button></div></div>
     ${recent.length ? `<div class="recent-track" id="recent-track" tabindex="0" aria-label="Latest decks, newest first">${recent.slice(0,12).map(deckTile).join('')}</div>` : '<div class="empty"><div class="empty-icon">'+icon('cards')+'</div><h3>Your first deck starts here.</h3><p class="muted">Create a deck and add something you want to remember.</p><a class="button secondary" href="#decks">Create a deck</a></div>'}</section>
     <div class="home-lower"><section class="panel streak-panel"><div class="section-heading"><h2>Your study rhythm</h2></div><div class="streak-number">${activity.study_streak}<span> day${activity.study_streak === 1 ? '' : 's'} in a row</span></div><p class="muted">${activity.active_today ? 'You made time to learn today. Keep it going!' : 'A flashcard review or finished pomodoro keeps your streak going.'}</p><div class="study-week">${days}</div><div class="home-counts"><span><strong>${stats.deck_count}</strong> decks</span><span><strong>${stats.card_count}</strong> flashcards</span></div></section>
@@ -33,26 +33,44 @@ export async function dashboard(route) {
   });
 }
 
-export async function decks(route) {
+export async function decks(route, createImmediately = false) {
   const items = await api('/decks');
   items.sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id-a.id);
   if (!mount(`<div class="page-heading"><div><h1>Your Decks</h1></div><span class="deck-total">${plural(items.length,'deck')}</span></div>
     <div class="deck-tools"><form id="deck-search" class="new-deck-form" role="search"><div><label for="deck-search-input">Search decks</label><input id="deck-search-input" type="search" placeholder="Search your decks…" autocomplete="off"></div><button type="submit" class="secondary">Search</button></form><button id="open-create-deck" type="button">${icon('plus')} Create Deck</button></div>
     <dialog id="create-deck-dialog" class="create-deck-dialog"><form id="new-deck"><h2>Create a deck</h2><label for="deck-title">Deck title</label><input id="deck-title" name="title" required maxlength="120" autocomplete="off"><div class="actions"><button id="cancel-create-deck" type="button" class="secondary">Cancel</button><button type="submit">Create Deck</button></div></form></dialog>
+    <div class="collection-tools"><label for="deck-sort">Sort decks <select id="deck-sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="name">Title A–Z</option><option value="cards">Most cards</option></select></label><span id="deck-matches" role="status"></span><button id="clear-deck-search" class="secondary small flat-button" type="button" hidden>Clear search</button></div>
     <p id="deck-search-empty" class="empty" hidden>No decks match your search.</p>
     ${items.length ? `<div class="deck-grid">${items.map(deckTile).join('')}</div>` : '<div class="empty"><h2>Something worth remembering?</h2><p class="muted">Create your first deck, then add your questions and answers.</p></div>'}`,route)) return;
   const dialog = app.querySelector('#create-deck-dialog');
-  app.querySelector('#open-create-deck').addEventListener('click', () => dialog.showModal());
+  const openCreate = () => { dialog.showModal(); dialog.querySelector('input').focus(); };
+  app.querySelector('#open-create-deck').addEventListener('click', openCreate);
+  if (createImmediately) openCreate();
   app.querySelector('#cancel-create-deck').addEventListener('click', () => dialog.close());
   const search = () => {
     const query = app.querySelector('#deck-search-input').value.trim().toLocaleLowerCase();
     let matches = 0;
-    app.querySelectorAll('.portrait-deck').forEach((tile, index) => {
-      tile.hidden = !items[index].title.toLocaleLowerCase().includes(query);
+    app.querySelectorAll('.portrait-deck').forEach(tile => {
+      tile.hidden = !tile.querySelector('h2').textContent.toLocaleLowerCase().includes(query);
       if (!tile.hidden) matches++;
     });
     app.querySelector('#deck-search-empty').hidden = !items.length || matches > 0;
+    app.querySelector('#deck-matches').textContent = `${matches} of ${items.length} decks`;
+    app.querySelector('#clear-deck-search').hidden = !query;
   };
+  const tiles = [...app.querySelectorAll('.portrait-deck')];
+  const byTile = new Map(tiles.map((tile,index) => [tile,items[index]]));
+  app.querySelector('#deck-sort').addEventListener('change', event => {
+    const mode = event.target.value;
+    const ordered = [...tiles].sort((a,b) => {
+      const x=byTile.get(a), y=byTile.get(b);
+      return mode === 'name' ? x.title.localeCompare(y.title) : mode === 'cards' ? y.card_count-x.card_count : (mode === 'old' ? 1 : -1)*(x.created_at.localeCompare(y.created_at)||x.id-y.id);
+    });
+    const grid = app.querySelector('.deck-grid');
+    ordered.forEach(tile => grid.append(tile));
+  });
+  app.querySelector('#clear-deck-search').onclick = () => { app.querySelector('#deck-search-input').value=''; search(); app.querySelector('#deck-search-input').focus(); };
+  search();
   app.querySelector('#deck-search').addEventListener('submit', event => { event.preventDefault(); search(); });
   app.querySelector('#deck-search-input').addEventListener('input', search);
   app.querySelector('#new-deck').addEventListener('submit', event => {

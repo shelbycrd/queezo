@@ -42,6 +42,7 @@ export async function studyPage(sessionId, route) {
 
   function setDisabled(disabled) {
     if (!active()) return;
+    app.querySelector('.study-shell')?.setAttribute('aria-busy',String(disabled));
     app.querySelectorAll('.study-shell button').forEach(button => { button.disabled = disabled; });
   }
 

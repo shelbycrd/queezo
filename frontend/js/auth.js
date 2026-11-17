@@ -93,7 +93,7 @@ export function loginPage(route) {
   loginMessage = '';
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    const button = form.querySelector('button');
+    const button = form.querySelector('[type=submit]');
     if (button.disabled || !form.reportValidity()) return;
     const ticket = ++sequence;
     error.hidden = true;

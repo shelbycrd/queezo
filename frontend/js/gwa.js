@@ -1,5 +1,6 @@
 import {api} from './api.js';
 import {app, escape, mount} from './ui.js';
+import {enhancePage} from './page-tools.js';
 import {formatGradeDisplay, normalizeGradeInput} from './gwa-input.js';
 
 const emptyCourse = () => ({subject:'', units:'', grade:''});
@@ -11,7 +12,7 @@ export function gwaPage(route) {
     <div class="gwa-layout"><form id="gwa-form" class="panel"><fieldset id="gwa-fields"><legend class="sr-only">Courses for your GWA calculation</legend>
       <div class="section-heading course-heading"><h2>Your courses</h2><span id="course-count" class="muted" role="status"></span></div>
       <div class="course-table-heading" aria-hidden="true"><span></span><div><span>Subject <small>(optional)</small></span><span>Units</span><span>Grade</span></div><span></span></div><div id="course-rows"></div>
-      <div class="course-actions"><button type="button" id="add-course" class="secondary small">+ Add course</button><span class="hint">Up to 15 courses</span></div>
+      <div class="input-summary" id="course-live-totals" role="status"></div><div class="course-actions"><button type="button" id="add-course" class="secondary small">+ Add course</button><span class="hint">Up to 15 courses</span></div>
       <p id="gwa-error" class="inline-error" role="alert" hidden></p>
       <div class="form-actions"><button type="button" id="reset-gwa" class="secondary">Clear</button><button type="submit" id="calculate-gwa">What's my GWA?</button></div>
     </fieldset></form>
@@ -38,7 +39,14 @@ export function gwaPage(route) {
     ));
   }
 
+  function updateTotals() {
+    const entries = [...rows.querySelectorAll('[data-course]')];
+    const units = entries.reduce((sum,row) => { const input=row.querySelector('[data-field="units"]'); return sum+(input.checkValidity() && input.value ? Number(input.value) : 0); },0);
+    const ready = entries.filter(row => [...row.querySelectorAll('input')].every(input => input.checkValidity())).length;
+    form.querySelector('#course-live-totals').textContent = `${ready} of ${entries.length} courses ready · ${Number(units.toFixed(4))} total units`;
+  }
   function clearResult() {
+    updateTotals();
     result.hidden = true;
     placeholder.hidden = false;
     error.hidden = true;
@@ -55,6 +63,7 @@ export function gwaPage(route) {
     form.querySelector('#course-count').textContent = `${courses.length} / 15 courses`;
     form.querySelector('#add-course').disabled = courses.length >= 15;
     rows.querySelectorAll('[data-field="grade"]').forEach(validateGrade);
+    updateTotals();
   }
 
   function addCourse() {
@@ -129,13 +138,14 @@ export function gwaPage(route) {
       const percentage = Math.max(0, Math.min(100, summary.percentage));
       result.classList.toggle('is-failed', !summary.is_passing);
       result.innerHTML = `<p class="eyebrow">Your GWA</p><h2 class="gwa-value">${escape(summary.gwa_display)}</h2>
-        <span class="result-badge">${escape(summary.classification)}</span>
+        <span class="result-badge">${escape(summary.classification)}</span><div class="result-tools"><button type="button" class="secondary small flat-button" data-copy="${escape(`GWA: ${summary.gwa_display} · ${summary.classification} · ${summary.total_units} units`)}">Copy result</button></div>
         <div class="gwa-totals"><div><span class="muted">Courses</span><strong>${summary.course_count}</strong></div><div><span class="muted">Total units</span><strong>${summary.total_units}</strong></div></div>
         <div class="scale-heading"><h3>Grade scale</h3><strong>${percentage.toFixed(2)}%</strong></div>
         <progress class="gwa-progress" max="100" value="${percentage}" aria-label="Grade scale score"></progress><div class="scale-labels"><span>0%</span><span>100%</span></div>
         <p class="hint">1.00 = 100% · 5.00 = 0%. Visual grade scale.</p>
         ${summary.failed_course_count ? `<p class="course-warning">${summary.failed_course_count} ${summary.failed_course_count === 1 ? 'course is' : 'courses are'} above 3.00. Honor standing here uses your overall GWA.</p>` : ''}
         `;
+      enhancePage(result);
       placeholder.hidden = true;
       result.hidden = false;
       result.focus({preventScroll:true});

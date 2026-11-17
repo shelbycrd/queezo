@@ -183,7 +183,7 @@ export function pomodoroPage(route) {
     <section class="panel notification-panel"><h2>Timer alerts</h2><p id="notification-status" class="muted"></p><button id="enable-pomodoro-notifications" class="secondary small" type="button">Enable desktop notifications</button><p class="hint">Keep Queezo open. Your settings and tasks stay saved in this browser.</p><p id="pomodoro-storage-warning" class="inline-error" hidden>Browser storage is unavailable. Your timer and tasks will last only while this page stays open.</p></section></div>
     <section class="panel pomodoro-tasks"><div class="section-heading course-heading"><h2>Tasks</h2><span id="pomodoro-task-count" class="muted"></span></div><p class="hint">Set your pomodoros. We'll take care of moving to the next task.</p>
       <form id="pomodoro-task-form"><label for="pomodoro-task-title">Task</label><input id="pomodoro-task-title" name="title" maxlength="160" required placeholder="e.g. Do assignment">
-        <div class="task-add-row"><div><label for="pomodoro-task-target">Pomodoros needed</label><input id="pomodoro-task-target" name="target" type="number" min="1" max="99" step="1" value="2" required></div><button type="submit">+ Add task</button></div></form>
+        <div class="task-estimates" aria-label="Quick pomodoro estimate"><button type="button" class="secondary small flat-button" data-estimate="1">1 pomodoro</button><button type="button" class="secondary small flat-button" data-estimate="2">2 pomodoros</button><button type="button" class="secondary small flat-button" data-estimate="4">4 pomodoros</button></div><div class="task-add-row"><div><label for="pomodoro-task-target">Pomodoros needed</label><input id="pomodoro-task-target" name="target" type="number" min="1" max="99" step="1" value="2" required></div><button type="submit">+ Add task</button></div></form>
       <p id="pomodoro-error" class="inline-error" role="alert" hidden></p><div id="pomodoro-task-list"></div>
     </section></div>`, route)) return;
 
@@ -192,6 +192,13 @@ export function pomodoroPage(route) {
   const settingsMessage = app.querySelector('#timer-settings-message');
   const notificationStatus = app.querySelector('#notification-status');
   const tasksForm = app.querySelector('#pomodoro-task-form');
+  tasksForm.querySelectorAll('[data-estimate]').forEach(button => { button.onclick = () => {
+    tasksForm.elements.target.value = button.dataset.estimate;
+    tasksForm.querySelectorAll('[data-estimate]').forEach(item => item.setAttribute('aria-pressed',String(item === button)));
+    tasksForm.elements.title.focus();
+  }; });
+  tasksForm.elements.target.addEventListener('input',() => tasksForm.querySelectorAll('[data-estimate]').forEach(item => item.setAttribute('aria-pressed',String(item.dataset.estimate === tasksForm.elements.target.value))));
+  tasksForm.querySelectorAll('[data-estimate]').forEach(item => item.setAttribute('aria-pressed',String(item.dataset.estimate === tasksForm.elements.target.value)));
   const taskList = app.querySelector('#pomodoro-task-list');
   const error = app.querySelector('#pomodoro-error');
   let renderedTasks = '';
