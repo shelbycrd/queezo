@@ -1,3 +1,4 @@
+import {showNotice} from './popup.js';
 import {api} from './api.js';
 import {app, escape, mount} from './ui.js';
 import {enhancePage} from './page-tools.js';
@@ -144,8 +145,7 @@ export function gwaPage(route) {
       result.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'nearest'});
     } catch (failure) {
       if (location.hash !== route || !form.isConnected) return;
-      error.textContent = failure.message;
-      error.hidden = false;
+      showNotice(failure.message);
     } finally {
       pending = false;
       fields.disabled = false;

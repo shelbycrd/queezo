@@ -22,6 +22,14 @@
   line-height: 1.6;
 }
 body { background: #eef3ff; min-height: 100dvh; isolation: isolate; }
+/* Feedback floats over the interface instead of moving surrounding content. */
+#notice { position: fixed; inset: 84px 16px auto auto; z-index: 1000; width: min(420px, calc(100% - 32px)); max-height: calc(100dvh - 110px); overflow: auto; margin: 0 !important; padding: 15px 16px; display: flex; align-items: start; gap: 14px; border: 1px solid #e7bcb5; border-radius: 20px; background: #fff5f2; color: #863c32; box-shadow: 0 10px 35px #43557226; }
+#notice[hidden] { display: none; }
+#notice.success { background: #f0fbf4; border-color: #b9ddc6; color: #326448; }
+#notice > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+#notice > button { flex-shrink: 0; padding: 0; width: 28px; height: 28px; min-height: 0; border: 0; background: transparent; box-shadow: none; color: inherit; font-size: 1.35rem; line-height: 1; }
+#pomodoro-alert { position: fixed; right: 22px; bottom: 22px; z-index: 90; width: min(480px, calc(100% - 44px)); margin: 0 !important; box-shadow: 0 10px 35px #43557226; max-height: 50dvh; overflow: auto; }
+.inline-error { position: fixed; right: 22px; top: 84px; z-index: 90; max-width: min(420px, calc(100vw - 32px)); }
 /* Decorative shapes stay behind content and never intercept interaction. */
 .ambient-shapes { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
 .signed-in .ambient-shapes { left: calc(var(--sidebar) + 17px); }

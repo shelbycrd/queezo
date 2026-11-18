@@ -1,3 +1,4 @@
+import {showNotice} from './popup.js';
 import {api} from './api.js';
 import {authenticatedUser} from './auth-state.js';
 
@@ -61,7 +62,7 @@ export function chooseStudy(deckId) {
         saveTiming(session.id, timing);
         dialog.close();
         location.hash = `#study/${session.id}`;
-      } catch (failure) { error.textContent = failure.message; error.hidden = false; button.disabled = false; }
+      } catch (failure) { showNotice(failure.message); button.disabled = false; }
     });
     dialog.showModal();
   });

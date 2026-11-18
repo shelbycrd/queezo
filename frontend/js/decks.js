@@ -1,3 +1,4 @@
+import {showNotice} from './popup.js';
 import {api} from './api.js';
 import {app, busy, escape, mount, notice, plural} from './ui.js';
 import {icon} from './icons.js';
@@ -79,7 +80,7 @@ export async function decks(route, createImmediately = false) {
       try {
         const deck = await api('/decks',{method:'POST',body:{title:form.elements.title.value,visibility:form.elements.visibility.value}});
         dialog.close(); location.hash=`#deck/${deck.id}`;
-      } catch (failure) { error.textContent=failure.message; error.hidden=false; }
+      } catch (failure) { showNotice(failure.message); }
     });
   });
   app.querySelectorAll('[data-study]').forEach(button => button.addEventListener('click', () => busy(button.parentElement, () => startStudy(button.dataset.study))));

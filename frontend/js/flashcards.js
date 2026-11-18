@@ -67,7 +67,7 @@ async function deckWorkspace(deckId, cardId, route) {
       const changed = await api(`/decks/${deckId}`,{method:'PATCH',body:{visibility:visibilitySelect.value}});
       if (!visibilityControls.isConnected || location.hash !== route) return;
       Object.assign(deck,changed); syncVisibility();
-      visibilityControls.querySelector('#visibility-message').textContent='Visibility saved ✓';
+      notice('Visibility saved ✓', true);
     } catch (error) { notice(error.message); syncVisibility(); }
     finally { button.disabled=false; visibilitySelect.disabled=false; }
   };

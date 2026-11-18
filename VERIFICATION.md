@@ -228,3 +228,10 @@ Final browser and deployment checks:
 - Friends shows unavailable/Coming soon because the repository has no connected friends service. Highest Streak is derived from all account-private calendar activity days, not just the current streak; no backend or schema changes.
 - All 52 frontend tests passed, including longest-run, duplicate-day and month/year/leap-day cases. JavaScript syntax and whitespace checks passed.
 - Disposable preview browser checks covered signup, empty profile, public deck creation appearing in the profile, total count, account details, and 390px layout without document horizontal overflow. Viewport reset afterward. Preview screenshot: outputs/queezo-profile.jpg. No real account data was modified.
+
+## Overlay feedback — November 18, 2026
+
+- App errors, login/session messages, deck creation errors, GWA errors, study dialog errors, timer save feedback, visibility confirmations and clipboard feedback now use one shared dismissible popup. Text is assigned safely with textContent. Messages use alert/status semantics and stay out of normal page flow.
+- Popup uses the browser top layer when available and belongs to the active dialog for accessible dismissal. Dialog closing and route changes clear it. Pomodoro phase banners also float over the page instead of adding a layout row. Native form validation remains a browser popup.
+- All 52 frontend tests passed; syntax and whitespace checks passed. Browser QA in an isolated environment confirmed unchanged signup form height during validation, unchanged deck form height (292.375px) after a rejected URL title, preserved input, clickable dismissal in the modal, and a working success popup after Copy UID. Phone popup bounds fit with 16px margins; viewport restored.
+- Preview screenshot: outputs/queezo-feedback-popup.jpg. Real accounts/decks were not changed. Backend code and schema are unchanged.

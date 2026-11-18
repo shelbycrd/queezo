@@ -1,3 +1,4 @@
+import {showNotice} from './popup.js';
 import {app, escape, mount} from './ui.js';
 import {api} from './api.js';
 import {playTimerPress} from './audio.js';
@@ -245,14 +246,18 @@ export function pomodoroPage(route) {
       : permission === 'denied' ? 'Desktop notifications are blocked in your browser. In-app alerts will still appear.'
       : permission === 'unavailable' ? 'Desktop notifications are unavailable in this browser. In-app alerts will still appear.'
       : 'In-app alerts are on. Enable desktop notifications to receive timer and task updates outside the page.';
-    app.querySelector('#pomodoro-storage-warning').hidden = storageAvailable;
+    const storageWarning = app.querySelector('#pomodoro-storage-warning');
+    if (!storageAvailable && !storageWarning.dataset.shown) {
+      storageWarning.dataset.shown = 'true';
+      showNotice(storageWarning.textContent);
+    }
     updateClock();
   }
 
   async function act(action, options) {
     error.hidden = true;
     try { await transact(action, options); }
-    catch (failure) { if (error.isConnected) { error.textContent = failure.message; error.hidden = false; } }
+    catch (failure) { if (error.isConnected) { showNotice(failure.message); } }
   }
   toggle.addEventListener('click', () => {
     void playTimerPress();
@@ -268,8 +273,8 @@ export function pomodoroPage(route) {
     if (!settingsForm.reportValidity()) return;
     try {
       await transact(value => setSettings(value, Object.fromEntries(new FormData(settingsForm))));
-      settingsMessage.textContent = 'Timers saved. Reset to apply to this interval now.';
-    } catch (failure) { settingsMessage.textContent = failure.message; }
+      showNotice('Timers saved. Reset to apply to this interval now.', true);
+    } catch (failure) { showNotice(failure.message); }
   });
   tasksForm.addEventListener('submit', async event => {
     event.preventDefault();
@@ -296,7 +301,7 @@ export function pomodoroPage(route) {
       const permission = await Notification.requestPermission();
       if (permission === 'granted' && 'serviceWorker' in navigator) await navigator.serviceWorker.register('/pomodoro-worker.js');
       render();
-    } catch { notificationStatus.textContent = 'Desktop alerts could not be enabled. In-app alerts remain on.'; }
+    } catch { showNotice('Desktop alerts could not be enabled. In-app alerts remain on.'); }
   });
   renderPage = render;
   render();

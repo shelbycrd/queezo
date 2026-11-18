@@ -1,14 +1,12 @@
 import {enhancePage} from './page-tools.js';
+import {showNotice} from './popup.js';
 
 export const app = document.querySelector('#app');
 export const backIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>';
 export const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 
 export function notice(message, success = false) {
-  const element = document.querySelector('#notice');
-  element.textContent = message;
-  element.hidden = !message;
-  element.classList.toggle('success', success);
+  showNotice(message, success);
 }
 
 export function mount(html, route) {

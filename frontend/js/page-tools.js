@@ -1,3 +1,4 @@
+import {showNotice} from './popup.js';
 // Small, page-local controls. No account data or clipboard contents are read.
 export function enhancePage(root) {
   root.querySelectorAll('input[type=password]').forEach(input => {
@@ -17,12 +18,10 @@ export function enhancePage(root) {
     wrapper.append(button);
   });
   root.querySelectorAll('[data-copy]').forEach(button => {
-    const status = document.createElement('span'); status.className='copy-status'; status.setAttribute('role','status');
-    button.after(status);
     button.onclick = async () => {
       button.disabled=true;
-      try { await navigator.clipboard.writeText(button.dataset.copy); status.textContent='Copied ✓'; }
-      catch { status.textContent='Copy unavailable. Select the value and copy it manually.'; }
+      try { await navigator.clipboard.writeText(button.dataset.copy); showNotice('Copied ✓', true); }
+      catch { showNotice('Copy unavailable. Select the value and copy it manually.'); }
       finally { button.disabled=false; }
     };
   });

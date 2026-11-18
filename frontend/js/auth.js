@@ -1,3 +1,4 @@
+import {showNotice} from './popup.js';
 import {api} from './api.js';
 import {authenticatedUser, onUnauthorized, setAuthenticatedUser} from './auth-state.js';
 import {app, mount, notice} from './ui.js';
@@ -89,7 +90,7 @@ export function loginPage(route) {
     <p id="login-error" class="inline-error" role="alert" hidden></p><p id="login-message" class="hint" role="status"></p><button type="submit">Log in</button></form></section>`, route)) return;
   const form = app.querySelector('#login-form');
   const error = form.querySelector('#login-error');
-  form.querySelector('#login-message').textContent = loginMessage;
+  if (loginMessage) showNotice(loginMessage);
   loginMessage = '';
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -107,8 +108,7 @@ export function loginPage(route) {
       location.replace('#dashboard');
     } catch (failure) {
       if (ticket !== sequence || !form.isConnected || location.hash !== route) return;
-      error.textContent = failure.message;
-      error.hidden = false;
+      showNotice(failure.message);
     } finally {
       form.elements.password.value = '';
       button.disabled = false;
@@ -136,7 +136,7 @@ export function signupPage(route) {
     event.preventDefault();
     const button = form.querySelector('[type=submit]');
     if (button.disabled || !form.reportValidity()) return;
-    if (form.elements.password.value !== form.elements.confirm_password.value) { error.textContent = 'Passwords do not match.'; error.hidden = false; return; }
+    if (form.elements.password.value !== form.elements.confirm_password.value) { showNotice('Passwords do not match.'); return; }
     const ticket = ++sequence;
     button.disabled = true; button.textContent = 'Creating account…'; error.hidden = true;
     try {
@@ -145,7 +145,7 @@ export function signupPage(route) {
       if (ticket !== sequence || !form.isConnected || location.hash !== route) return;
       adopt(user); channel?.postMessage({type:'changed'}); location.replace('#dashboard');
     } catch (failure) {
-      if (ticket === sequence && form.isConnected) { error.textContent = failure.message; error.hidden = false; }
+      if (ticket === sequence && form.isConnected) { showNotice(failure.message); }
     } finally {
       form.elements.password.value = ''; form.elements.confirm_password.value = ''; updateStrength();
       button.disabled = false; button.textContent = 'Sign up';
