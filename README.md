@@ -26,18 +26,15 @@ The Friends area is marked **Coming soon**, and chat is a local preview. Email v
 
 Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin. The first build needs internet access to fetch container images and Python dependencies.
 
-From the repository root in PowerShell:
+From the repository root, run:
 
-```powershell
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-docker compose config --quiet
+```sh
 docker compose up -d --build --wait
-docker compose ps
 ```
 
-Open [Queezo on localhost](http://localhost:8080) and choose **Create an account**. Usernames and email addresses are unique regardless of capitalization. Passwords require at least 11 characters. After signing in, choose **Flashcards**, **GWA Calculator**, or **Pomodoro** in the sidebar. In study mode, use **Enter** to reveal and **1**, **2**, or **3** to rate Hard, Normal, or Easy.
+Open [Queezo on localhost](http://localhost:8080) and choose **Create an account**.
 
-The defaults in [`.env.example`](.env.example) are for local HTTP. If you change `APP_PORT` or the browser hostname, update `AUTH_TRUSTED_ORIGINS` to match the exact origins, including the port. See the [account setup guide](AUTH_SETUP.md#environment-configuration) for HTTPS settings.
+For custom settings, copy [`.env.example`](.env.example) to `.env`. Set `AUTH_TRUSTED_ORIGINS` to the exact browser origins, including the port, if you change `APP_PORT` or the hostname. See the [account setup guide](AUTH_SETUP.md#environment-configuration) for HTTPS settings.
 
 You can also create an account from an interactive terminal:
 
@@ -57,62 +54,33 @@ The CLI also supports listing and inspecting users, revoking sessions, deleting 
 | [`backend/tests/`](backend/tests/) | Pytest coverage for API behavior, accounts, persistence, and migrations. |
 | [`nginx/`](nginx/) and [`compose.yaml`](compose.yaml) | Nginx serves the frontend and proxies both APIs. Compose runs the three services. |
 
-Both APIs use SQLAlchemy and a shared SQLite database for account and session validation. Passwords are hashed with Argon2id, and authenticated writes use CSRF checks. The Compose database is stored in the `queezo_data` volume. `docker compose down` keeps it. **`docker compose down -v` deletes it.**
+Both APIs use SQLAlchemy and a shared SQLite database for account and session validation. The Compose database is stored in the `queezo_data` volume. `docker compose down` keeps it. **`docker compose down -v` deletes it.**
 
-## Development and operations
+## Screenshots
 
-```powershell
-docker compose up -d --build --no-deps --wait frontend  # Frontend changes
-# Rebuild all services after backend changes.
-docker compose up -d --build --wait
-docker compose logs --tail=100 backend gwa frontend
-```
+### Flashcards
 
-For API-only development outside Docker, activate a Python 3.12 virtual environment, open `backend/`, and run `python -m pip install -r requirements.txt`. Set the following variables in each of two PowerShell terminals in `backend/`, then start one Uvicorn service per terminal. Both services use the same default local SQLite file when started from that directory.
+Search or sort your decks, then open one to edit or start studying.
 
-```powershell
-$env:AUTH_ENV = 'development'
-$env:AUTH_COOKIE_SECURE = 'false'
-$env:AUTH_TRUSTED_ORIGINS = 'http://127.0.0.1:8000,http://127.0.0.1:8001'
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-# In the second terminal, after setting the same three variables:
-python -m uvicorn app.gwa.main:app --host 127.0.0.1 --port 8001
-```
+![Flashcards page showing three decks and search and sort controls](docs/screenshots/flashcards.png)
 
-The standalone API docs are at `http://127.0.0.1:8000/docs` and `http://127.0.0.1:8001/gwa/docs`.
+### GWA Calculator
 
-### Upgrading an older database
+Enter each course’s units and grade to calculate your weighted average.
 
-Back up the database before upgrading. The [legacy ownership guide](AUTH_SETUP.md#existing-decks-are-preserved) explains how to assign existing unowned decks. If Flashcards startup reports one-sided cards or snapshots, inspect the affected IDs:
+![GWA Calculator showing course inputs and the results panel](docs/screenshots/gwa-calculator.png)
 
-```powershell
-docker compose build backend
-docker compose run --rm --no-deps backend python -m app.migrate_cards
-```
+### Pomodoro Timer
 
-Create `answers.json` at the repository root with the reported IDs and an explicit answer for each. Use the applicable groups `flashcards` and `study_session_cards`, for example `{"flashcards":{"1":"Card answer"},"study_session_cards":{"9":"Snapshot answer"}}`. Apply the conversion, then restart:
+Start a focus session and track your progress through the study and break cycle.
 
-```powershell
-docker compose run --rm --no-deps -v "${PWD}/answers.json:/tmp/answers.json:ro" backend python -m app.migrate_cards --answers /tmp/answers.json
-docker compose up -d --build --wait
-```
+![Pomodoro timer showing a 25-minute study session and phase controls](docs/screenshots/pomodoro.png)
 
 ## Documentation
 
 - Local API references for [Flashcards and accounts](http://localhost:8080/docs) and [GWA](http://localhost:8080/gwa/docs). Health endpoints are `/api/health` and `/api/gwa/health`.
 - [Account setup and troubleshooting](AUTH_SETUP.md) and [authentication implementation](AUTH_IMPLEMENTATION.md).
 - [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/assets/README.md).
-
-## Contributing
-
-Open a GitHub issue with reproduction steps, expected behavior, and relevant logs or screenshots. Leave out credentials, cookies, share tokens, and private study data. For a pull request, keep changes focused and describe how you checked them. Run the relevant checks from the repository root:
-
-```powershell
-docker compose run --rm --no-deps backend python -m pytest -q
-node --test frontend/tests/*.test.mjs
-```
-
-The backend suite uses temporary test databases. The frontend suite uses Node.js's built-in test runner.
 
 ## License
 
