@@ -4,6 +4,7 @@ import {startStudy} from './decks.js';
 import {app, busy, date, duration, escape, mount, notice, plural} from './ui.js';
 import {MAX_IMAGE_BYTES, renderCardContent, safeImageUrl} from './card-content.js';
 import {playPageTurn, preparePageSound} from './audio.js';
+import {setupMultipleChoiceHistory} from './multiple-choice.js';
 
 export const deckPage = (deckId, route) => deckWorkspace(deckId, null, route);
 export const cardForm = (deckId, cardId, route) => deckWorkspace(deckId, cardId, route);
@@ -50,6 +51,10 @@ async function deckWorkspace(deckId, cardId, route) {
   visibilityControls.innerHTML = `<label for="owner-visibility">Visibility</label><select id="owner-visibility"><option value="private">Private — only you</option><option value="public">Public — Community Decks</option><option value="unlisted">Unlisted — anyone with the share link</option></select><button id="save-visibility" type="button" class="secondary small flat-button">Save visibility</button><button id="copy-share-link" type="button" class="secondary small flat-button" data-copy="">Copy share link</button><span id="visibility-message" role="status"></span>`;
   const heading = app.querySelector('.deck-workspace .page-heading');
   heading.after(visibilityControls);
+  const history = app.querySelector('.session-history');
+  history.querySelector('summary').firstChild.textContent = 'Recent Classic sessions ';
+  history.insertAdjacentHTML('afterend', '<details class="session-history"><summary>Multiple-Choice history <span class="muted" data-mc-history-count></span></summary><div data-mc-history></div></details>');
+  setupMultipleChoiceHistory(history.nextElementSibling, deckId, route);
   enhancePage(visibilityControls);
   const visibilitySelect = visibilityControls.querySelector('select');
   const copyShare = visibilityControls.querySelector('#copy-share-link');

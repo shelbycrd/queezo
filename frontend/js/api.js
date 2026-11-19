@@ -4,7 +4,7 @@ export class ApiError extends Error {
   constructor(message, status) { super(message); this.status = status; }
 }
 
-export async function api(path, {method = 'GET', body, ignoreUnauthorized = false} = {}) {
+export async function api(path, {method = 'GET', body, ignoreUnauthorized = false, signal} = {}) {
   method = method.toUpperCase();
   const version = authVersion();
   const headers = body === undefined ? {} : {'Content-Type': 'application/json'};
@@ -12,10 +12,11 @@ export async function api(path, {method = 'GET', body, ignoreUnauthorized = fals
   let response;
   try {
     response = await fetch(`/api${path}`, {
-      method, cache: 'no-store', credentials:'same-origin', headers,
+      method, cache: 'no-store', credentials:'same-origin', headers, signal,
       ...(body === undefined ? {} : {body: JSON.stringify(body)}),
     });
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) throw error;
     throw new ApiError('Cannot reach Queezo. Check that the containers are running.', 0);
   }
   if (!path.startsWith('/auth/') && version !== authVersion()) {

@@ -2,6 +2,7 @@ import {sharedPage} from './shared-deck.js';
 import {dashboard, decks} from './decks.js';
 import {cardForm, deckPage} from './flashcards.js';
 import {studyPage, stopStudyListeners, summaryPage} from './study.js';
+import {multipleChoicePage, stopMultipleChoice} from './multiple-choice.js';
 import {app, mount, notice} from './ui.js';
 import {gwaPage} from './gwa.js';
 import {initPomodoro, pomodoroPage, setPomodoroUser, stopPomodoroView} from './pomodoro.js';
@@ -18,11 +19,14 @@ let authReady = false;
 async function navigate() {
   if (!authReady) return;
   stopStudyListeners();
+  stopMultipleChoice();
+  closeStudyOptions();
   stopPomodoroView();
   notice('');
   const route = location.hash || '#dashboard';
   const parts = route.slice(1).split('/');
   const titles = {dashboard:'Home', decks:'Flashcard', deck:'Flashcard', study:'Flashcard', summary:'Flashcard', shared:'Flashcard', gwa:'GWA Calculator', notes:'GWA Calculator', pomodoro:'Pomodoro', profile:'Profile', friend:'Profile', settings:'Settings', help:'Help', login:'Log in', signup:'Sign up'};
+  titles['multiple-choice'] = 'Flashcard';
   if (!authenticatedUser()) {
     if (!['#login','#signup'].includes(route)) { location.replace('#login'); return; }
     document.title = `Queezo • ${titles[parts[0]]}`;
@@ -34,7 +38,7 @@ async function navigate() {
   if (['login','signup'].includes(parts[0])) { location.replace('#dashboard'); return; }
   document.title = `Queezo • ${titles[parts[0]] || 'Page not found'}`;
   document.querySelectorAll('[data-nav]').forEach(link => {
-    const section = ['deck','study','summary'].includes(parts[0]) ? 'decks' : parts[0];
+    const section = ['deck','study','summary','multiple-choice'].includes(parts[0]) ? 'decks' : parts[0];
     if (link.dataset.nav === section) link.setAttribute('aria-current','page');
     else link.removeAttribute('aria-current');
   });
@@ -53,6 +57,7 @@ async function navigate() {
       else if (parts[2] === 'edit' && /^\d+$/.test(parts[3])) await cardForm(parts[1], parts[3], route);
       else await deckPage(parts[1], route);
     } else if (parts[0] === 'study' && parts[1]) await studyPage(parts[1], route);
+    else if (parts[0] === 'multiple-choice' && /^[a-f0-9-]{36}$/i.test(parts[1] || '')) await multipleChoicePage(parts[1], route);
     else if (parts[0] === 'summary' && parts[1]) await summaryPage(parts[1], route);
     else mount('<h1>Page not found</h1><a href="#dashboard">Return to Dashboard</a>', route);
   } catch (error) {
@@ -75,6 +80,7 @@ initAuth((previous, user) => {
   if (user) void friends.pulse();
   closeStudyOptions();
   stopStudyListeners();
+  stopMultipleChoice();
   stopPomodoroView();
   app.innerHTML = '';
   setPomodoroUser(user?.id ?? null);

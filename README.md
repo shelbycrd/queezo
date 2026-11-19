@@ -12,7 +12,7 @@ Queezo is a study workspace for students. Build your own decks, discover decks s
 
 | App | Features |
 | --- | --- |
-| **Flashcards** | Create two-sided cards with optional photos and typed lists. Search and sort decks. Run a timed or unlimited study session with immediate answer reveal, difficulty ratings, and a review summary. |
+| **Flashcards** | Create and organize two-sided cards with photos and lists. Use Classic Mode for timed or unlimited recall practice, or Multiple-Choice Mode for four-option questions with locally generated distractors and server grading. |
 | **GWA Calculator** | Calculate `sum(grade × units) / sum(units)` for 1–15 courses on a 1.00–5.00 scale. Subject names are optional. Enter `175` as shorthand for `1.75`. Results include a classification and a grade-scale bar. Calculations are stateless. |
 | **Pomodoro Timer** | Customize study and break lengths, set study targets for tasks, and see alerts when intervals or tasks finish. The default is four 25-minute study sessions with three 5-minute breaks and a 15-minute long break. Each new phase waits for you to start it. |
 

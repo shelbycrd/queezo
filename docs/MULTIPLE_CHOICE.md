@@ -1,5 +1,7 @@
 # Multiple-choice study API
 
+From a deck, choose **Study**, then **Multiple-Choice Mode**. The preparation screen shows progress and recovery options. A question is graded when the student selects **Check answer**, and the results use server-recorded totals. Open **Multiple-Choice history** on the deck to resume a saved session or view a summary. Refreshing resumes at the current unanswered question or summary. Feedback for an answer that was already submitted is shown only when the browser receives the grading response.
+
 Phase 2B adds owner-only backend sessions. Use the normal session cookie for every route and send the CSRF header on POST requests. Shared decks can be studied once copied into the student's own decks.
 
 | Method and path | Result |
