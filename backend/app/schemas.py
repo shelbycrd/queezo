@@ -77,3 +77,8 @@ class PresentationInput(InputModel):
 
 class RatingInput(PresentationInput):
     difficulty: Difficulty
+
+
+class MultipleChoiceAnswer(InputModel):
+    question_id: str = Field(min_length=36, max_length=36)
+    option_id: str = Field(min_length=36, max_length=36)

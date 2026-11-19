@@ -2,7 +2,7 @@ from datetime import date, datetime, timezone
 from uuid import uuid4
 import secrets
 
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -41,6 +41,66 @@ class Flashcard(Base):
         CheckConstraint("card_type = 'two_sided'"),
         CheckConstraint("length(trim(back)) BETWEEN 1 AND 10000"),
         {"sqlite_autoincrement": True},
+    )
+
+
+class FlashcardDistractorCache(Base):
+    __tablename__ = "flashcard_distractor_cache"
+
+    flashcard_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id", ondelete="CASCADE"), primary_key=True)
+    distractors: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    content_fingerprint: Mapped[str] = mapped_column(String(64))
+    ollama_model: Mapped[str] = mapped_column(Text)
+    generation_version: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+    __table_args__ = (
+        CheckConstraint("json_valid(distractors) AND json_type(distractors) = 'array' "
+                        "AND json_array_length(distractors) = 3"),
+    )
+
+
+class MultipleChoiceSession(Base):
+    __tablename__ = "multiple_choice_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id", ondelete="CASCADE"), index=True)
+    deck_title: Mapped[str] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(16), default="preparing")
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    prepare_until: Mapped[datetime] = mapped_column(DateTime)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+    __table_args__ = (
+        CheckConstraint("status IN ('preparing', 'failed', 'active', 'completed', 'cancelled')"),
+    )
+
+
+class MultipleChoiceQuestion(Base):
+    __tablename__ = "multiple_choice_questions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("multiple_choice_sessions.id", ondelete="CASCADE"))
+    # Keep the source ID for failure reports and snapshots even after card deletion.
+    source_card_id: Mapped[int] = mapped_column(Integer)
+    position: Mapped[int] = mapped_column(Integer)
+    front: Mapped[str | None] = mapped_column(Text)
+    front_image: Mapped[str | None] = mapped_column(Text)
+    back_image: Mapped[str | None] = mapped_column(Text)
+    options: Mapped[list[dict[str, str]] | None] = mapped_column(JSON(none_as_null=True))
+    correct_option_id: Mapped[str | None] = mapped_column(String(36))
+    selected_option_id: Mapped[str | None] = mapped_column(String(36))
+    answered_at: Mapped[datetime | None] = mapped_column(DateTime)
+    failure: Mapped[str | None] = mapped_column(String(32))
+    __table_args__ = (
+        UniqueConstraint("session_id", "position"),
+        UniqueConstraint("session_id", "source_card_id"),
+        CheckConstraint("(options IS NULL) = (correct_option_id IS NULL)"),
+        CheckConstraint("failure IS NULL OR options IS NULL"),
+        CheckConstraint("(selected_option_id IS NULL) = (answered_at IS NULL)"),
     )
 
 

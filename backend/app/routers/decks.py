@@ -8,6 +8,7 @@ from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, StudySession, StudySessionCard, User, utcnow
 from app.schemas import CardInput, CardPatch, DeckInput, DeckPatch
 from app.services.content_policy import no_urls
+from app.services.ownership import owned_flashcards
 import secrets
 from app.services.presenters import card_view, deck_view, summary_view
 
@@ -19,7 +20,7 @@ def owned_query(model, user):
     if model is Deck:
         return select(Deck).where(Deck.owner_id == user.id)
     if model is Flashcard:
-        return select(Flashcard).join(Deck, Flashcard.deck_id == Deck.id).where(Deck.owner_id == user.id)
+        return owned_flashcards(user.id)
     if model is StudySession:
         return select(StudySession).join(Deck, StudySession.deck_id == Deck.id).where(
             StudySession.owner_id == user.id, Deck.owner_id == user.id)

@@ -80,6 +80,8 @@ Start a focus session and track your progress through the study and break cycle.
 
 - Local API references for [Flashcards and accounts](http://localhost:8080/docs) and [GWA](http://localhost:8080/gwa/docs). Health endpoints are `/api/health` and `/api/gwa/health`.
 - [Account setup and troubleshooting](AUTH_SETUP.md) and [authentication implementation](AUTH_IMPLEMENTATION.md).
+- [Local Ollama generation and SQLite caching for Multiple-Choice Mode](docs/OLLAMA.md).
+- [Multiple-choice study API and preparation lifecycle](docs/MULTIPLE_CHOICE.md).
 - [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/assets/README.md).
 
 ## License

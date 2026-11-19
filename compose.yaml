@@ -9,7 +9,10 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    environment: *auth-environment
+    environment:
+      <<: *auth-environment
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:1.7b}
     volumes:
       - queezo_data:/data
     restart: unless-stopped

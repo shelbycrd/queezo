@@ -65,6 +65,14 @@ def init_database(target=engine):
                     BEGIN SELECT RAISE(ABORT, 'All cards require two sides'); END
                 """))
         connection.execute(text("""
+            CREATE TRIGGER IF NOT EXISTS flashcard_distractors_invalidate
+            AFTER UPDATE OF front, back ON flashcards
+            WHEN NEW.front IS NOT OLD.front OR NEW.back IS NOT OLD.back
+            BEGIN
+                DELETE FROM flashcard_distractor_cache WHERE flashcard_id = NEW.id;
+            END
+        """))
+        connection.execute(text("""
             CREATE TRIGGER IF NOT EXISTS flashcard_limit
             BEFORE INSERT ON flashcards
             WHEN (SELECT COUNT(*) FROM flashcards WHERE deck_id = NEW.deck_id) >= 150

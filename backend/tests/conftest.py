@@ -45,6 +45,7 @@ def anonymous_client(tmp_path, monkeypatch):
     gwa_app.dependency_overrides[get_db] = read_db
     gwa_app.dependency_overrides[get_write_db] = write_db
     monkeypatch.setattr("app.main.init_database", lambda: None)
+    monkeypatch.setattr("app.services.multiple_choice.SessionLocal", factory)
     with TestClient(app) as test_client:
         test_client.factory = factory
         test_client.database_url = f"sqlite:///{(tmp_path / 'test.db').as_posix()}"

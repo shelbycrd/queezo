@@ -8,26 +8,35 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.concurrency import run_in_threadpool
 
 from app.database import get_db, init_database
 from app.errors import validation_error
-from app.routers import activity, decks, friends, study
+from app.routers import activity, decks, friends, multiple_choice, study
 from app.routers import community
 from app.auth.router import router as auth_router
 from app.auth.config import get_settings
 from app.auth.middleware import PrivateResponseHeaders
+from app.services.multiple_choice import PreparationJobs, recover_interrupted
 
 
 @asynccontextmanager
-async def lifespan(_):
+async def lifespan(application):
     get_settings()
     init_database()
-    yield
+    await run_in_threadpool(recover_interrupted)
+    jobs = PreparationJobs()
+    application.state.multiple_choice_jobs = jobs
+    try:
+        yield
+    finally:
+        await jobs.stop()
 
 
 app = FastAPI(title="Queezo App 1: Flashcards API", version="1.1.0", lifespan=lifespan)
 app.include_router(decks.router)
 app.include_router(study.router)
+app.include_router(multiple_choice.router)
 app.include_router(activity.router)
 app.include_router(auth_router)
 app.include_router(community.router)
