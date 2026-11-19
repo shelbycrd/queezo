@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "description": "Synthetic QA flashcards. Each card is a [Front, Back] pair. Card IDs use the deck ID and one-based position.",
+  "decks": [
+    {"id": "definitions-1", "category": "definitions", "cards": [
+      ["What is the movement of water across a selectively permeable membrane called?","Osmosis"],
+      ["What is the conversion of light energy into chemical energy by plants called?","Photosynthesis"],
+      ["What is the change from liquid to gas at a liquid's surface called?","Evaporation"],
+      ["What is the change from gas to liquid called?","Condensation"],
+      ["What is the direct change from a solid to a gas called?","Sublimation"],
+      ["What force opposes relative motion between two surfaces in contact?","Friction"],
+      ["What general term describes repeated copying of DNA before cell division?","DNA replication"],
+      ["What is the tendency to resist a change in motion called?","Inertia"],
+      ["What is mass divided by volume called?","Density"],
+      ["What is the amount of matter in an object called?","Mass"],
+      ["What is the space occupied by an object called?","Volume"],
+      ["What is the transfer of thermal energy by bulk motion of a fluid called?","Convection"]
+    ]},
+    {"id": "acronyms-1", "category": "acronyms", "cards": [
+      ["In databases, what does SQL stand for?","Structured Query Language"],
+      ["In networking, what does DNS stand for?","Domain Name System"],
+      ["In web development, what does HTML stand for?","Hypertext Markup Language"],
+      ["In web development, what does CSS stand for?","Cascading Style Sheets"],
+      ["In computing, what does CPU stand for?","Central Processing Unit"],
+      ["In computing, what does GPU stand for?","Graphics Processing Unit"],
+      ["In networking, what does TCP stand for?","Transmission Control Protocol"],
+      ["In networking, what does UDP stand for?","User Datagram Protocol"],
+      ["In computing, what does RAM stand for?","Random Access Memory"],
+      ["In software interfaces, what does API stand for?","Application Programming Interface"],
+      ["In computer storage, what does SSD stand for?","Solid State Drive"],
+      ["In web addressing, what does URL stand for?","Uniform Resource Locator"]
+    ]},
+    {"id": "programming-1", "category": "programming", "cards": [
+      ["What Python keyword starts a function definition?","def"],
+      ["What Python keyword defines a class?","class"],
+      ["Which Python keyword sends a value back from a function?","return"],
+      ["Which Python keyword terminates the innermost loop immediately?","break"],
+      ["Which Python keyword starts the next iteration of a loop?","continue"],
+      ["Which Python keyword handles an exception in a try statement?","except"],
+      ["Which Python keyword loads a module by name?","import"],
+      ["What method adds one item to the end of a Python list? Give the method name only.","append"],
+      ["What Python built-in function returns the number of items in a list? Give its name.","len"],
+      ["What JavaScript keyword declares a block-scoped binding that can be reassigned? Use the usual standalone declaration keyword.","let"],
+      ["What is the Python exponentiation operator?","**"],
+      ["What is the Python floor division operator?","//"]
+    ]},
+    {"id": "operating_systems-1", "category": "operating_systems", "cards": [
+      ["What is the core part of an operating system that manages hardware and processes?","Kernel"],
+      ["What is a running instance of a program called?","Process"],
+      ["What is the smallest independently scheduled unit of execution within a process called?","Thread"],
+      ["What OS abstraction lets a process use an address space independent of physical memory?","Virtual memory"],
+      ["What event occurs when a program accesses a virtual page that is not currently mapped as present?","Page fault"],
+      ["What is the event where a CPU saves one task's state and loads another task's state called?","Context switch"],
+      ["What is the condition in which tasks wait forever on resources held by one another called?","Deadlock"],
+      ["What synchronization primitive grants exclusive ownership of a shared critical section? Give the standard abbreviation for mutual exclusion.","Mutex"],
+      ["What is the programming interface for requesting an operation from the operating system kernel?","System call"],
+      ["What data structure classically tracks available permits for concurrent access to a resource?","Semaphore"],
+      ["What process state follows timer preemption if the process can run again immediately once scheduled?","Ready"],
+      ["What is the software that loads an operating system during startup called?","Bootloader"]
+    ]},
+    {"id": "mathematics-1", "category": "mathematics", "cards": [
+      ["What is 1 divided by 2? Give the decimal form.","0.5"],
+      ["What is 0.5 written as a fraction in lowest terms?","1/2"],
+      ["What is half of a whole? Give the percentage.","50%"],
+      ["What is the principal square root of 81?","9"],
+      ["What is 2 raised to the fifth power?","32"],
+      ["What is 18 multiplied by 4?","72"],
+      ["What is the additive inverse of 7?","-7"],
+      ["What is the derivative of x squared with respect to x?","2x"],
+      ["What is the greatest common divisor of 18 and 24?","6"],
+      ["What is the least common multiple of 4 and 6?","12"],
+      ["How many degrees are in a straight angle?","180"],
+      ["Solve for x: 3x + 7 = 52.","15"]
+    ]},
+    {"id": "true_false-1", "category": "true_false", "cards": [
+      ["True or false: Every square is a rectangle.","True"],
+      ["True or false: Every rectangle is a square.","False"],
+      ["True or false: Zero is an even integer.","True"],
+      ["True or false: One is a prime number.","False"],
+      ["True or false: Water freezes at 0 °C at standard atmospheric pressure, assuming pure water at equilibrium.","True"],
+      ["True or false: The Moon produces the visible sunlight we see reflected from it.","False"],
+      ["True or false: A Python tuple cannot have one of its positions reassigned.","True"],
+      ["True or false: A process and a thread are always the same operating system abstraction.","False"],
+      ["True or false: In standard JavaScript, a const binding cannot be reassigned.","True"],
+      ["True or false: The area of a circle is 2πr.","False"],
+      ["True or false: DNS can resolve a hostname to an IP address.","True"],
+      ["True or false: A compiler must execute the source program in order to translate it.","False"]
+    ]},
+    {"id": "repeated_answers-1", "category": "repeated_answers", "cards": [
+      ["What color is a clear daytime sky usually described as?","Blue"],
+      ["What color does the center stripe of the French flag have?","White"],
+      ["What color is fresh undyed snow in ordinary daylight?"," white "],
+      ["What traffic signal color means stop?","Red"]
+    ]},
+    {"id": "repeated_answers-2", "category": "repeated_answers", "cards": [
+      ["What open-source operating system kernel project was started by Linus Torvalds?","Linux"],
+      ["What is the numeric answer to 3 + 3?","6"],
+      ["How many sides does a regular hexagon have?","6"],
+      ["Name the standard protocol for translating domain names into IP addresses. Use its acronym.","DNS"]
+    ]},
+    {"id": "repeated_answers-3", "category": "repeated_answers", "cards": [
+      ["What is the basic SI unit of electric current?","Ampere"],
+      ["What is the only even prime number?","2"],
+      ["How many solutions does x squared equal nine have over the real numbers?","2"],
+      ["What is the SI derived unit of energy?","Joule"]
+    ]},
+    {"id": "unfamiliar_terminology-1", "category": "unfamiliar_terminology", "cards": [
+      ["In vocabulary, what is the lingering scent after rain falls on dry ground?","Petrichor"],
+      ["What literary technique uses a part to refer to the whole?","Synecdoche"],
+      ["What is the use of a word like 'buzz' to imitate a sound called?","Onomatopoeia"],
+      ["What is the name for words that have opposite meanings but share the same spelling, such as 'sanction'? Give the term for one word.","Contronym"],
+      ["What is a mark added to a letter to indicate a different pronunciation called?","Diacritic"],
+      ["What is the contrasting arrangement of two clauses in inverse order, such as ABBA, called?","Chiasmus"],
+      ["What is the loss of an initial unstressed vowel called, as in esquire becoming squire?","Aphesis"],
+      ["What is a visual image formed from a mere suggestion of a familiar pattern, such as seeing a face in clouds, called? Name the phenomenon.","Pareidolia"],
+      ["What is the intentional omission of conjunctions in a sequence of words called?","Asyndeton"],
+      ["What is the repetition of a word at the beginning of successive clauses called?","Anaphora"],
+      ["What geological term denotes the point on Earth's surface directly above an earthquake's origin?","Epicenter"],
+      ["In the fictional board game invented for this benchmark, what token is awarded for a purple tile? The glossary calls it a lorvex.","lorvex"]
+    ]},
+    {"id": "gibberish-1", "category": "gibberish", "cards": [
+      ["awgaw","asdaw"],
+      ["awgaa","awdawd"],
+      ["gasdfg","awdawd"],
+      ["tyjyukyu","khl"]
+    ]},
+    {"id": "gibberish-2", "category": "gibberish", "cards": [
+      ["aiuiwyd","zyrke"],
+      ["zxczxc","asdf"],
+      ["qweqwe","zxczxc"],
+      ["asdawd","qweqwe"]
+    ]},
+    {"id": "gibberish-3", "category": "gibberish", "cards": [
+      ["jkljkl","hjk"],
+      ["qwerqwer","qwe"],
+      ["tyutyut","uty"],
+      ["brenvok","tulnex"]
+    ]}
+  ]
+}

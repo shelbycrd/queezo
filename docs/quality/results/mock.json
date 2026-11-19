@@ -1,0 +1,6289 @@
+{
+  "mode": "mock",
+  "seed": 42,
+  "model": "qwen3:1.7b",
+  "generation_version": 2,
+  "dataset_sha256": "7d647c50a08dca98705aef13a8e1f39ff8c240d43f27f328030f2d2b6ed2b877",
+  "totals": {
+    "cards": 108,
+    "requests": 252,
+    "retry_requests": 144,
+    "cards_retried": 72,
+    "literal_retry_requests": 6,
+    "invalid_responses": 72,
+    "requests_without_response_headers": 36,
+    "http_failure_responses": 0,
+    "candidates_received": 792,
+    "rejected_candidates": {
+      "blank_or_nontext": 252,
+      "correct_answer": 126,
+      "duplicate": 198,
+      "invalid_unicode": 18
+    },
+    "cards_with_duplicates": 72,
+    "cards_with_correct_contamination": 72,
+    "ai_only": {
+      "ready": 36,
+      "success_rate": 0.3333,
+      "statuses": {
+        "insufficient_distractors": 36,
+        "invalid_ai_response": 18,
+        "ollama_unavailable": 18,
+        "ready": 36
+      }
+    },
+    "hybrid_policy": {
+      "ready": 97,
+      "success_rate": 0.8981,
+      "statuses": {
+        "insufficient_distractors": 2,
+        "invalid_ai_response": 5,
+        "ollama_unavailable": 4,
+        "ready": 97
+      },
+      "combined_shortfalls": 11,
+      "origin_mix": {
+        "ai_only": 36,
+        "deck_only": 27,
+        "mixed": 34
+      }
+    },
+    "deck_only": {
+      "ready": 80,
+      "success_rate": 0.7407,
+      "statuses": {
+        "ollama_unavailable": 28,
+        "ready": 80
+      },
+      "combined_shortfalls": 28
+    }
+  },
+  "by_category": {
+    "acronyms": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "definitions": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "gibberish": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 6,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 11,
+        "success_rate": 0.9167,
+        "statuses": {
+          "invalid_ai_response": 1,
+          "ready": 11
+        },
+        "combined_shortfalls": 1,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 3,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 8,
+        "success_rate": 0.6667,
+        "statuses": {
+          "ollama_unavailable": 4,
+          "ready": 8
+        },
+        "combined_shortfalls": 4
+      }
+    },
+    "mathematics": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "operating_systems": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "programming": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "repeated_answers": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 8,
+        "success_rate": 0.6667,
+        "statuses": {
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 8
+        },
+        "combined_shortfalls": 4,
+        "origin_mix": {
+          "ai_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 0,
+        "success_rate": 0.0,
+        "statuses": {
+          "ollama_unavailable": 12
+        },
+        "combined_shortfalls": 12
+      }
+    },
+    "true_false": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 6,
+        "success_rate": 0.5,
+        "statuses": {
+          "insufficient_distractors": 2,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 6
+        },
+        "combined_shortfalls": 6,
+        "origin_mix": {
+          "ai_only": 4,
+          "mixed": 2
+        }
+      },
+      "deck_only": {
+        "ready": 0,
+        "success_rate": 0.0,
+        "statuses": {
+          "ollama_unavailable": 12
+        },
+        "combined_shortfalls": 12
+      }
+    },
+    "unfamiliar_terminology": {
+      "cards": 12,
+      "requests": 28,
+      "retry_requests": 16,
+      "cards_retried": 8,
+      "literal_retry_requests": 0,
+      "invalid_responses": 8,
+      "requests_without_response_headers": 4,
+      "http_failure_responses": 0,
+      "candidates_received": 88,
+      "rejected_candidates": {
+        "blank_or_nontext": 28,
+        "correct_answer": 14,
+        "duplicate": 22,
+        "invalid_unicode": 2
+      },
+      "cards_with_duplicates": 8,
+      "cards_with_correct_contamination": 8,
+      "ai_only": {
+        "ready": 4,
+        "success_rate": 0.3333,
+        "statuses": {
+          "insufficient_distractors": 4,
+          "invalid_ai_response": 2,
+          "ollama_unavailable": 2,
+          "ready": 4
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 4,
+          "deck_only": 4,
+          "mixed": 4
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    }
+  },
+  "cards": [
+    {
+      "id": "definitions-1-01",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Density",
+          "Sublimation",
+          "Condensation"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-02",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Volume",
+          "Evaporation",
+          "Inertia"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-03",
+      "category": "definitions",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Friction",
+          "DNA replication"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Friction",
+          "DNA replication",
+          "Osmosis"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-04",
+      "category": "definitions",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mass",
+          "Photosynthesis",
+          "Sublimation"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mass",
+          "Photosynthesis",
+          "Sublimation"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-05",
+      "category": "definitions",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Volume"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Volume",
+          "Evaporation",
+          "Density"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-06",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mass",
+          "Osmosis",
+          "Volume"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mass",
+          "Osmosis",
+          "Volume"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-07",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Volume",
+          "Convection",
+          "Osmosis"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-08",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Density",
+          "Condensation",
+          "Mass"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-09",
+      "category": "definitions",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "DNA replication",
+          "Photosynthesis"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "DNA replication",
+          "Photosynthesis",
+          "Volume"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-10",
+      "category": "definitions",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Osmosis",
+          "Convection",
+          "Friction"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Osmosis",
+          "Convection",
+          "Friction"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-11",
+      "category": "definitions",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Photosynthesis"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Photosynthesis",
+          "Friction",
+          "Convection"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-12",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Photosynthesis",
+          "Osmosis",
+          "DNA replication"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Photosynthesis",
+          "Osmosis",
+          "DNA replication"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-01",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Uniform Resource Locator",
+          "Solid State Drive"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-02",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Solid State Drive",
+          "Random Access Memory",
+          "Transmission Control Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-03",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Cascading Style Sheets",
+          "Transmission Control Protocol"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Cascading Style Sheets",
+          "Transmission Control Protocol",
+          "Solid State Drive"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-04",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Application Programming Interface",
+          "User Datagram Protocol",
+          "Domain Name System"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Application Programming Interface",
+          "User Datagram Protocol",
+          "Domain Name System"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-05",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "User Datagram Protocol"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "User Datagram Protocol",
+          "Hypertext Markup Language",
+          "Transmission Control Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-06",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Uniform Resource Locator",
+          "Transmission Control Protocol",
+          "User Datagram Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Uniform Resource Locator",
+          "Transmission Control Protocol",
+          "User Datagram Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-07",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 2",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 2",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "User Datagram Protocol",
+          "Random Access Memory",
+          "Structured Query Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-08",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 1",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 1",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Structured Query Language",
+          "Uniform Resource Locator"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-09",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Transmission Control Protocol",
+          "Structured Query Language"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Transmission Control Protocol",
+          "Structured Query Language",
+          "Central Processing Unit"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-10",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Solid State Drive",
+          "Hypertext Markup Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Solid State Drive",
+          "Hypertext Markup Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-11",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Graphics Processing Unit"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Graphics Processing Unit",
+          "Cascading Style Sheets",
+          "Uniform Resource Locator"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-12",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Structured Query Language",
+          "Domain Name System",
+          "Hypertext Markup Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Structured Query Language",
+          "Domain Name System",
+          "Hypertext Markup Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-01",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "class",
+          "import"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-02",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "def",
+          "import",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-03",
+      "category": "programming",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "def",
+          "import"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "def",
+          "import",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-04",
+      "category": "programming",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "append",
+          "let",
+          "continue"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "append",
+          "let",
+          "continue"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-05",
+      "category": "programming",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "break"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "break",
+          "**",
+          "import"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-06",
+      "category": "programming",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "len",
+          "break"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "len",
+          "break"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-07",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "break",
+          "def",
+          "//"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-08",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "except",
+          "def",
+          "import"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-09",
+      "category": "programming",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "append",
+          "import"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "append",
+          "import",
+          "break"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-10",
+      "category": "programming",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "len",
+          "class",
+          "return"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "len",
+          "class",
+          "return"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-11",
+      "category": "programming",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "//"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "len",
+          "continue"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-12",
+      "category": "programming",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "import",
+          "let",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "import",
+          "let",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-01",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 1",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 1",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "System call",
+          "Mutex",
+          "Virtual memory"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-02",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Ready",
+          "Context switch",
+          "Kernel"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-03",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Deadlock",
+          "Kernel"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Deadlock",
+          "Kernel",
+          "Process"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-04",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Thread",
+          "Bootloader",
+          "Ready"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Thread",
+          "Bootloader",
+          "Ready"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-05",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Ready"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Ready",
+          "Virtual memory",
+          "Kernel"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-06",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mutex",
+          "Ready",
+          "Page fault"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mutex",
+          "Ready",
+          "Page fault"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-07",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Semaphore",
+          "Mutex",
+          "Virtual memory"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-08",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "System call",
+          "Kernel",
+          "Page fault"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-09",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Ready",
+          "Process"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Ready",
+          "Process",
+          "Virtual memory"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-10",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mutex",
+          "Kernel",
+          "Ready"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mutex",
+          "Kernel",
+          "Ready"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-11",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Semaphore"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Semaphore",
+          "Mutex",
+          "Process"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-12",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Deadlock",
+          "Context switch",
+          "System call"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Deadlock",
+          "Context switch",
+          "System call"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-01",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "12",
+          "180"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-02",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "0.5",
+          "6",
+          "15"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-03",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "1/2",
+          "9"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "9",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-04",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "12",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "12",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-05",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "6"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "6",
+          "2x",
+          "15"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-06",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "32",
+          "2x",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "32",
+          "2x",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-07",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 2",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 2",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "180",
+          "1/2",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-08",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 4",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "50%",
+          "1/2",
+          "15"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-09",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "1/2",
+          "2x"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-10",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "6",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "6",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-11",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "1/2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "0.5",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-12",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "-7",
+          "2x",
+          "50%"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "-7",
+          "2x",
+          "50%"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "true_false-1-01",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-02",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-03",
+      "category": "true_false",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "insufficient_distractors",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-04",
+      "category": "true_false",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "invalid_ai_response",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-05",
+      "category": "true_false",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "False"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-06",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ollama_unavailable",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-07",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-08",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-09",
+      "category": "true_false",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "insufficient_distractors",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-10",
+      "category": "true_false",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "invalid_ai_response",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-11",
+      "category": "true_false",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "False"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-12",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ollama_unavailable",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-01",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-02",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 3",
+          "Mock choice 1",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-03",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Blue",
+          "Red"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-04",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "invalid_ai_response",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-01",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "6"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-02",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ollama_unavailable",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-03",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 1",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 2",
+          "Mock choice 1",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-04",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 4",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-01",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "2",
+          "Joule"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-02",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "invalid_ai_response",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-03",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Joule"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-04",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ollama_unavailable",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-01",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Pareidolia",
+          "Contronym",
+          "lorvex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-02",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 3",
+          "Mock choice 4"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Aphesis",
+          "Chiasmus",
+          "Pareidolia"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-03",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Chiasmus",
+          "Contronym"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Chiasmus",
+          "Contronym",
+          "Asyndeton"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-04",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "lorvex",
+          "Pareidolia",
+          "Asyndeton"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "lorvex",
+          "Pareidolia",
+          "Asyndeton"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-05",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Epicenter"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Epicenter",
+          "Synecdoche",
+          "lorvex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-06",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Epicenter",
+          "Asyndeton",
+          "Diacritic"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Epicenter",
+          "Asyndeton",
+          "Diacritic"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-07",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Anaphora",
+          "Contronym",
+          "Diacritic"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-08",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 2",
+          "Mock choice 3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 2",
+          "Mock choice 3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Synecdoche",
+          "Contronym",
+          "Anaphora"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-09",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "lorvex",
+          "Diacritic"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "lorvex",
+          "Diacritic",
+          "Synecdoche"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-10",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Aphesis",
+          "Asyndeton",
+          "Synecdoche"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Aphesis",
+          "Asyndeton",
+          "Synecdoche"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-11",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "Diacritic"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Diacritic",
+          "Pareidolia",
+          "Onomatopoeia"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-12",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Diacritic",
+          "Pareidolia",
+          "Petrichor"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Diacritic",
+          "Pareidolia",
+          "Petrichor"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-1-01",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "csdaw",
+          "msdaw",
+          "fsdaw"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "csdaw",
+          "msdaw",
+          "fsdaw"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-1-02",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "bwdawd",
+          "fwdawd",
+          "cwdawd"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "bwdawd",
+          "fwdawd",
+          "cwdawd"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-1-03",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "bwdawd"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "bwdawd",
+          "khl",
+          "asdaw"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-1-04",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "invalid_ai_response",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-2-01",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "asdf"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "asdf",
+          "zxczxc",
+          "qweqwe"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-2-02",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "zxczxc",
+          "qweqwe",
+          "zyrke"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "zxczxc",
+          "qweqwe",
+          "zyrke"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-2-03",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "mxczxc",
+          "bxczxc",
+          "cxczxc"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 8,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "mxczxc",
+          "bxczxc",
+          "cxczxc"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "qweqwe",
+          "zyrke",
+          "asdf"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-2-04",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2,
+              "invalid_unicode": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 3,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 4",
+          "Mock choice 3",
+          "Mock choice 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "zxczxc",
+          "zyrke",
+          "asdf"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-01",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 2,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "uty",
+          "tulnex"
+        ],
+        "origins": [
+          "ai",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "uty",
+          "tulnex",
+          "qwe"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-02",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "invalid_ai_response",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "invalid_response": true
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "uty",
+          "hjk",
+          "tulnex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "uty",
+          "hjk",
+          "tulnex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-03",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1,
+              "blank_or_nontext": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 3,
+              "blank_or_nontext": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Mock choice 1",
+          "Mock choice 2",
+          "tulnex"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "tulnex",
+          "hjk",
+          "qwe"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-04",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ollama_unavailable",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual"
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "qwe",
+          "uty",
+          "hjk"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "qwe",
+          "uty",
+          "hjk"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    }
+  ]
+}

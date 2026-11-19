@@ -79,6 +79,18 @@ class RatingInput(PresentationInput):
     difficulty: Difficulty
 
 
+class MultipleChoiceTiming(InputModel):
+    scope: Literal["question", "deck"]
+    seconds: int = Field(strict=True, ge=1, le=10800)
+
+    @field_validator("seconds")
+    @classmethod
+    def question_limit(cls, value, info):
+        if info.data.get("scope") == "question" and value > 3600:
+            raise ValueError("Per-question timing supports up to 3600 seconds.")
+        return value
+
+
 class MultipleChoiceAnswer(InputModel):
     question_id: str = Field(min_length=36, max_length=36)
     option_id: str = Field(min_length=36, max_length=36)

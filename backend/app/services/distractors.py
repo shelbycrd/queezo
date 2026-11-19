@@ -29,6 +29,7 @@ STRING_PROMPT = (
     'Use lowercase ASCII letters and stay within one character of the length of correct_answer.'
 )
 INPUT_PATTERN = re.compile(r"[a-z]{3,12}")
+INVALID_UNICODE = re.compile(r"[\ud800-\udfff]")
 KEYBOARD_RUN = re.compile(r"qwer|asdf|zxcv|uiop|hjkl|rewq|fdsa|vcxz|poiu|lkjh")
 KEYBOARD_CLUSTERS = (set("qwertasdfgzxcvb"), set("tyuighjk"))
 REPEATED_FRAGMENT = re.compile(r"([a-z]{2,3})[a-z]*\1")
@@ -53,6 +54,11 @@ class DistractorGenerationError(RuntimeError):
 
 def comparison_key(text: str) -> str:
     return " ".join(text.split()).casefold()
+
+
+def has_invalid_unicode(text: str) -> bool:
+    # JSON parsers can admit lone surrogate escapes that cannot be sent as UTF-8.
+    return INVALID_UNICODE.search(text) is not None
 
 
 def configured_model() -> str:
@@ -109,6 +115,9 @@ def _collect_candidates(candidates, correct, accepted, rejected, literal_length)
     for candidate in candidates:
         if not isinstance(candidate, str) or not (choice := candidate.strip()):
             counts["blank_or_nontext"] += 1
+            continue
+        if has_invalid_unicode(choice):
+            counts["invalid_unicode"] += 1
             continue
         key = comparison_key(choice)
         if key == correct:

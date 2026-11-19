@@ -174,6 +174,22 @@ def test_failed_conceptual_attempts_do_not_trigger_literal_mode(front, back):
     assert all("related to the topic" in prompt and "literal strings" not in prompt for prompt in sent)
 
 
+def test_lone_unicode_surrogate_is_rejected_without_losing_valid_candidates():
+    requests = []
+    responses = iter([reply(["\ud800", "Kyoto", "🌏"]), reply(["Osaka"])])
+
+    def handler(request):
+        requests.append(json.loads(request.content))
+        return next(responses)
+
+    assert set(run_generator(handler)) == {"Kyoto", "🌏", "Osaka"}
+    assert len(requests) == 2
+    retry = json.loads(requests[1]["messages"][1]["content"])
+    assert retry["previous_candidates"] == ["Kyoto", "🌏"]
+    assert retry["rejection_counts"] == {"invalid_unicode": 1}
+    assert retry["rejected_candidates"] == []
+
+
 def test_never_returns_non_json_content():
     requests = []
 

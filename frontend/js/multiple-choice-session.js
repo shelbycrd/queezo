@@ -7,21 +7,22 @@ export const SESSION_LABELS = {
 
 export function scoreSummary(session) {
   const {correct, answered} = session;
+  const attempted = answered + (session.timed_out ?? 0);
   return {
     correct,
     incorrect: answered - correct,
     total: session.progress.ready,
-    accuracy: answered ? Math.round(correct / answered * 100) : null,
+    accuracy: attempted ? Math.round(correct / attempted * 100) : null,
   };
 }
 
 export function multipleChoiceSession(sessionId, {
   update, active = () => true, request = api,
-  setTimer = setTimeout, clearTimer = clearTimeout,
+  setTimer = setTimeout, clearTimer = clearTimeout, now = Date.now,
 }) {
   const path = `/multiple-choice/${encodeURIComponent(sessionId)}`;
   const reads = new AbortController();
-  const view = {session:null, question:null, grade:null, pending:null, problem:null, message:''};
+  const view = {session:null, question:null, grade:null, clock:null, pending:null, problem:null, message:''};
   let version = 0;
   let timer;
 
@@ -31,16 +32,26 @@ export function multipleChoiceSession(sessionId, {
     clearTimer(timer);
     timer = undefined;
   }
-  function pollLater(token) {
-    if (current(token) && view.session?.status === 'preparing' && !view.problem) {
+  function schedule(token) {
+    if (!current(token) || view.problem) return;
+    if (view.session?.status === 'preparing') {
       timer = setTimer(() => void poll(), 1500);
+    } else if (view.session?.status === 'active' && view.clock &&
+               (!view.grade || view.session.timing.scope === 'deck')) {
+      timer = setTimer(() => void run('clock', readState), Math.max(0, view.clock - now()));
     }
   }
   async function readState(token, savedSession) {
     let session = savedSession ?? await request(path, {signal:reads.signal});
     if (!current(token)) return;
     let question = null;
-    if (session.status === 'active') {
+    let clock = null;
+    if (session.status === 'active' && session.timing) {
+      const opened = await request(path + '/question', {method:'POST'});
+      session = opened.session;
+      question = opened.question;
+      if (Number.isFinite(opened.remaining_ms)) clock = now() + opened.remaining_ms;
+    } else if (session.status === 'active') {
       try {
         question = await request(path + '/question', {signal:reads.signal});
       } catch (error) {
@@ -52,7 +63,12 @@ export function multipleChoiceSession(sessionId, {
         }
       }
     }
-    if (current(token)) Object.assign(view, {session, question, grade:null});
+    if (current(token)) {
+      if (session.status === 'active' && session.timed_out > (view.session?.timed_out ?? 0)) {
+        view.message = 'Time ran out. The missed question was skipped.';
+      }
+      Object.assign(view, {session, question, clock, grade:null});
+    }
   }
   function report(error) {
     view.problem = {status:error.status, message:error.message};
@@ -75,7 +91,7 @@ export function multipleChoiceSession(sessionId, {
         publish();
       }
     } finally {
-      pollLater(token);
+      schedule(token);
     }
   }
   async function run(action, operation) {
@@ -91,7 +107,9 @@ export function multipleChoiceSession(sessionId, {
       if (action !== 'refresh' && [409,410].includes(error.status)) {
         try {
           await readState(token);
-          if (current(token)) view.message = error.status === 409 ? 'The session changed. Showing your latest saved progress.' : '';
+          if (current(token) && !view.message && error.status === 409 && view.session?.status === 'active') {
+            view.message = 'The session changed. Showing your latest saved progress.';
+          }
         } catch (refreshError) {
           if (current(token)) report(refreshError);
         }
@@ -102,7 +120,7 @@ export function multipleChoiceSession(sessionId, {
       if (current(token)) {
         view.pending = null;
         publish();
-        pollLater(token);
+        schedule(token);
       }
     }
   }
@@ -120,7 +138,7 @@ export function multipleChoiceSession(sessionId, {
     next() {
       if (!view.grade) return;
       if (view.session.status === 'completed') {
-        Object.assign(view, {grade:null, question:null});
+        Object.assign(view, {grade:null, question:null, clock:null});
         publish();
       } else {
         return run('next', readState);

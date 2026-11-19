@@ -51,8 +51,10 @@ def _questions(session_id):
     return select(MultipleChoiceQuestion).where(MultipleChoiceQuestion.session_id == session_id)
 
 
-def _status(session):
-    now = utcnow()
+def _status(session, now=None):
+    now = now or utcnow()
+    if session.status == "active" and session.deck_deadline is not None and session.deck_deadline <= now:
+        return "completed"
     if session.status in {"preparing", "failed", "active"} and session.expires_at <= now:
         return "expired"
     if session.status == "preparing" and session.prepare_until <= now:
@@ -60,8 +62,8 @@ def _status(session):
     return session.status
 
 
-def _require_status(session, *allowed):
-    status = _status(session)
+def _require_status(session, *allowed, now=None):
+    status = _status(session, now)
     if status == "expired":
         raise HTTPException(410, "This multiple-choice session has expired.")
     if status not in allowed:
@@ -71,7 +73,7 @@ def _require_status(session, *allowed):
 def session_view(db, session):
     q = MultipleChoiceQuestion
     rows = db.execute(_questions(session.id).with_only_columns(
-        q.source_card_id, q.correct_option_id, q.selected_option_id, q.failure,
+        q.source_card_id, q.correct_option_id, q.selected_option_id, q.failure, q.timed_out_at,
     ).order_by(q.position)).all()
     status = _status(session)
     stalled = session.status == "preparing" and status in {"failed", "expired"}
@@ -81,6 +83,16 @@ def session_view(db, session):
     answered = sum(row.selected_option_id is not None for row in rows)
     correct = sum(row.selected_option_id is not None and row.selected_option_id == row.correct_option_id
                   for row in rows)
+    finished_at = session.finished_at
+    if status == "completed" and finished_at is None:
+        finished_at = session.deck_deadline
+    timing = {}
+    if session.timing_scope is not None:
+        deck_timed_out = status == "completed" and session.deck_deadline == finished_at and finished_at is not None
+        timing = {
+            "timing": {"scope": session.timing_scope, "seconds": session.timing_seconds},
+            "timed_out": ready - answered if deck_timed_out else sum(row.timed_out_at is not None for row in rows),
+        }
     return {
         "id": session.id, "mode": "multiple_choice", "deck_id": session.deck_id,
         "deck_title": session.deck_title, "status": status,
@@ -88,11 +100,11 @@ def session_view(db, session):
                      "ready": ready, "failed": len(failures)},
         "failures": failures, "answered": answered, "correct": correct,
         "created_at": iso(session.created_at), "expires_at": iso(session.expires_at),
-        "finished_at": iso(session.finished_at),
+        "finished_at": iso(finished_at), **timing,
     }
 
 
-def create_session(deck_id, user_id):
+def create_session(deck_id, user_id, timing=None):
     with _write() as db:
         deck = _owned_deck(db, deck_id, user_id)
         card_ids = list(db.scalars(owned_flashcards(user_id).with_only_columns(Flashcard.id)
@@ -105,6 +117,8 @@ def create_session(deck_id, user_id):
             id=str(uuid4()), deck_id=deck_id, deck_title=deck.title, owner_id=user_id,
             created_at=now, prepare_until=now + timedelta(seconds=PREPARATION_TIMEOUT),
             expires_at=now + SESSION_LIFETIME,
+            timing_scope=timing.scope if timing else None,
+            timing_seconds=timing.seconds if timing else None,
         )
         db.add(session)
         db.flush()
@@ -166,27 +180,77 @@ def history(db, deck_id, user_id):
 def _next_question(db, session_id):
     return db.scalar(_questions(session_id).where(
         MultipleChoiceQuestion.options.is_not(None), MultipleChoiceQuestion.answered_at.is_(None),
+        MultipleChoiceQuestion.timed_out_at.is_(None),
     ).order_by(MultipleChoiceQuestion.position).limit(1))
 
 
-def question_view(db, session):
-    _require_status(session, "active")
-    question = _next_question(db, session.id)
-    if question is None:
-        raise HTTPException(409, "There are no unanswered questions.")
+def _present(question):
     return {"id": question.id, "front": question.front, "front_image": question.front_image,
             "options": question.options}
 
 
+def _current_deadline(session, question):
+    return session.deck_deadline if session.timing_scope == "deck" else question.question_deadline
+
+
+def _require_open_question(session, question, now):
+    if session.timing_scope is not None:
+        deadline = _current_deadline(session, question)
+        if deadline is None or deadline <= now:
+            raise HTTPException(409, "Open the current timed question before answering.")
+
+
+def question_view(db, session):
+    now = utcnow()
+    _require_status(session, "active", now=now)
+    question = _next_question(db, session.id)
+    if question is None:
+        raise HTTPException(409, "There are no unanswered questions.")
+    _require_open_question(session, question, now)
+    return _present(question)
+
+
+def open_question(db, session):
+    """Open or resume a timed question under the write lock."""
+    now = utcnow()
+    status = _status(session, now)
+    if status == "completed" and session.status == "active":
+        session.status = "completed"
+        session.finished_at = session.deck_deadline
+    if status != "active":
+        return {"session": session_view(db, session), "question": None, "remaining_ms": None}
+
+    question = _next_question(db, session.id)
+    if question is not None and question.question_deadline is not None and question.question_deadline <= now:
+        question.timed_out_at = question.question_deadline
+        question = _next_question(db, session.id)
+    if question is None:
+        session.status = "completed"
+        session.finished_at = now
+        return {"session": session_view(db, session), "question": None, "remaining_ms": None}
+
+    if session.timing_scope is not None and _current_deadline(session, question) is None:
+        deadline = min(now + timedelta(seconds=session.timing_seconds), session.expires_at)
+        if session.timing_scope == "deck":
+            session.deck_deadline = deadline
+        else:
+            question.question_deadline = deadline
+    deadline = _current_deadline(session, question)
+    remaining_ms = max(1, (deadline - now) // timedelta(milliseconds=1)) if deadline is not None else None
+    return {"session": session_view(db, session), "question": _present(question), "remaining_ms": remaining_ms}
+
+
 def submit_answer(db, session, submission):
-    _require_status(session, "active")
+    now = utcnow()
+    _require_status(session, "active", now=now)
     question = _next_question(db, session.id)
     if question is None or question.id != submission.question_id:
         raise HTTPException(409, "This question has changed or was already answered.")
+    _require_open_question(session, question, now)
     if not any(option["id"] == submission.option_id for option in question.options):
         raise HTTPException(422, "Choose an option from the current question.")
     question.selected_option_id = submission.option_id
-    question.answered_at = utcnow()
+    question.answered_at = now
     mark_study_day(db, session.owner_id)
     if _next_question(db, session.id) is None:
         session.status = "completed"

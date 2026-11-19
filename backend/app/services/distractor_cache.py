@@ -47,7 +47,7 @@ def _valid_choices(choices, back: str, count: int = 3) -> bool:
         return False
     seen = {distractors.comparison_key(back)}
     for choice in choices:
-        if not isinstance(choice, str):
+        if not isinstance(choice, str) or distractors.has_invalid_unicode(choice):
             return False
         key = distractors.comparison_key(choice)
         if not key or key in seen:

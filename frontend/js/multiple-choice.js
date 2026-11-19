@@ -53,7 +53,7 @@ function preparationView(session, pending) {
 
 function questionView(session, question, grade, pending, selection) {
   const ready = session.progress.ready;
-  const completed = session.answered;
+  const completed = session.answered + (session.timed_out ?? 0);
   const ordinal = grade ? completed : completed + 1;
   const options = question.options.map((option, index) => {
     const text = `<span class="mc-letter" aria-hidden="true">${String.fromCharCode(65 + index)}</span><span class="mc-option-text">${escape(option.text)}</span>`;
@@ -66,8 +66,8 @@ function questionView(session, question, grade, pending, selection) {
       ${mark ? `<span class="mc-option-mark">${mark}</span>` : ''}
       ${image ? `<div class="mc-option-photo"><img class="card-photo" src="${image}" alt="Answer photo"></div>` : ''}</li>`;
   }).join('');
-  return `<div class="progress-text"><strong>Question ${ordinal} of ${ready}</strong><span>${completed} answered</span></div>
-    <progress max="${ready}" value="${completed}" aria-label="Questions answered"></progress>
+  return `<div class="progress-text"><strong>Question ${ordinal} of ${ready}</strong><span>${session.answered} answered${session.timed_out ? ` · ${session.timed_out} timed out` : ''}</span></div>
+    <progress max="${ready}" value="${completed}" aria-label="Questions completed"></progress>
     <article class="study-sheet mc-question"><section class="study-question">
       <h2 class="content-label" data-mc-focus tabindex="-1">Question ${ordinal}</h2>
       ${renderCardContent(question.front, question.front_image, 'Question photo')}
@@ -83,6 +83,7 @@ function summaryView(session, choosing) {
   const score = scoreSummary(session);
   const stats = [['Correct',score.correct],['Incorrect',score.incorrect],['Questions',score.total],
     ['Accuracy',score.accuracy === null ? '—' : `${score.accuracy}%`]];
+  if (session.timed_out) stats.splice(2, 0, ['Timed out', session.timed_out]);
   return `<div class="summary-heading"><div class="check" aria-hidden="true">✓</div>
     <h2 data-mc-focus tabindex="-1">Session complete</h2>${session.progress.failed ? `<p class="muted">${plural(session.progress.failed,'card')} skipped during preparation.</p>` : ''}</div>
     <div class="summary-grid mc-summary-grid">${stats.map(([label,value]) => `<div class="stat"><p class="muted">${label}</p><div class="value">${value}</div></div>`).join('')}</div>
@@ -118,6 +119,7 @@ export async function multipleChoicePage(sessionId, route) {
   let selection;
   let choosing = false;
   let previousView;
+  let clockInterval;
   const active = () => alive && location.hash === route && authVersion() === accountVersion;
 
   async function newSession() {
@@ -134,7 +136,9 @@ export async function multipleChoicePage(sessionId, route) {
   function render(view) {
     if (!active()) return;
     previousView = view;
-    const {session, question, grade, problem, pending, message} = view;
+    const {session, question, grade, problem, pending, message, clock} = view;
+    clearInterval(clockInterval);
+    const showClock = clock && !problem && session?.status === 'active' && (!grade || session.timing.scope === 'deck');
     const questionId = problem ? lastQuestionId : question?.id;
     if (lastQuestionId !== questionId) selection = undefined;
     lastQuestionId = questionId;
@@ -159,8 +163,18 @@ export async function multipleChoicePage(sessionId, route) {
       <div class="study-heading"><a class="button secondary small flat-button mc-back" href="${session ? `#deck/${escape(session.deck_id)}` : '#decks'}" aria-label="Back to deck">${backIcon}</a>
       <div><p class="eyebrow">Multiple-Choice Mode</p><h1>${escape(session?.deck_title || 'Multiple-Choice Study')}</h1></div></div>
       ${message ? `<p role="status" class="mc-note">${escape(message)}</p>` : ''}
+      ${showClock ? `<div class="study-clock" role="timer" aria-label="${session.timing.scope === 'deck' ? 'Deck time remaining' : 'Question time remaining'}"><span>${session.timing.scope === 'deck' ? 'Deck time left' : 'Question time left'}</span><strong data-mc-clock></strong></div>` : ''}
       <div class="mc-content" aria-busy="${Boolean(pending)}">${content}</div></div>`, route)) return;
     const shell = app.querySelector('.mc-shell');
+    const timeLeft = shell.querySelector('[data-mc-clock]');
+    if (timeLeft) {
+      const updateClock = () => {
+        const seconds = Math.max(0, Math.ceil((clock - Date.now()) / 1000));
+        timeLeft.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+      };
+      updateClock();
+      clockInterval = setInterval(updateClock, 250);
+    }
     const failures = shell.querySelector('.mc-failures');
     if (failures && failuresOpen) failures.open = true;
     shell.addEventListener('click', event => {
@@ -187,7 +201,7 @@ export async function multipleChoicePage(sessionId, route) {
   }
 
   const controller = multipleChoiceSession(sessionId, {update:render, active});
-  stop = () => { alive = false; controller.stop(); };
+  stop = () => { alive = false; clearInterval(clockInterval); controller.stop(); };
   await controller.refresh();
 }
 

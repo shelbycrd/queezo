@@ -231,6 +231,34 @@ form label { color: #53647f; font-weight: 700; font-size: .83rem; }
 .study-mode-card:has(input[name=mode]:checked) { border-color: #749de0; background: #edf5ff; }
 .mode-art { color: #658ed0; }
 .mode-selector strong { color: #455c7e; }
+.saved-card .saved-text-preview {
+  line-height: 1.5;
+  max-height: 6em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.saved-card .saved-text-preview :is(p, ul, ol, li) { margin-block: 0; }
+.saved-card-pages { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.saved-card-pages[hidden] { display: none; }
+.deck-actions { position: relative; flex: none; }
+.deck-actions summary { display: grid; place-items: center; cursor: pointer; padding: 9px; list-style: none; }
+.deck-actions summary::-webkit-details-marker { display: none; }
+.deck-actions summary svg { width: 22px; height: 22px; }
+.deck-actions-list {
+  display: grid;
+  gap: 6px;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  padding: 8px;
+  min-width: max-content;
+  border: 1px solid #e4ecf9;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 20px #30497720;
+}
+.deck-actions:not([open]) .deck-actions-list { display: none; }
 
 /* Authoring, sharing and recall retain their compact, direct interactions. */
 .deck-workspace { max-width: 1080px; }

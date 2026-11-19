@@ -2,15 +2,25 @@ import {api} from './api.js';
 import {enhancePage} from './page-tools.js';
 import {startStudy} from './decks.js';
 import {app, busy, date, duration, escape, mount, notice, plural} from './ui.js';
-import {MAX_IMAGE_BYTES, renderCardContent, safeImageUrl} from './card-content.js';
+import {MAX_IMAGE_BYTES, renderText, safeImageUrl} from './card-content.js';
 import {playPageTurn, preparePageSound} from './audio.js';
 import {setupMultipleChoiceHistory} from './multiple-choice.js';
 
 export const deckPage = (deckId, route) => deckWorkspace(deckId, null, route);
 export const cardForm = (deckId, cardId, route) => deckWorkspace(deckId, cardId, route);
 
+const PAGE_SIZE = 20;
+const TEXT_LIMIT = 250;
+
+function savedSide(title, text, image, extraClass = '') {
+  const source = safeImageUrl(image);
+  return `<div class="saved-side${extraClass}"><span class="content-label">${title}</span>
+    <div class="formatted-content"><div class="saved-text-preview">${renderText(text)}</div>
+    ${source ? `<img class="card-photo" src="${source}" alt="${title} photo" loading="lazy">` : ''}</div></div>`;
+}
+
 function editorSide(side, title, placeholder, text) {
-  return `<section class="editor-side"><label for="${side}">${title}</label><textarea id="${side}" name="${side}" required maxlength="10000" placeholder="${placeholder}">${escape(text)}</textarea>
+  return `<section class="editor-side"><label for="${side}">${title}</label><textarea id="${side}" name="${side}" required maxlength="${TEXT_LIMIT}" placeholder="${placeholder}">${escape(text)}</textarea>
     <div class="editor-toolbar"><label class="photo-picker" for="${side}-photo">＋ Photo<input class="sr-only" type="file" id="${side}-photo" accept="image/png,image/jpeg,image/webp" aria-label="Add photo to ${title.toLowerCase()}"></label></div>
     <div id="${side}-image-preview" class="image-preview" hidden></div></section>`;
 }
@@ -38,11 +48,11 @@ async function deckWorkspace(deckId, cardId, route) {
   const editing = cardId ? cards.find(card => card.id === Number(cardId)) : null;
   if (cardId && !editing) throw new Error('This card was not found in this deck.');
   if (!mount(`<div class="deck-workspace"><div class="breadcrumbs"><a href="#decks">Flashcards</a><span>/</span><span>${escape(deck.title)}</span></div>
-    <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>${escape(deck.title)}</h1><p class="muted"><span data-card-count>${cards.length}</span> / 150 cards</p></div><div class="actions"><button id="rename" class="secondary small">Rename</button><button id="delete-deck" class="danger small">Delete deck</button></div></div>
+    <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>${escape(deck.title)}</h1><p class="muted"><span data-card-count>${cards.length}</span> / 150 cards</p></div><details class="deck-actions"><summary class="button secondary flat-button" aria-label="Deck actions" title="Deck actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary><div class="deck-actions-list"><button id="rename" class="secondary small flat-button">Rename deck</button><button id="delete-deck" class="danger small flat-button">Delete deck</button></div></details></div>
     <form id="card-form" class="card-composer panel" novalidate><fieldset class="editor-fields"><legend class="sr-only">${editing ? 'Edit flashcard' : 'Create a flashcard'}</legend><div class="composer-heading"><h2 id="editor-card-number">Card no. ${editing ? cards.indexOf(editing)+1 : cards.length+1}</h2><span class="badge">Question + answer</span></div>
       <div class="editor-sides">${editorSide('front','Question','What do you want to remember?', editing?.front || '')}${editorSide('back','Answer','Write the answer here…', editing?.back || '')}</div>
-      <p class="hint"><kbd>Ctrl / ⌘ + Enter</kbd> ${editing ? 'Save changes' : 'Save and continue'}</p><div class="composer-actions"><span id="card-count" class="muted" role="status" aria-live="polite"><span data-card-count>${cards.length}</span> cards saved</span><div class="actions">${editing ? `<a href="#deck/${deckId}" class="button secondary">Cancel edit</a>` : ''}<button type="submit" id="next-card" data-intent="save">${editing ? 'Save changes' : 'Next Card →'}</button><button type="submit" id="study-deck" data-intent="study" class="secondary">Study deck</button></div></div></fieldset></form>
-    <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>${cards.length}</span>)</span></h2><label class="sr-only" for="card-order">Card order</label><select id="card-order" class="card-order"><option value="desc">Most recent first</option><option value="asc">Least recent first</option></select></div><label class="sr-only" for="saved-card-search">Find a saved card</label><input id="saved-card-search" type="search" placeholder="Find a saved question or answer…" autocomplete="off"><div id="saved-cards" class="card-list"></div><p id="saved-card-empty" class="muted" hidden>No matching cards.</p>
+      <p class="hint">250 characters per side · One photo per card</p><p class="hint"><kbd>Ctrl / ⌘ + Enter</kbd> ${editing ? 'Save changes' : 'Save and continue'}</p><div class="composer-actions"><span id="card-count" class="muted" role="status" aria-live="polite"><span data-card-count>${cards.length}</span> cards saved</span><div class="actions">${editing ? `<a href="#deck/${deckId}" class="button secondary">Cancel edit</a>` : ''}<button type="submit" id="next-card" data-intent="save">${editing ? 'Save changes' : 'Next Card →'}</button><button type="submit" id="study-deck" data-intent="study" class="secondary">Study deck</button></div></div></fieldset></form>
+    <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>${cards.length}</span>)</span></h2><label class="sr-only" for="card-order">Card order</label><select id="card-order" class="card-order"><option value="desc">Most recent first</option><option value="asc">Least recent first</option></select></div><label class="sr-only" for="saved-card-search">Find a saved card</label><input id="saved-card-search" type="search" placeholder="Find a saved question or answer…" autocomplete="off"><div id="saved-cards" class="card-list"></div><p id="saved-card-empty" class="muted" hidden>No matching cards.</p><nav id="saved-card-pages" class="saved-card-pages" aria-label="Saved card pages" hidden><button type="button" class="secondary small flat-button" data-step="-1">Previous</button><span aria-live="polite"></span><button type="button" class="secondary small flat-button" data-step="1">Next</button></nav>
     <details class="session-history"><summary>Recent study sessions <span class="muted">(${sessions.length})</span></summary>${sessions.length ? `<div class="panel"><ul class="history-list">${sessions.map(session => `<li><div><p>${escape(date(session.started_at))} · <strong>${escape(session.status)}</strong></p><p class="muted">${plural(session.total_reviews,'review')} · ${session.total_unique_cards} cards studied · ${duration(session.duration_seconds)}</p></div><a class="button secondary small" href="#${session.status === 'active' ? 'study' : 'summary'}/${session.session_id}">${session.status === 'active' ? 'Resume' : 'Summary'}</a></li>`).join('')}</ul></div>` : '<p class="muted">Your sessions will appear here.</p>'}</details></div>`, route)) return;
 
   const visibilityControls = document.createElement('section');
@@ -81,7 +91,13 @@ async function deckWorkspace(deckId, cardId, route) {
   const savedCards = app.querySelector('#saved-cards');
   const images = {front:editing?.front_image || null, back:editing?.back_image || null};
   const revisions = {front:0, back:0};
+  const search = app.querySelector('#saved-card-search');
+  const pages = app.querySelector('#saved-card-pages');
+  const editPage = Math.floor((cards.length - 1 - cards.indexOf(editing)) / PAGE_SIZE) + 1;
+  const requestedPage = Number(route.match(/\/page\/(\d+)$/)?.[1]) || 1;
+  let page = editing ? editPage : requestedPage;
   let newestFirst = true;
+  let photoSelection = 0;
   let pending = false;
   let photosPending = 0;
 
@@ -96,19 +112,29 @@ async function deckWorkspace(deckId, cardId, route) {
     }
   }
   function renderSaved() {
-    savedCards.innerHTML = cards.length ? [...cards].sort((a,b) => (newestFirst ? -1 : 1) * (a.id-b.id)).map((card, index) => `<article class="saved-card ${card.id === editing?.id ? 'is-editing' : ''}"><div class="saved-card-heading"><span class="badge">Card ${cards.indexOf(card) + 1}</span><div class="actions"><a class="button secondary small card-icon-action flat-button" aria-label="Edit card ${cards.indexOf(card) + 1}" title="Edit card" href="#deck/${deckId}/edit/${card.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a3.5 3.5 0 0 0-5-5L4 14z"/></svg></a><button type="button" class="danger small card-icon-action flat-button" data-delete="${card.id}" aria-label="Delete card ${cards.indexOf(card) + 1}" title="Delete card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg></button></div></div><div class="saved-card-sides"><div class="saved-side"><span class="content-label">Question</span>${renderCardContent(card.front, card.front_image, 'Question photo')}</div><div class="saved-side answer"><span class="content-label">Answer</span>${renderCardContent(card.back, card.back_image, 'Answer photo')}</div></div></article>`).join('') : '<div class="empty"><h2>Your first card starts above.</h2><p class="muted">Write a question and its answer, then choose Next Card.</p></div>';
-    updateCount(); filterSaved();
+    const query = search.value.trim().toLocaleLowerCase();
+    const matches = cards.filter(card => `${card.front} ${card.back}`.toLocaleLowerCase().includes(query))
+      .sort((a, b) => (newestFirst ? -1 : 1) * (a.id - b.id));
+    const totalPages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+    page = Math.min(totalPages, Math.max(1, page));
+    const start = (page - 1) * PAGE_SIZE;
+    pages.hidden = totalPages === 1;
+    pages.querySelector('span').textContent = `Page ${page} of ${totalPages}`;
+    pages.querySelector('[data-step="-1"]').disabled = page === 1;
+    pages.querySelector('[data-step="1"]').disabled = page === totalPages;
+    app.querySelector('#saved-card-empty').hidden = !cards.length || matches.length > 0;
+    savedCards.innerHTML = cards.length ? matches.slice(start, start + PAGE_SIZE).map(card => `<article class="saved-card ${card.id === editing?.id ? 'is-editing' : ''}"><div class="saved-card-heading"><span class="badge">Card ${cards.indexOf(card) + 1}</span><div class="actions"><a class="button secondary small card-icon-action flat-button" aria-label="Edit card ${cards.indexOf(card) + 1}" title="Edit card" href="#deck/${deckId}/edit/${card.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a3.5 3.5 0 0 0-5-5L4 14z"/></svg></a><button type="button" class="danger small card-icon-action flat-button" data-delete="${card.id}" aria-label="Delete card ${cards.indexOf(card) + 1}" title="Delete card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg></button></div></div><div class="saved-card-sides">${savedSide('Question', card.front, card.front_image)}${savedSide('Answer', card.back, card.back_image, ' answer')}</div></article>`).join('') : '<div class="empty"><h2>Your first card starts above.</h2><p class="muted">Write a question and its answer, then choose Next Card.</p></div>';
+    updateCount();
   }
-  const filterSaved = () => {
-    const query = app.querySelector('#saved-card-search').value.trim().toLocaleLowerCase();
-    let visible = 0;
-    savedCards.querySelectorAll('.saved-card').forEach(tile => {
-      tile.hidden = !tile.querySelector('.saved-card-sides').textContent.toLocaleLowerCase().includes(query);
-      if (!tile.hidden) visible++;
-    });
-    app.querySelector('#saved-card-empty').hidden = !cards.length || visible > 0;
-  };
-  app.querySelector('#saved-card-search').addEventListener('input',filterSaved);
+  search.addEventListener('input', () => { page = 1; renderSaved(); });
+  pages.addEventListener('click', event => {
+    const button = event.target.closest('[data-step]');
+    if (!button || button.disabled) return;
+    page += Number(button.dataset.step);
+    renderSaved();
+    if (button.disabled) pages.querySelector('button:not(:disabled)')?.focus();
+    savedCards.scrollIntoView({block:'start'});
+  });
   form.addEventListener('keydown',event => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !event.isComposing) { event.preventDefault(); if (!pending && !form.querySelector('#next-card').disabled) form.requestSubmit(form.querySelector('#next-card')); }
   });
@@ -124,12 +150,16 @@ async function deckWorkspace(deckId, cardId, route) {
       const file = input.files?.[0];
       if (!file || pending) return;
       const revision = ++revisions[side];
+      const selection = ++photoSelection;
       photosPending++;
       try {
         const source = await readPhoto(file);
-        if (!form.isConnected || revision !== revisions[side]) return;
+        if (!form.isConnected || selection !== photoSelection || revision !== revisions[side]) return;
+        const other = side === 'front' ? 'back' : 'front';
         images[side] = source;
+        images[other] = null;
         renderPhoto(side);
+        renderPhoto(other);
       } catch (error) { if (form.isConnected) notice(error.message); }
       finally { photosPending--; input.value = ''; }
     });
@@ -150,6 +180,10 @@ async function deckWorkspace(deckId, cardId, route) {
     const hasDraft = !!(form.elements.front.value.trim() || form.elements.back.value.trim() || images.front || images.back);
     const shouldSave = editing || hasDraft || !study;
     if (shouldSave && (!form.reportValidity() || !form.elements.front.value.trim() || !form.elements.back.value.trim())) { notice('Write both a question and an answer before saving.'); return; }
+    if (shouldSave && ['front','back'].some(side => {
+      const text = form.elements[side].value;
+      return text.length > TEXT_LIMIT && text !== editing?.[side];
+    })) { notice('Use 250 characters or fewer for each question and answer.'); return; }
     if (shouldSave && !editing && cards.length >= 150) { notice('This deck has reached its 150-card limit.'); return; }
     if (!shouldSave && !cards.length) { notice('Add your first card before starting a study session.'); return; }
     if (!study && !editing) preparePageSound();
@@ -161,7 +195,7 @@ async function deckWorkspace(deckId, cardId, route) {
         if (!form.isConnected || location.hash !== route) return;
         cards = editing ? cards.map(card => card.id === saved.id ? saved : card) : [...cards,saved];
         if (!study && !editing) playPageTurn();
-        if (editing && !study) { location.hash = `#deck/${deckId}`; return; }
+        if (editing && !study) { location.hash = `#deck/${deckId}/page/${editPage}`; return; }
         if (!editing) {
           form.elements.front.value = ''; form.elements.back.value = '';
           for (const side of ['front','back']) { revisions[side]++; images[side] = null; renderPhoto(side); }
@@ -181,12 +215,24 @@ async function deckWorkspace(deckId, cardId, route) {
       if (form.isConnected) { updateCount(); if (!study && !editing) form.elements.front.focus(); }
     }
   });
+  const deckActions = heading.querySelector('.deck-actions');
+  heading.closest('.deck-workspace').addEventListener('click', event => {
+    if (!deckActions.contains(event.target)) deckActions.open = false;
+  });
+  deckActions.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && deckActions.open) {
+      deckActions.open = false;
+      deckActions.querySelector('summary').focus();
+    }
+  });
   app.querySelector('#rename').addEventListener('click', () => {
+    deckActions.open = false;
     const title = prompt('New deck title:', deck.title);
     if (title === null) return;
     busy(app, async () => { await api(`/decks/${deckId}`, {method:'PATCH', body:{title}}); await deckWorkspace(deckId, cardId, route); });
   });
   app.querySelector('#delete-deck').addEventListener('click', () => {
+    deckActions.open = false;
     if (!confirm(`Delete “${deck.title}”? This permanently removes its cards and study history.`)) return;
     busy(app, async () => { await api(`/decks/${deckId}`, {method:'DELETE'}); location.hash = '#decks'; });
   });
@@ -200,7 +246,7 @@ async function deckWorkspace(deckId, cardId, route) {
       cards = cards.filter(card => card.id !== Number(button.dataset.delete)); renderSaved();
     });
   });
-  app.querySelector('#card-order').addEventListener('change', event => { newestFirst = event.target.value === 'desc'; renderSaved(); });
+  app.querySelector('#card-order').addEventListener('change', event => { newestFirst = event.target.value === 'desc'; page = 1; renderSaved(); });
   renderSaved();
   if (route.endsWith('/add') || editing) form.elements.front.focus();
 }

@@ -1,0 +1,5443 @@
+{
+  "mode": "live",
+  "seed": 42,
+  "model": "qwen3:1.7b",
+  "generation_version": 2,
+  "dataset_sha256": "7d647c50a08dca98705aef13a8e1f39ff8c240d43f27f328030f2d2b6ed2b877",
+  "ollama_version": "0.40.16",
+  "model_digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "totals": {
+    "cards": 108,
+    "requests": 120,
+    "retry_requests": 12,
+    "cards_retried": 9,
+    "literal_retry_requests": 5,
+    "invalid_responses": 0,
+    "requests_without_response_headers": 0,
+    "http_failure_responses": 0,
+    "candidates_received": 678,
+    "rejected_candidates": {
+      "correct_answer": 56,
+      "duplicate": 36,
+      "format_mismatch": 23
+    },
+    "cards_with_duplicates": 19,
+    "cards_with_correct_contamination": 21,
+    "ai_only": {
+      "ready": 106,
+      "success_rate": 0.9815,
+      "statuses": {
+        "insufficient_distractors": 2,
+        "ready": 106
+      }
+    },
+    "hybrid_policy": {
+      "ready": 107,
+      "success_rate": 0.9907,
+      "statuses": {
+        "insufficient_distractors": 1,
+        "ready": 107
+      },
+      "combined_shortfalls": 1,
+      "origin_mix": {
+        "ai_only": 106,
+        "deck_only": 1
+      }
+    },
+    "deck_only": {
+      "ready": 80,
+      "success_rate": 0.7407,
+      "statuses": {
+        "ollama_unavailable": 28,
+        "ready": 80
+      },
+      "combined_shortfalls": 28
+    }
+  },
+  "by_category": {
+    "acronyms": {
+      "cards": 12,
+      "requests": 14,
+      "retry_requests": 2,
+      "cards_retried": 2,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 74,
+      "rejected_candidates": {
+        "correct_answer": 16,
+        "duplicate": 4
+      },
+      "cards_with_duplicates": 3,
+      "cards_with_correct_contamination": 6,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "definitions": {
+      "cards": 12,
+      "requests": 12,
+      "retry_requests": 0,
+      "cards_retried": 0,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 72,
+      "rejected_candidates": {
+        "correct_answer": 2,
+        "duplicate": 2
+      },
+      "cards_with_duplicates": 2,
+      "cards_with_correct_contamination": 2,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "gibberish": {
+      "cards": 12,
+      "requests": 20,
+      "retry_requests": 8,
+      "cards_retried": 5,
+      "literal_retry_requests": 5,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 108,
+      "rejected_candidates": {
+        "correct_answer": 25,
+        "duplicate": 13,
+        "format_mismatch": 23
+      },
+      "cards_with_duplicates": 5,
+      "cards_with_correct_contamination": 4,
+      "ai_only": {
+        "ready": 10,
+        "success_rate": 0.8333,
+        "statuses": {
+          "insufficient_distractors": 2,
+          "ready": 10
+        }
+      },
+      "hybrid_policy": {
+        "ready": 11,
+        "success_rate": 0.9167,
+        "statuses": {
+          "insufficient_distractors": 1,
+          "ready": 11
+        },
+        "combined_shortfalls": 1,
+        "origin_mix": {
+          "ai_only": 10,
+          "deck_only": 1
+        }
+      },
+      "deck_only": {
+        "ready": 8,
+        "success_rate": 0.6667,
+        "statuses": {
+          "ollama_unavailable": 4,
+          "ready": 8
+        },
+        "combined_shortfalls": 4
+      }
+    },
+    "mathematics": {
+      "cards": 12,
+      "requests": 12,
+      "retry_requests": 0,
+      "cards_retried": 0,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 71,
+      "rejected_candidates": {
+        "correct_answer": 2
+      },
+      "cards_with_duplicates": 0,
+      "cards_with_correct_contamination": 2,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "operating_systems": {
+      "cards": 12,
+      "requests": 12,
+      "retry_requests": 0,
+      "cards_retried": 0,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 70,
+      "rejected_candidates": {
+        "correct_answer": 1,
+        "duplicate": 1
+      },
+      "cards_with_duplicates": 1,
+      "cards_with_correct_contamination": 1,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "programming": {
+      "cards": 12,
+      "requests": 12,
+      "retry_requests": 0,
+      "cards_retried": 0,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 63,
+      "rejected_candidates": {
+        "correct_answer": 1
+      },
+      "cards_with_duplicates": 0,
+      "cards_with_correct_contamination": 1,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    },
+    "repeated_answers": {
+      "cards": 12,
+      "requests": 12,
+      "retry_requests": 0,
+      "cards_retried": 0,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 71,
+      "rejected_candidates": {
+        "correct_answer": 1
+      },
+      "cards_with_duplicates": 0,
+      "cards_with_correct_contamination": 1,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 0,
+        "success_rate": 0.0,
+        "statuses": {
+          "ollama_unavailable": 12
+        },
+        "combined_shortfalls": 12
+      }
+    },
+    "true_false": {
+      "cards": 12,
+      "requests": 13,
+      "retry_requests": 1,
+      "cards_retried": 1,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 74,
+      "rejected_candidates": {
+        "correct_answer": 5,
+        "duplicate": 12
+      },
+      "cards_with_duplicates": 7,
+      "cards_with_correct_contamination": 3,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 0,
+        "success_rate": 0.0,
+        "statuses": {
+          "ollama_unavailable": 12
+        },
+        "combined_shortfalls": 12
+      }
+    },
+    "unfamiliar_terminology": {
+      "cards": 12,
+      "requests": 13,
+      "retry_requests": 1,
+      "cards_retried": 1,
+      "literal_retry_requests": 0,
+      "invalid_responses": 0,
+      "requests_without_response_headers": 0,
+      "http_failure_responses": 0,
+      "candidates_received": 75,
+      "rejected_candidates": {
+        "correct_answer": 3,
+        "duplicate": 4
+      },
+      "cards_with_duplicates": 1,
+      "cards_with_correct_contamination": 1,
+      "ai_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        }
+      },
+      "hybrid_policy": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0,
+        "origin_mix": {
+          "ai_only": 12
+        }
+      },
+      "deck_only": {
+        "ready": 12,
+        "success_rate": 1.0,
+        "statuses": {
+          "ready": 12
+        },
+        "combined_shortfalls": 0
+      }
+    }
+  },
+  "cards": [
+    {
+      "id": "definitions-1-01",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Diffusion",
+          "Electrolyte imbalance",
+          "Passive transport"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Diffusion",
+          "Electrolyte imbalance",
+          "Passive transport"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Density",
+          "Sublimation",
+          "Condensation"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-02",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Respiration",
+          "Transpiration",
+          "Electrolysis"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Respiration",
+          "Transpiration",
+          "Electrolysis"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Volume",
+          "Evaporation",
+          "Inertia"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-03",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Fusion",
+          "Boiling",
+          "Vaporization"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Fusion",
+          "Boiling",
+          "Vaporization"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Friction",
+          "DNA replication",
+          "Osmosis"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-04",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Melting",
+          "Boiling",
+          "Freezing"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Melting",
+          "Boiling",
+          "Freezing"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mass",
+          "Photosynthesis",
+          "Sublimation"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-05",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Vaporization",
+          "Evaporation",
+          "Deposition"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Vaporization",
+          "Evaporation",
+          "Deposition"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Volume",
+          "Evaporation",
+          "Density"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-06",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Heat",
+          "Gravity",
+          "Sound"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Heat",
+          "Gravity",
+          "Sound"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mass",
+          "Osmosis",
+          "Volume"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-07",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "RNA replication",
+          "Gene expression",
+          "DNA synthesis"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "RNA replication",
+          "Gene expression",
+          "DNA synthesis"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Volume",
+          "Convection",
+          "Osmosis"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-08",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Velocity",
+          "Acceleration",
+          "Friction"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Velocity",
+          "Acceleration",
+          "Friction"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Density",
+          "Condensation",
+          "Mass"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-09",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Density per unit",
+          "Volume per mass",
+          "Mass volume ratio"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Density per unit",
+          "Volume per mass",
+          "Mass volume ratio"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "DNA replication",
+          "Photosynthesis",
+          "Volume"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-10",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Density",
+          "Energy",
+          "Charge"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Density",
+          "Energy",
+          "Charge"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Osmosis",
+          "Convection",
+          "Friction"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-11",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Weight",
+          "Mass",
+          "Surface area"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Weight",
+          "Mass",
+          "Surface area"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Photosynthesis",
+          "Friction",
+          "Convection"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "definitions-1-12",
+      "category": "definitions",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Advection",
+          "Radiation",
+          "Sublimation"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Advection",
+          "Radiation",
+          "Sublimation"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Photosynthesis",
+          "Osmosis",
+          "DNA replication"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-01",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Standardized Query Language",
+          "Standardized Database Language",
+          "Subroutine Query Language"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Standardized Query Language",
+          "Standardized Database Language",
+          "Subroutine Query Language"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Uniform Resource Locator",
+          "Solid State Drive"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-02",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name Server",
+          "Dynamic Host Configuration Protocol",
+          "Distributed Database System"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Domain Name Server",
+          "Dynamic Host Configuration Protocol",
+          "Distributed Database System"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Solid State Drive",
+          "Random Access Memory",
+          "Transmission Control Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-03",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Hypertext Markup List",
+          "HyperText Markup Protocol",
+          "Hypertext Markup Script"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 5
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 3,
+            "rejected": {
+              "duplicate": 1,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Hypertext Markup List",
+          "HyperText Markup Protocol",
+          "Hypertext Markup Script"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Cascading Style Sheets",
+          "Transmission Control Protocol",
+          "Solid State Drive"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-04",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Color-Specified Style Sheets",
+          "Client-Side Scripting",
+          "Cascading Scalable Style Sheets"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Color-Specified Style Sheets",
+          "Client-Side Scripting",
+          "Cascading Scalable Style Sheets"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Application Programming Interface",
+          "User Datagram Protocol",
+          "Domain Name System"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-05",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "CPU Core",
+          "Control Processing Unit",
+          "Control Panel Unit"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 3,
+            "rejected": {
+              "correct_answer": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "CPU Core",
+          "Control Processing Unit",
+          "Control Panel Unit"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "User Datagram Protocol",
+          "Hypertext Markup Language",
+          "Transmission Control Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-06",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Gigabit Per Second",
+          "General-Purpose Unit",
+          "Global Processing Unit"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Gigabit Per Second",
+          "General-Purpose Unit",
+          "Global Processing Unit"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Uniform Resource Locator",
+          "Transmission Control Protocol",
+          "User Datagram Protocol"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-07",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "TCP/IP Protocol",
+          "Trusted Communication Protocol",
+          "Tracing Communication Protocol"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 3,
+            "rejected": {
+              "correct_answer": 2,
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "TCP/IP Protocol",
+          "Trusted Communication Protocol",
+          "Tracing Communication Protocol"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "User Datagram Protocol",
+          "Random Access Memory",
+          "Structured Query Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-08",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Unicast Datagram Protocol",
+          "Unreliable Data Protocol",
+          "Universal Data Transfer Protocol"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Unicast Datagram Protocol",
+          "Unreliable Data Protocol",
+          "Universal Data Transfer Protocol"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Structured Query Language",
+          "Uniform Resource Locator"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-09",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Rechargeable Access Memory",
+          "Read Access Memory",
+          "Random Access Modifier"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 4,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Rechargeable Access Memory",
+          "Read Access Memory",
+          "Random Access Modifier"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Transmission Control Protocol",
+          "Structured Query Language",
+          "Central Processing Unit"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-10",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "API Protocol",
+          "Software Interface Standard",
+          "API Definition"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 2,
+            "rejected": {
+              "correct_answer": 3
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 1,
+            "rejected": {
+              "duplicate": 2,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "API Protocol",
+          "Software Interface Standard",
+          "API Definition"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Domain Name System",
+          "Solid State Drive",
+          "Hypertext Markup Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-11",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Simplified Data Interface",
+          "Surface Storage Device",
+          "Simplified Storage Device"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Simplified Data Interface",
+          "Surface Storage Device",
+          "Simplified Storage Device"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Graphics Processing Unit",
+          "Cascading Style Sheets",
+          "Uniform Resource Locator"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "acronyms-1-12",
+      "category": "acronyms",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Universal Resource Identifier",
+          "Unique Resource Locator",
+          "Universal Resource Path"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 4,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Universal Resource Identifier",
+          "Unique Resource Locator",
+          "Universal Resource Path"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Structured Query Language",
+          "Domain Name System",
+          "Hypertext Markup Language"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-01",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "__init__",
+          "return",
+          "class"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "__init__",
+          "return",
+          "class"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "class",
+          "import"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-02",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "def",
+          "tuple",
+          "in"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "def",
+          "tuple",
+          "in"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "def",
+          "import",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-03",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "continue",
+          "else",
+          "def"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "continue",
+          "else",
+          "def"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "def",
+          "import",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-04",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "continue",
+          "while",
+          "for"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "continue",
+          "while",
+          "for"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "append",
+          "let",
+          "continue"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-05",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "break",
+          "return",
+          "for"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 4,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "break",
+          "return",
+          "for"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "break",
+          "**",
+          "import"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-06",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "try",
+          "as",
+          "finally"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 4,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "try",
+          "as",
+          "finally"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "len",
+          "break"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-07",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "from",
+          "print",
+          "def"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "from",
+          "print",
+          "def"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "break",
+          "def",
+          "//"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-08",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "remove",
+          "extend",
+          "pop"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "remove",
+          "extend",
+          "pop"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "except",
+          "def",
+          "import"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-09",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "item_count",
+          "count",
+          "length"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "item_count",
+          "count",
+          "length"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "append",
+          "import",
+          "break"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-10",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "typeof",
+          "null",
+          "var"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "typeof",
+          "null",
+          "var"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "len",
+          "class",
+          "return"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-11",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "||",
+          "%%",
+          "##"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "||",
+          "%%",
+          "##"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "//",
+          "len",
+          "continue"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "programming-1-12",
+      "category": "programming",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "##",
+          ">>",
+          "%"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "##",
+          ">>",
+          "%"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "import",
+          "let",
+          "**"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-01",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Driver",
+          "Shell",
+          "File system"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Driver",
+          "Shell",
+          "File system"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "System call",
+          "Mutex",
+          "Virtual memory"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-02",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Task",
+          "File",
+          "Window"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Task",
+          "File",
+          "Window"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Ready",
+          "Context switch",
+          "Kernel"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-03",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Instruction",
+          "Memory",
+          "Semaphore"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Instruction",
+          "Memory",
+          "Semaphore"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Deadlock",
+          "Kernel",
+          "Process"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-04",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Virtualization",
+          "Memory protection",
+          "Physical memory"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Virtualization",
+          "Memory protection",
+          "Physical memory"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Thread",
+          "Bootloader",
+          "Ready"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-05",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Page access",
+          "Page invalid",
+          "Page error"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Page access",
+          "Page invalid",
+          "Page error"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Ready",
+          "Virtual memory",
+          "Kernel"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-06",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Task resume",
+          "Context save",
+          "Task switch"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Task resume",
+          "Context save",
+          "Task switch"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mutex",
+          "Ready",
+          "Page fault"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-07",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Race condition",
+          "Starvation",
+          "Livelock"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Race condition",
+          "Starvation",
+          "Livelock"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Semaphore",
+          "Mutex",
+          "Virtual memory"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-08",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Lock",
+          "ConditionVariable",
+          "Semaphore"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Lock",
+          "ConditionVariable",
+          "Semaphore"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "System call",
+          "Kernel",
+          "Page fault"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-09",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "API call",
+          "OS command",
+          "Operating system function"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "API call",
+          "OS command",
+          "Operating system function"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Ready",
+          "Process",
+          "Virtual memory"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-10",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Array",
+          "Mutex",
+          "Queue"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Array",
+          "Mutex",
+          "Queue"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Mutex",
+          "Kernel",
+          "Ready"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-11",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Terminated",
+          "Blocked",
+          "Wait"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Terminated",
+          "Blocked",
+          "Wait"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Semaphore",
+          "Mutex",
+          "Process"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "operating_systems-1-12",
+      "category": "operating_systems",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Kernel",
+          "Shell",
+          "Driver"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 4,
+            "rejected": {
+              "duplicate": 1,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Kernel",
+          "Shell",
+          "Driver"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Deadlock",
+          "Context switch",
+          "System call"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-01",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "0.333...",
+          "0.25",
+          "0.1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "0.333...",
+          "0.25",
+          "0.1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "12",
+          "180"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-02",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "1/4",
+          "2/5",
+          "3/6"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "1/4",
+          "2/5",
+          "3/6"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "0.5",
+          "6",
+          "15"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-03",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "75%",
+          "100%",
+          "60%"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "75%",
+          "100%",
+          "60%"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "9",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-04",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "12",
+          "15",
+          "7"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "12",
+          "15",
+          "7"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "12",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-05",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "24",
+          "1024",
+          "64"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "24",
+          "1024",
+          "64"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "6",
+          "2x",
+          "15"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-06",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "64",
+          "84",
+          "76"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "64",
+          "84",
+          "76"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "32",
+          "2x",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-07",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "14",
+          "9",
+          "3"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "14",
+          "9",
+          "3"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "180",
+          "1/2",
+          "6"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-08",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "2x²",
+          "x + 1",
+          "x² + 1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "2x²",
+          "x + 1",
+          "x² + 1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "50%",
+          "1/2",
+          "15"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-09",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "3",
+          "2",
+          "12"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "3",
+          "2",
+          "12"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-10",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "16",
+          "30",
+          "10"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "16",
+          "30",
+          "10"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "6",
+          "2x",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-11",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "360",
+          "45",
+          "120"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "360",
+          "45",
+          "120"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "1/2",
+          "0.5",
+          "32"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "mathematics-1-12",
+      "category": "mathematics",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "22",
+          "14",
+          "16"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "22",
+          "14",
+          "16"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "-7",
+          "2x",
+          "50%"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "true_false-1-01",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Only rectangles are squares",
+          "Squares are a special case of rectangles",
+          "False"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Only rectangles are squares",
+          "Squares are a special case of rectangles",
+          "False"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-02",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "All rectangles are parallelograms",
+          "Every rectangle is a square",
+          "True"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "All rectangles are parallelograms",
+          "Every rectangle is a square",
+          "True"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-03",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "False",
+          "Incorrect",
+          "False, zero is not even"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "False",
+          "Incorrect",
+          "False, zero is not even"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-04",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "One is a prime number",
+          "False is incorrect",
+          "One is a composite number"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "One is a prime number",
+          "False is incorrect",
+          "One is a composite number"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-05",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Wrong",
+          "Incorrect",
+          "False"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 3,
+            "rejected": {
+              "duplicate": 3
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Wrong",
+          "Incorrect",
+          "False"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-06",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "The Moon does not produce any light on its own.",
+          "The Moon's reflection is the only source of visible light in space.",
+          "The Moon's light comes from its own internal energy sources."
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "The Moon does not produce any light on its own.",
+          "The Moon's reflection is the only source of visible light in space.",
+          "The Moon's light comes from its own internal energy sources."
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-07",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "False, Python tuples are immutable",
+          "False",
+          "False, tuples can be modified"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "False, Python tuples are immutable",
+          "False",
+          "False, tuples can be modified"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-08",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Processes and threads are always the same operating system abstraction.",
+          "True",
+          "A process and a thread are always the same operating system abstraction."
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 4,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Processes and threads are always the same operating system abstraction.",
+          "True",
+          "A process and a thread are always the same operating system abstraction."
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-09",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "False, const can be declared only once",
+          "False, const can be reassigned if it's assigned a new value",
+          "False, const can be reassigned"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "False, const can be declared only once",
+          "False, const can be reassigned if it's assigned a new value",
+          "False, const can be reassigned"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-10",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "The area of a circle is 2πr².",
+          "The area of a circle is 2πr",
+          "The area of a circle is πr."
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 4,
+            "rejected": {
+              "duplicate": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "The area of a circle is 2πr².",
+          "The area of a circle is 2πr",
+          "The area of a circle is πr."
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-11",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Not true",
+          "Wrong",
+          "Incorrect"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 4,
+            "rejected": {
+              "duplicate": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Not true",
+          "Wrong",
+          "Incorrect"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "true_false-1-12",
+      "category": "true_false",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "True",
+          "A compiler translates the source program directly without executing it.",
+          "A compiler translates the source program without executing it."
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 3,
+              "duplicate": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "True",
+          "A compiler translates the source program directly without executing it.",
+          "A compiler translates the source program without executing it."
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-01",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Green",
+          "Gray",
+          "White"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Green",
+          "Gray",
+          "White"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-02",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Green",
+          "Blue",
+          "Red"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Green",
+          "Blue",
+          "Red"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-03",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "brown",
+          "pink",
+          "green"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "brown",
+          "pink",
+          "green"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-1-04",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Green",
+          "White",
+          "Purple"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Green",
+          "White",
+          "Purple"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-01",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "MacOS",
+          "BSD",
+          "Windows"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "MacOS",
+          "BSD",
+          "Windows"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-02",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "8",
+          "7",
+          "9"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "8",
+          "7",
+          "9"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-03",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "10",
+          "7",
+          "11"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "10",
+          "7",
+          "11"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-2-04",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "HTTP",
+          "TCP",
+          "FTP"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "HTTP",
+          "TCP",
+          "FTP"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-01",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Henry",
+          "Ohm",
+          "Watt"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Henry",
+          "Ohm",
+          "Watt"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-02",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "4",
+          "0",
+          "12"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "4",
+          "0",
+          "12"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-03",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "3",
+          "5",
+          "1"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "3",
+          "5",
+          "1"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "repeated_answers-3-04",
+      "category": "repeated_answers",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Watt",
+          "Lux",
+          "Kilogram"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Watt",
+          "Lux",
+          "Kilogram"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-01",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Dew",
+          "Raindrop",
+          "Spray"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Dew",
+          "Raindrop",
+          "Spray"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Pareidolia",
+          "Contronym",
+          "lorvex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-02",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Metaphor",
+          "Anaphora",
+          "Paradox"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Metaphor",
+          "Anaphora",
+          "Paradox"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Aphesis",
+          "Chiasmus",
+          "Pareidolia"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-03",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Alliteration",
+          "Rhyme",
+          "Imitation"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Alliteration",
+          "Rhyme",
+          "Imitation"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Chiasmus",
+          "Contronym",
+          "Asyndeton"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-04",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Contradiction",
+          "Opposite",
+          "Homonym"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Contradiction",
+          "Opposite",
+          "Homonym"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "lorvex",
+          "Pareidolia",
+          "Asyndeton"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-05",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Prefix",
+          "Suffix",
+          "Glyph"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Prefix",
+          "Suffix",
+          "Glyph"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Epicenter",
+          "Synecdoche",
+          "lorvex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-06",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Reversal",
+          "Paradox",
+          "Contrast"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 5,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Reversal",
+          "Paradox",
+          "Contrast"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Epicenter",
+          "Asyndeton",
+          "Diacritic"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-07",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Aphasis",
+          "Alliteration",
+          "Consonant glide"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 2,
+            "rejected": {
+              "duplicate": 2,
+              "correct_answer": 2
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 1,
+            "rejected": {
+              "duplicate": 2,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Aphasis",
+          "Alliteration",
+          "Consonant glide"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Anaphora",
+          "Contronym",
+          "Diacritic"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-08",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Dream imagery",
+          "Similarity",
+          "Pattern recognition"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Dream imagery",
+          "Similarity",
+          "Pattern recognition"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Synecdoche",
+          "Contronym",
+          "Anaphora"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-09",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Hyperbole",
+          "Syncope",
+          "Anaphora"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Hyperbole",
+          "Syncope",
+          "Anaphora"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "lorvex",
+          "Diacritic",
+          "Synecdoche"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-10",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Imagery",
+          "Epithet",
+          "Metaphor"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Imagery",
+          "Epithet",
+          "Metaphor"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Aphesis",
+          "Asyndeton",
+          "Synecdoche"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-11",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "Aftershock",
+          "Tremor",
+          "Focus"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "Aftershock",
+          "Tremor",
+          "Focus"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Diacritic",
+          "Pareidolia",
+          "Onomatopoeia"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "unfamiliar_terminology-1-12",
+      "category": "unfamiliar_terminology",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "purple tile",
+          "token token",
+          "tile token"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "purple tile",
+          "token token",
+          "tile token"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "Diacritic",
+          "Pareidolia",
+          "Petrichor"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-1-01",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "asdw",
+          "asdaaw",
+          "asda"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 4,
+            "rejected": {
+              "format_mismatch": 2
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "asdw",
+          "asdaaw",
+          "asda"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-1-02",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 6
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 4,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 4
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 3,
+            "accepted": 0,
+            "rejected": {
+              "correct_answer": 3
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "insufficient_distractors",
+        "choices": []
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-1-03",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "gasdfg",
+          "dgawdf",
+          "dfgawd"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 1,
+              "duplicate": 4
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 3,
+            "rejected": {
+              "duplicate": 1,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "gasdfg",
+          "dgawdf",
+          "dfgawd"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-1-04",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "mno",
+          "abc",
+          "jkl"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "mno",
+          "abc",
+          "jkl"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ollama_unavailable",
+        "choices": []
+      }
+    },
+    {
+      "id": "gibberish-2-01",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "eiri",
+          "dvhk",
+          "bxfvl"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "eiri",
+          "dvhk",
+          "bxfvl"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "asdf",
+          "zxczxc",
+          "qweqwe"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-2-02",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "abcde",
+          "vwxyz",
+          "yzab"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 3,
+            "rejected": {
+              "format_mismatch": 3
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "abcde",
+          "vwxyz",
+          "yzab"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "zxczxc",
+          "qweqwe",
+          "zyrke"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-2-03",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "insufficient_distractors",
+        "choices": [],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "format_mismatch": 6
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "format_mismatch": 6
+            }
+          },
+          {
+            "strategy": "literal",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 0,
+            "rejected": {
+              "format_mismatch": 6
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "qweqwe",
+          "zyrke",
+          "asdf"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "qweqwe",
+          "zyrke",
+          "asdf"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-2-04",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "defdef",
+          "abcabc",
+          "asdawd"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 2,
+              "duplicate": 3
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 2,
+            "accepted": 0,
+            "rejected": {
+              "duplicate": 1,
+              "correct_answer": 1
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 3,
+            "rejected": {
+              "duplicate": 1,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "defdef",
+          "abcabc",
+          "asdawd"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "zxczxc",
+          "zyrke",
+          "asdf"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-01",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "ghijk",
+          "mnopq",
+          "lmnop"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 6,
+            "rejected": {}
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "ghijk",
+          "mnopq",
+          "lmnop"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "uty",
+          "tulnex",
+          "qwe"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-02",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "qwerq",
+          "qweq",
+          "rwer"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "qwerq",
+          "qweq",
+          "rwer"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "uty",
+          "hjk",
+          "tulnex"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-03",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "utut",
+          "tyut",
+          "tyutut"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 5,
+            "rejected": {
+              "duplicate": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "utut",
+          "tyut",
+          "tyutut"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "tulnex",
+          "hjk",
+          "qwe"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    },
+    {
+      "id": "gibberish-3-04",
+      "category": "gibberish",
+      "ai_only": {
+        "status": "ready",
+        "choices": [
+          "brenvok",
+          "lirien",
+          "vexar"
+        ],
+        "attempts": [
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 6,
+            "accepted": 1,
+            "rejected": {
+              "correct_answer": 5
+            }
+          },
+          {
+            "strategy": "conceptual",
+            "status_code": 200,
+            "candidates": 5,
+            "accepted": 3,
+            "rejected": {
+              "duplicate": 1,
+              "correct_answer": 1
+            }
+          }
+        ]
+      },
+      "hybrid_policy": {
+        "status": "ready",
+        "choices": [
+          "brenvok",
+          "lirien",
+          "vexar"
+        ],
+        "origins": [
+          "ai",
+          "ai",
+          "ai"
+        ]
+      },
+      "deck_only": {
+        "status": "ready",
+        "choices": [
+          "qwe",
+          "uty",
+          "hjk"
+        ],
+        "origins": [
+          "deck",
+          "deck",
+          "deck"
+        ]
+      }
+    }
+  ]
+}

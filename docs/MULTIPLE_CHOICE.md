@@ -6,16 +6,21 @@ Sessions are owner-only. Use the normal session cookie for every route and send 
 
 | Method and path | Result |
 | --- | --- |
-| `POST /api/decks/{deck_id}/multiple-choice` | **202** with the new session state. An empty deck returns **409**. |
+| `POST /api/decks/{deck_id}/multiple-choice` | **202** with the new session state. Optionally send `{"scope":"question","seconds":30}` or `{"scope":"deck","seconds":600}`. An empty deck returns **409**. |
 | `GET /api/multiple-choice/{session_id}` | Current state and preparation progress. Poll while the state is `preparing`. |
 | `POST /api/multiple-choice/{session_id}/retry` | **202** while a failed session prepares its unfinished cards again. Ready snapshots stay in place. |
 | `POST /api/multiple-choice/{session_id}/continue` | **200** with the active state. Requires a failed session with at least one ready question. Skips the reported failures. |
 | `POST /api/multiple-choice/{session_id}/cancel` | **200** with the cancelled state. Stops its preparation job and preserves any already saved cache entries and study results. |
 | `GET /api/multiple-choice/{session_id}/question` | Current unanswered question with `id`, `front`, nullable `front_image`, and four shuffled `options` containing only `id` and `text`. |
+| `POST /api/multiple-choice/{session_id}/question` | Opens or resumes the current timed question. Returns `session`, `question`, and `remaining_ms`. A completed session returns a null question and time. |
 | `POST /api/multiple-choice/{session_id}/answer` | Takes `{"question_id":"…","option_id":"…"}`. Returns `question_id`, `selected_option_id`, `is_correct`, `correct_option` with its ID and original Back text, nullable `back_image`, and the updated `session` state. |
 | `GET /api/decks/{deck_id}/multiple-choice/sessions` | Up to 50 recent multiple-choice sessions for the deck, newest first. |
 
 Missing or inaccessible decks and sessions return **404**. An illegal transition, repeated answer, or question ID that is no longer current returns **409**. An option ID outside the current question or unexpected answer fields return **422**. Actions on an expired session return **410**.
+
+## Timed sessions
+
+The server starts the clock when the first ready question is opened. A question limit resets for each new question. A deck limit keeps running between questions and during feedback. Both limits continue while the page is closed or refreshed. The server rejects late answers. Timed-out questions count as missed, and a deck timeout counts all remaining ready questions as missed. Timed session responses include the timing settings and a `timed_out` count. Existing unlimited sessions continue using the question GET route.
 
 ## Preparation and session lifecycle
 

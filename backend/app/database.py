@@ -45,6 +45,15 @@ def init_database(target=engine):
         migrate_profiles(connection)
         migrate_card_images(connection)
         migrate_sharing(connection)
+        # Existing multiple-choice sessions default to unlimited timing.
+        for table, fields in (
+            ("multiple_choice_sessions", {"timing_scope": "VARCHAR(8)", "timing_seconds": "INTEGER", "deck_deadline": "DATETIME"}),
+            ("multiple_choice_questions", {"question_deadline": "DATETIME", "timed_out_at": "DATETIME"}),
+        ):
+            columns = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table})"))}
+            for name, kind in fields.items():
+                if name not in columns:
+                    connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {kind}"))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_login_throttles_window_started ON login_throttles (window_started)"))
         legacy = {table: [row["id"] for row in rows] for table, rows in legacy_cards(connection).items() if rows}
         if legacy:

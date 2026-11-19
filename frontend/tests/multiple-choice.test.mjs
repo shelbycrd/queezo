@@ -12,13 +12,14 @@ function session(status, {ready = 0, failed = 0, answered = 0, correct = 0} = {}
   return {status, answered, correct, progress:{ready, failed, completed:ready+failed, total:2}};
 }
 
-function fixture(request) {
+function fixture(request, {expectedDelay = 1500, now = Date.now} = {}) {
   const updates = [], calls = [], timers = new Map();
   let id = 0;
   const controller = multipleChoiceSession('test', {
     update: value => updates.push(value),
     request: (url, options) => { calls.push([url,options]); return request(url,options); },
-    setTimer: (fn, delay) => { assert.equal(delay, 1500); timers.set(++id,fn); return id; },
+    setTimer: (fn, delay) => { assert.equal(delay, expectedDelay); timers.set(++id,fn); return id; },
+    now,
     clearTimer: key => timers.delete(key),
   });
   return {
@@ -124,6 +125,46 @@ test('failure can retry, continue with ready questions, or cancel through the ex
   assert.equal(f.timers.size,0);
   assert.deepEqual(f.calls.filter(([, options]) => options.method === 'POST').map(([url]) => url),
     [path+'/retry',path+'/continue',path+'/cancel']);
+});
+
+test('a per-question timeout opens the next question and reports the missed answer', async () => {
+  let opened = 0;
+  const initial = {...session('active',{ready:2}), timing:{scope:'question', seconds:3}, timed_out:0};
+  const afterTimeout = {...initial, timed_out:1};
+  const f = fixture(async (url, options) => {
+    if (url === path) return initial;
+    assert.equal(options.method, 'POST');
+    if (++opened === 1) return {session:initial, question, remaining_ms:3000};
+    return {session:afterTimeout, question:{...question,id:'second'}, remaining_ms:3000};
+  }, {expectedDelay:3000, now:() => 10000});
+  await f.controller.refresh();
+  assert.equal(f.latest().clock,13000);
+  await f.poll();
+  assert.equal(f.latest().question.id,'second');
+  assert.equal(f.latest().session.timed_out,1);
+  assert.match(f.latest().message,/skipped/);
+  f.controller.stop();
+  assert.equal(f.timers.size,0);
+});
+
+test('a deck deadline remains scheduled during answer feedback', async () => {
+  const initial = {...session('active',{ready:2}), timing:{scope:'deck', seconds:4}, timed_out:0};
+  const graded = {...initial, answered:1, correct:1};
+  let finished = false;
+  const f = fixture(async url => {
+    if (url === path) return finished ? {...graded,status:'completed',timed_out:1} : initial;
+    if (url.endsWith('/answer')) return {session:graded, is_correct:true};
+    return {session:initial, question, remaining_ms:4000};
+  }, {expectedDelay:4000, now:() => 10000});
+  await f.controller.refresh();
+  await f.controller.answer('a');
+  assert.ok(f.latest().grade);
+  finished = true;
+  await f.poll();
+  assert.equal(f.latest().session.status,'completed');
+  assert.equal(f.latest().grade,null);
+  assert.equal(f.timers.size,0);
+  assert.equal(scoreSummary(f.latest().session).accuracy,50);
 });
 
 test('leaving stops polling, aborts reads, and discards a late response', async () => {

@@ -215,6 +215,49 @@ def test_deck_with_repeated_back_prepares_only_with_an_additional_distinct_choic
             assert correct == synthetic_cards[card_id][1]
 
 
+def test_reported_keyboard_mash_deck_prepares_with_partial_generation(mc, monkeypatch):
+    deck_id = deck(mc, count=0)
+    rows = [
+        ("awgaw", "asdaw", "asdax"),
+        ("awgaa", "awdawd", "awdaed"),
+        ("gasdfg", "awdawd", "awdbwd"),
+        ("tyjyukyu", "khl", "kll"),
+    ]
+    with mc.factory.begin() as db:
+        db.add_all([Flashcard(deck_id=deck_id, front=front, back=back) for front, back, _ in rows])
+
+    generator = distractors.generate_distractors
+    choices_by_front = {front: partial for front, _, partial in rows}
+    attempts = Counter()
+
+    def respond(request):
+        system, user = json.loads(request.content)["messages"]
+        card = json.loads(user["content"])
+        front = card["question"]
+        attempts[front] += 1
+        if attempts[front] == 1:
+            content = json.dumps({"distractors": [card["correct_answer"], "An irrelevant phrase"]})
+        else:
+            assert distractors.STRING_PROMPT in system["content"]
+            content = json.dumps({"distractors": [choices_by_front[front]]})
+        return httpx.Response(200, json={"message": {"content": content}})
+
+    async def mocked_generation(front, back, *, model):
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as http:
+            return await generator(front, back, client=http, model=model)
+
+    monkeypatch.setattr(distractors, "generate_distractors", mocked_generation)
+    path, _ = start(mc, deck_id)
+    state = wait_for_state(mc, path, "active")
+    assert state["progress"] == {"total": 4, "completed": 4, "ready": 4, "failed": 0}
+    assert set(attempts.values()) == {3}
+    with mc.factory() as db:
+        for card_id, front in db.execute(select(Flashcard.id, Flashcard.front).where(Flashcard.deck_id == deck_id)):
+            cached = db.get(FlashcardDistractorCache, card_id)
+            assert len(cached.distractors) == 3
+            assert choices_by_front[front] in cached.distractors
+
+
 def test_unauthenticated_csrf_and_cross_account_requests(mc, monkeypatch):
     deck_id = deck(mc)
     generate = mock_generation(monkeypatch, return_value=CHOICES)
@@ -423,6 +466,88 @@ def test_only_one_concurrent_submission_is_graded(mc, monkeypatch):
         calls = [pool.submit(mc.post, path + "/answer", json=body) for _ in range(2)]
         assert sorted(call.result(timeout=6).status_code for call in calls) == [200, 409]
     assert mc.get(path).json()["answered"] == 1
+
+
+@pytest.mark.parametrize("scope", ["question", "deck"])
+def test_timed_sessions_enforce_the_deadline_across_requests(mc, monkeypatch, scope):
+    mock_generation(monkeypatch, return_value=CHOICES)
+    deck_id = deck(mc, count=2)
+    now = utcnow()
+    monkeypatch.setattr(study, "utcnow", lambda: now)
+    start_response = mc.post(f"/api/decks/{deck_id}/multiple-choice", json={"scope": scope, "seconds": 10})
+    assert start_response.status_code == 202
+    path = f"/api/multiple-choice/{start_response.json()['id']}"
+    wait_for_state(mc, path, "active")
+    now += timedelta(minutes=2)
+    assert mc.get(path + "/question").status_code == 409
+    opened = mc.post(path + "/question").json()
+    question = opened["question"]
+    assert opened["remaining_ms"] == 10000
+    assert set(question) == {"id", "front", "front_image", "options"}
+    now += timedelta(seconds=4)
+    resumed = mc.post(path + "/question").json()
+    assert resumed["question"] == question
+    assert resumed["remaining_ms"] == 6000
+
+    now += timedelta(seconds=6)
+    late = {"question_id": question["id"], "option_id": question["options"][0]["id"]}
+    assert mc.post(path + "/answer", json=late).status_code == 409
+    state = mc.post(path + "/question").json()
+    assert state["session"]["answered"] == 0
+    if scope == "deck":
+        assert state["session"]["status"] == "completed"
+        assert state["session"]["timed_out"] == 2
+        assert state["question"] is None
+        assert mc.get(path).json() == state["session"]
+    else:
+        assert state["session"]["status"] == "active"
+        assert state["session"]["timed_out"] == 1
+        assert state["remaining_ms"] == 10000
+        assert state["question"]["id"] != question["id"]
+        now += timedelta(seconds=10)
+        final = mc.post(path + "/question").json()
+        assert final["session"]["status"] == "completed"
+        assert final["session"]["timed_out"] == 2
+        assert final["question"] is None
+
+
+def test_deck_limit_keeps_answers_submitted_before_timeout(mc, monkeypatch):
+    mock_generation(monkeypatch, return_value=CHOICES)
+    deck_id = deck(mc, count=2)
+    now = utcnow()
+    monkeypatch.setattr(study, "utcnow", lambda: now)
+    response = mc.post(f"/api/decks/{deck_id}/multiple-choice", json={"scope": "deck", "seconds": 10})
+    assert response.status_code == 202
+    path = f"/api/multiple-choice/{response.json()['id']}"
+    wait_for_state(mc, path, "active")
+    question = mc.post(path + "/question").json()["question"]
+    now += timedelta(seconds=4)
+    graded = mc.post(path + "/answer", json={
+        "question_id": question["id"], "option_id": question["options"][0]["id"],
+    })
+    assert graded.status_code == 200
+    assert mc.post(path + "/question").json()["remaining_ms"] == 6000
+    now += timedelta(seconds=6)
+    completed = mc.get(path).json()
+    assert (completed["status"], completed["answered"], completed["timed_out"]) == ("completed", 1, 1)
+    assert completed["correct"] == int(graded.json()["is_correct"])
+
+
+def test_timing_migration_preserves_existing_multiple_choice_sessions(mc, monkeypatch):
+    mock_generation(monkeypatch, return_value=CHOICES)
+    path, _ = start(mc, deck(mc))
+    before = wait_for_state(mc, path, "active")
+    question = mc.get(path + "/question").json()
+    engine = mc.factory.kw["bind"]
+    with engine.begin() as db:
+        for field in ("timing_scope", "timing_seconds", "deck_deadline"):
+            db.execute(text(f"ALTER TABLE multiple_choice_sessions DROP COLUMN {field}"))
+        for field in ("question_deadline", "timed_out_at"):
+            db.execute(text(f"ALTER TABLE multiple_choice_questions DROP COLUMN {field}"))
+    init_database(engine)
+    init_database(engine)
+    assert mc.get(path).json() == before
+    assert mc.get(path + "/question").json() == question
 
 
 def test_additive_upgrade_preserves_classic_history_and_deck_deletion_cascades(mc, monkeypatch):

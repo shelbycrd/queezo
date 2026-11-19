@@ -5,15 +5,16 @@ from starlette.concurrency import run_in_threadpool
 from app.auth.dependencies import require_user
 from app.database import get_db, get_write_db
 from app.models import User
-from app.schemas import MultipleChoiceAnswer
+from app.schemas import MultipleChoiceAnswer, MultipleChoiceTiming
 from app.services import multiple_choice as study
 
 router = APIRouter(prefix="/api", tags=["Multiple-choice study"])
 
 
 @router.post("/decks/{deck_id}/multiple-choice", status_code=202)
-async def start(deck_id: int, request: Request, user: User = Depends(require_user)):
-    state, attempt = await run_in_threadpool(study.create_session, deck_id, user.id)
+async def start(deck_id: int, request: Request, user: User = Depends(require_user),
+                timing: MultipleChoiceTiming | None = None):
+    state, attempt = await run_in_threadpool(study.create_session, deck_id, user.id, timing)
     request.app.state.multiple_choice_jobs.start(state["id"], attempt)
     return state
 
@@ -50,6 +51,11 @@ async def cancel(session_id: str, request: Request, user: User = Depends(require
 @router.get("/multiple-choice/{session_id}/question")
 def question(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_db)):
     return study.question_view(db, study.owned_session(db, session_id, user.id))
+
+
+@router.post("/multiple-choice/{session_id}/question")
+def open_question(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+    return study.open_question(db, study.owned_session(db, session_id, user.id))
 
 
 @router.post("/multiple-choice/{session_id}/answer")

@@ -85,6 +85,9 @@ class MultipleChoiceSession(Base):
     attempt: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     prepare_until: Mapped[datetime] = mapped_column(DateTime)
+    timing_scope: Mapped[str | None] = mapped_column(String(8))
+    timing_seconds: Mapped[int | None] = mapped_column(Integer)
+    deck_deadline: Mapped[datetime | None] = mapped_column(DateTime)
     expires_at: Mapped[datetime] = mapped_column(DateTime)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime)
     __table_args__ = (
@@ -109,6 +112,8 @@ class MultipleChoiceQuestion(Base):
     selected_option_id: Mapped[str | None] = mapped_column(String(36))
     answered_at: Mapped[datetime | None] = mapped_column(DateTime)
     failure: Mapped[str | None] = mapped_column(String(32))
+    question_deadline: Mapped[datetime | None] = mapped_column(DateTime)
+    timed_out_at: Mapped[datetime | None] = mapped_column(DateTime)
     __table_args__ = (
         UniqueConstraint("session_id", "position"),
         UniqueConstraint("session_id", "source_card_id"),

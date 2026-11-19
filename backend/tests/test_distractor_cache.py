@@ -236,13 +236,17 @@ def test_failure_leaves_no_cache_and_next_call_can_recover(cache, monkeypatch):
     assert len(cached_rows(client)) == 1
 
 
-def test_invalid_saved_distractors_are_replaced(cache, monkeypatch):
+@pytest.mark.parametrize("invalid_choices", [
+    ["Kyoto", "kyoto", "Tokyo"],
+    ["Kyoto", "Osaka", "\ud800"],
+])
+def test_invalid_saved_distractors_are_replaced(cache, monkeypatch, invalid_choices):
     client, owner = cache
     card_id = make_card(client, deck(client, count=0))
     monkeypatch.setattr(distractors, "generate_distractors", AsyncMock(side_effect=[FIRST_CHOICES, OTHER_CHOICES]))
     lookup(card_id, owner)
     with client.factory.begin() as db:
-        db.get(FlashcardDistractorCache, card_id).distractors = ["Kyoto", "kyoto", "Tokyo"]
+        db.get(FlashcardDistractorCache, card_id).distractors = invalid_choices
     assert lookup(card_id, owner) == OTHER_CHOICES
     assert cached_rows(client)[0].distractors == OTHER_CHOICES
 
