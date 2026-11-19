@@ -48,10 +48,10 @@ async function deckWorkspace(deckId, cardId, route) {
   const editing = cardId ? cards.find(card => card.id === Number(cardId)) : null;
   if (cardId && !editing) throw new Error('This card was not found in this deck.');
   if (!mount(`<div class="deck-workspace"><div class="breadcrumbs"><a href="#decks">Flashcards</a><span>/</span><span>${escape(deck.title)}</span></div>
-    <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>${escape(deck.title)}</h1><p class="muted"><span data-card-count>${cards.length}</span> / 150 cards</p></div><details class="deck-actions"><summary class="button secondary flat-button" aria-label="Deck actions" title="Deck actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary><div class="deck-actions-list"><button id="rename" class="secondary small flat-button">Rename deck</button><button id="delete-deck" class="danger small flat-button">Delete deck</button></div></details></div>
+    <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>${escape(deck.title)}</h1><p class="muted"><span data-card-count>${cards.length}</span> / 150 cards</p></div><div class="actions deck-heading-actions"><button type="submit" form="card-form" id="study-deck" data-intent="study">Study deck</button><details class="deck-actions"><summary class="button secondary flat-button" aria-label="Deck actions" title="Deck actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary><div class="deck-actions-list"><button id="rename" class="secondary small flat-button">Rename deck</button><button id="delete-deck" class="danger small flat-button">Delete deck</button></div></details></div></div>
     <form id="card-form" class="card-composer panel" novalidate><fieldset class="editor-fields"><legend class="sr-only">${editing ? 'Edit flashcard' : 'Create a flashcard'}</legend><div class="composer-heading"><h2 id="editor-card-number">Card no. ${editing ? cards.indexOf(editing)+1 : cards.length+1}</h2><span class="badge">Question + answer</span></div>
       <div class="editor-sides">${editorSide('front','Question','What do you want to remember?', editing?.front || '')}${editorSide('back','Answer','Write the answer here…', editing?.back || '')}</div>
-      <p class="hint">250 characters per side · One photo per card</p><p class="hint"><kbd>Ctrl / ⌘ + Enter</kbd> ${editing ? 'Save changes' : 'Save and continue'}</p><div class="composer-actions"><span id="card-count" class="muted" role="status" aria-live="polite"><span data-card-count>${cards.length}</span> cards saved</span><div class="actions">${editing ? `<a href="#deck/${deckId}" class="button secondary">Cancel edit</a>` : ''}<button type="submit" id="next-card" data-intent="save">${editing ? 'Save changes' : 'Next Card →'}</button><button type="submit" id="study-deck" data-intent="study" class="secondary">Study deck</button></div></div></fieldset></form>
+      <p class="hint">250 characters per side · One photo per card</p><p class="hint"><kbd>Ctrl / ⌘ + Enter</kbd> ${editing ? 'Save changes' : 'Save and continue'}</p><div class="composer-actions"><span id="card-count" class="muted" role="status" aria-live="polite"><span data-card-count>${cards.length}</span> cards saved</span><div class="actions">${editing ? `<a href="#deck/${deckId}" class="button secondary">Cancel edit</a>` : ''}<button type="submit" id="next-card" data-intent="save">${editing ? 'Save changes' : 'Next Card →'}</button></div></div></fieldset></form>
     <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>${cards.length}</span>)</span></h2><label class="sr-only" for="card-order">Card order</label><select id="card-order" class="card-order"><option value="desc">Most recent first</option><option value="asc">Least recent first</option></select></div><label class="sr-only" for="saved-card-search">Find a saved card</label><input id="saved-card-search" type="search" placeholder="Find a saved question or answer…" autocomplete="off"><div id="saved-cards" class="card-list"></div><p id="saved-card-empty" class="muted" hidden>No matching cards.</p><nav id="saved-card-pages" class="saved-card-pages" aria-label="Saved card pages" hidden><button type="button" class="secondary small flat-button" data-step="-1">Previous</button><span aria-live="polite"></span><button type="button" class="secondary small flat-button" data-step="1">Next</button></nav>
     <details class="session-history"><summary>Recent study sessions <span class="muted">(${sessions.length})</span></summary>${sessions.length ? `<div class="panel"><ul class="history-list">${sessions.map(session => `<li><div><p>${escape(date(session.started_at))} · <strong>${escape(session.status)}</strong></p><p class="muted">${plural(session.total_reviews,'review')} · ${session.total_unique_cards} cards studied · ${duration(session.duration_seconds)}</p></div><a class="button secondary small" href="#${session.status === 'active' ? 'study' : 'summary'}/${session.session_id}">${session.status === 'active' ? 'Resume' : 'Summary'}</a></li>`).join('')}</ul></div>` : '<p class="muted">Your sessions will appear here.</p>'}</details></div>`, route)) return;
 
@@ -88,6 +88,7 @@ async function deckWorkspace(deckId, cardId, route) {
   };
   const form = app.querySelector('#card-form');
   const fields = form.querySelector('fieldset');
+  const studyButton = heading.querySelector('#study-deck');
   const savedCards = app.querySelector('#saved-cards');
   const images = {front:editing?.front_image || null, back:editing?.back_image || null};
   const revisions = {front:0, back:0};
@@ -187,7 +188,7 @@ async function deckWorkspace(deckId, cardId, route) {
     if (shouldSave && !editing && cards.length >= 150) { notice('This deck has reached its 150-card limit.'); return; }
     if (!shouldSave && !cards.length) { notice('Add your first card before starting a study session.'); return; }
     if (!study && !editing) preparePageSound();
-    pending = true; fields.disabled = true;
+    pending = true; fields.disabled = true; studyButton.disabled = true;
     try {
       if (shouldSave) {
         const body = {front:form.elements.front.value, back:form.elements.back.value, front_image:images.front, back_image:images.back};
@@ -211,7 +212,7 @@ async function deckWorkspace(deckId, cardId, route) {
       if (study) await startStudy(deckId);
     } catch (error) { if (form.isConnected) notice(error.message); }
     finally {
-      pending = false; fields.disabled = false;
+      pending = false; fields.disabled = false; studyButton.disabled = false;
       if (form.isConnected) { updateCount(); if (!study && !editing) form.elements.front.focus(); }
     }
   });

@@ -1,0 +1,363 @@
+{
+  "mode": "live",
+  "seed": 42,
+  "cold_only": true,
+  "python": "3.12.16",
+  "sqlite": "3.46.1",
+  "container_kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "model": "qwen3:1.7b",
+  "generation_version": 2,
+  "attempt_timeout_s": 60.0,
+  "max_attempts": 3,
+  "preparation_timeout_s": 900,
+  "mock_delay_ms": null,
+  "scenarios": [
+    {
+      "scenario": "cold",
+      "size": 10,
+      "sessions": [
+        {
+          "id": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "ready": 10,
+          "time_to_playable_s": 3.4198109270000714,
+          "failed": 0,
+          "time_to_first_s": 0.9016841180018673,
+          "time_to_five_s": 3.4198109270000714,
+          "preparation_s": 6.66497136900216,
+          "create_s": 0.026692776002164464,
+          "queued_s": 0.027069569998275256,
+          "finished_s": 6.692040939000435
+        }
+      ],
+      "started_utc_epoch": 1795083235.205452,
+      "finished_utc_epoch": 1795083241.897734,
+      "wall_s": 6.692275356999744,
+      "per_card_latency_s": {
+        "mean": 0.6593416113006242,
+        "median": 0.6232269640004233,
+        "p95": 0.8698628120000649
+      },
+      "per_card_slot_wait_s": {
+        "mean": 3.004699829034507e-06,
+        "median": 2.9374987207120284e-06,
+        "p95": 4.743000317830592e-06
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 10,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0012078370054950938
+        },
+        "cache_pass": {
+          "queries": 4,
+          "cursor_s": 0.0007683789990551304
+        },
+        "preparation": {
+          "queries": 127,
+          "cursor_s": 0.013129397990269354
+        }
+      },
+      "cache_passes": [
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "ready": 0,
+          "queued_misses": 10,
+          "started_s": 0.0498030929993547,
+          "finished_s": 0.05849898799715447
+        }
+      ],
+      "python_cpu_s": 0.6438960059999999,
+      "python_avg_cpu_pct_one_core": 9.62148106064585,
+      "python_peak_rss_bytes": 85921792,
+      "python_process_high_water_rss_kib": 83416,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 10,
+      "live_ollama_requests": 10,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 6.2224786120023055,
+      "live_ollama_http_wall_s": 6.099711058996036,
+      "ollama_reported_total_s": 5.7698659,
+      "cards": [
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 8,
+          "ordinal": 7,
+          "started_s": 0.058890876000077697,
+          "sql_queries": 12,
+          "sql_s": 0.00119441300194012,
+          "generation_s": 0.8319538049981929,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 0.06917813399923034,
+              "status": 200,
+              "total_duration_ns": 804327400,
+              "load_duration_ns": 9846700,
+              "prompt_eval_duration_ns": 285339000,
+              "eval_duration_ns": 494575000,
+              "elapsed_s": 0.8251449870003853
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 4.743000317830592e-06,
+          "finished_s": 0.9287536880001426,
+          "latency_s": 0.8698628120000649,
+          "failure": null,
+          "question": "4d4a1287-fdfd-4214-b4a6-1d561cc807fa"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 4,
+          "ordinal": 3,
+          "started_s": 0.9289808689973142,
+          "sql_queries": 12,
+          "sql_s": 0.00044927699491381645,
+          "generation_s": 0.5305999720003456,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 0.9381139340002846,
+              "status": 200,
+              "total_duration_ns": 503446500,
+              "load_duration_ns": 13761100,
+              "prompt_eval_duration_ns": 26477000,
+              "eval_duration_ns": 449766000,
+              "elapsed_s": 0.5244462359987665
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 2.130000211764127e-06,
+          "finished_s": 1.4909043549996568,
+          "latency_s": 0.5619234860023425,
+          "failure": null,
+          "question": "a252fdeb-1040-4f29-ac0b-2e7fbe78f2ef"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 3,
+          "ordinal": 2,
+          "started_s": 1.491200537999248,
+          "sql_queries": 12,
+          "sql_s": 0.0006992520029598381,
+          "generation_s": 0.5458551320007246,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 1.5123034690004715,
+              "status": 200,
+              "total_duration_ns": 499131200,
+              "load_duration_ns": 12520400,
+              "prompt_eval_duration_ns": 27022000,
+              "eval_duration_ns": 442216000,
+              "elapsed_s": 0.5292401129991049
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 2.5609988369978964e-06,
+          "finished_s": 2.073121753997839,
+          "latency_s": 0.5819212159985909,
+          "failure": null,
+          "question": "62a841bb-5b82-4c9c-9078-658da3b99c30"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 9,
+          "ordinal": 8,
+          "started_s": 2.073432655997749,
+          "sql_queries": 12,
+          "sql_s": 0.0007822600018698722,
+          "generation_s": 0.5713731809992169,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 2.0965145390000544,
+              "status": 200,
+              "total_duration_ns": 521124200,
+              "load_duration_ns": 21929200,
+              "prompt_eval_duration_ns": 39729000,
+              "eval_duration_ns": 440931000,
+              "elapsed_s": 0.5544627429990214
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 2.7699970814865083e-06,
+          "finished_s": 2.681583857000078,
+          "latency_s": 0.6081512010023289,
+          "failure": null,
+          "question": "0c6302b8-e5f5-4eb4-b9a7-ca95fa96a0e5"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 6,
+          "ordinal": 5,
+          "started_s": 2.6821473199997854,
+          "sql_queries": 12,
+          "sql_s": 0.001218758992763469,
+          "generation_s": 0.7211317650035198,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 2.70251899899813,
+              "status": 200,
+              "total_duration_ns": 676488100,
+              "load_duration_ns": 19557800,
+              "prompt_eval_duration_ns": 37587000,
+              "eval_duration_ns": 603745000,
+              "elapsed_s": 0.7064468759999727
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 2.3760003386996686e-06,
+          "finished_s": 3.4468804969983466,
+          "latency_s": 0.7647331769985612,
+          "failure": null,
+          "question": "5c6ac8aa-0a57-4840-89e3-3d1f002a0a03"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 7,
+          "ordinal": 6,
+          "started_s": 3.447057223998854,
+          "sql_queries": 12,
+          "sql_s": 0.0006298309999692719,
+          "generation_s": 0.558479470997554,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 3.458977963000507,
+              "status": 200,
+              "total_duration_ns": 531528300,
+              "load_duration_ns": 26348500,
+              "prompt_eval_duration_ns": 38996000,
+              "eval_duration_ns": 447079000,
+              "elapsed_s": 0.5510647419978341
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 1.672000507824123e-06,
+          "finished_s": 4.039011098000628,
+          "latency_s": 0.5919538740017742,
+          "failure": null,
+          "question": "020b3b29-d44d-45e3-b9f7-592f1da4f48d"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 10,
+          "ordinal": 9,
+          "started_s": 4.039392736998707,
+          "sql_queries": 12,
+          "sql_s": 0.0009894949944282416,
+          "generation_s": 0.5382692279999901,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 4.059484141998837,
+              "status": 200,
+              "total_duration_ns": 507278400,
+              "load_duration_ns": 26267300,
+              "prompt_eval_duration_ns": 24062000,
+              "eval_duration_ns": 448130000,
+              "elapsed_s": 0.5260650989985152
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 4.053999873576686e-06,
+          "finished_s": 4.618770864999533,
+          "latency_s": 0.5793781280008261,
+          "failure": null,
+          "question": "e2773d01-bde9-44a4-8d3d-e55a490f108d"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 5,
+          "ordinal": 4,
+          "started_s": 4.622018104997551,
+          "sql_queries": 12,
+          "sql_s": 0.0010262559953844175,
+          "generation_s": 0.6419397470017429,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 4.636359069998434,
+              "status": 200,
+              "total_duration_ns": 530935800,
+              "load_duration_ns": 41371600,
+              "prompt_eval_duration_ns": 28822000,
+              "eval_duration_ns": 433828000,
+              "elapsed_s": 0.6339317150013812
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 3.436001861700788e-06,
+          "finished_s": 5.301012067000556,
+          "latency_s": 0.6789939620030054,
+          "failure": null,
+          "question": "228ca9c2-a4da-4132-95aa-39d345d48db8"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 1,
+          "ordinal": 0,
+          "started_s": 5.301327941997442,
+          "sql_queries": 12,
+          "sql_s": 0.0010339090040361043,
+          "generation_s": 0.678637004999473,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 5.317021921997366,
+              "status": 200,
+              "total_duration_ns": 650415000,
+              "load_duration_ns": 20189000,
+              "prompt_eval_duration_ns": 23703000,
+              "eval_duration_ns": 596138000,
+              "elapsed_s": 0.6678747340010887
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 3.1050003599375486e-06,
+          "finished_s": 6.0195234719976725,
+          "latency_s": 0.7181955300002301,
+          "failure": null,
+          "question": "790c5b57-efbf-43ea-b3ef-5dc52cd6f7d4"
+        },
+        {
+          "session": "a4071193-0c5a-4316-95c6-ee7c560809d7",
+          "card": 2,
+          "ordinal": 1,
+          "started_s": 6.019711578999704,
+          "sql_queries": 12,
+          "sql_s": 0.0006403690022125375,
+          "generation_s": 0.6042393060015456,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 6.047336359999463,
+              "status": 200,
+              "total_duration_ns": 545191000,
+              "load_duration_ns": 29057000,
+              "prompt_eval_duration_ns": 40191000,
+              "eval_duration_ns": 450230000,
+              "elapsed_s": 0.5810338139999658
+            }
+          ],
+          "cache_hit": false,
+          "model_slot_wait_s": 3.1999989005271345e-06,
+          "finished_s": 6.658014305998222,
+          "latency_s": 0.6383027269985178,
+          "failure": null,
+          "question": "32a67681-68e0-4220-a9f2-6420992cbc77"
+        }
+      ]
+    }
+  ],
+  "ollama_version": "0.40.16",
+  "model_digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "journal_mode": "wal"
+}

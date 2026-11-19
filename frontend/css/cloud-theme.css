@@ -240,6 +240,7 @@ form label { color: #53647f; font-weight: 700; font-size: .83rem; }
 .saved-card .saved-text-preview :is(p, ul, ol, li) { margin-block: 0; }
 .saved-card-pages { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 .saved-card-pages[hidden] { display: none; }
+.deck-heading-actions { flex: none; flex-wrap: nowrap; }
 .deck-actions { position: relative; flex: none; }
 .deck-actions summary { display: grid; place-items: center; cursor: pointer; padding: 9px; list-style: none; }
 .deck-actions summary::-webkit-details-marker { display: none; }

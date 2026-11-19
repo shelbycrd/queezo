@@ -1,0 +1,84 @@
+{
+  "mode": "live",
+  "seed": 42,
+  "cold_only": true,
+  "python": "3.12.16",
+  "sqlite": "3.46.1",
+  "container_kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "model": "qwen3:1.7b",
+  "generation_version": 2,
+  "attempt_timeout_s": 60.0,
+  "max_attempts": 3,
+  "preparation_timeout_s": 900,
+  "mock_delay_ms": null,
+  "scenarios": [
+    {
+      "scenario": "cold",
+      "size": 150,
+      "started_utc_epoch": 1795080301.6892743,
+      "finished_utc_epoch": 1795080396.1359267,
+      "wall_s": 94.45618728699992,
+      "per_card_latency_s": {
+        "mean": 0.6289759805467232,
+        "median": 0.6020199720005621,
+        "p95": 0.7770624500008125
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.4562465841881932e-06,
+        "median": 2.0940024114679545e-06,
+        "p95": 4.200999683234841e-06
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 150,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0011105479970865417
+        },
+        "preparation": {
+          "queries": 1806,
+          "cursor_s": 0.1237888160503644
+        }
+      },
+      "python_cpu_s": 7.80857087,
+      "python_avg_cpu_pct_one_core": 8.266870698765436,
+      "python_peak_rss_bytes": 89583616,
+      "python_process_high_water_rss_kib": 86868,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 150,
+      "live_ollama_requests": 150,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 89.14817950898941,
+      "live_ollama_http_wall_s": 87.42479927602835,
+      "ollama_reported_total_s": 83.1311731,
+      "ready": 150,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 150,
+          "failed": 0,
+          "time_to_first_s": 0.935011289002432,
+          "time_to_five_s": 3.3904364590016485,
+          "preparation_s": 94.43053329500253,
+          "create_s": 0.024634844998217886,
+          "queued_s": 0.02529529399907915,
+          "finished_s": 94.45582858900161
+        }
+      ],
+      "host_ollama": {
+        "samples": 171,
+        "cpu_s": 6.5625,
+        "cpu_sample_span_s": 93.98199987411499,
+        "sampled_peak_working_set_bytes": 61587456
+      }
+    }
+  ],
+  "ollama_version": "0.40.16",
+  "model_digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "journal_mode": "wal"
+}

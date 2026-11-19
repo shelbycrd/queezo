@@ -167,6 +167,49 @@ test('a deck deadline remains scheduled during answer feedback', async () => {
   assert.equal(scoreSummary(f.latest().session).accuracy,50);
 });
 
+test('progressive study keeps feedback, waits for the next slot, and resumes without skipping', async () => {
+  const preparing = {...session('preparing',{ready:1}), preparing:true, can_start:true, study_started:false};
+  const started = {...preparing, status:'active', can_start:false, study_started:true, question_ready:true};
+  const waiting = {...started, answered:1, question_ready:false};
+  const later = {...waiting, preparing:false, question_ready:true, progress:{ready:2, completed:2, failed:0, total:2}};
+  let state = {...preparing, can_start:false};
+  let nextQuestion = question;
+  const f = fixture(async url => {
+    if (url.endsWith('/start')) return state = started;
+    if (url.endsWith('/question')) return nextQuestion;
+    if (url.endsWith('/answer')) return {session:state = waiting, is_correct:true};
+    return state;
+  });
+  await f.controller.refresh();
+  assert.equal(f.latest().question,null);
+  assert.equal(f.latest().session.can_start,false);
+  state = preparing;
+  await f.poll();
+  assert.equal(f.calls.filter(([url]) => url.endsWith('/start')).length,1);
+  assert.equal(f.latest().question,question);
+  await f.controller.answer('a');
+  await f.poll();
+  assert.ok(f.latest().grade);
+  await f.controller.next();
+  assert.equal(f.latest().question,null);
+  assert.equal(f.latest().session.question_ready,false);
+  nextQuestion = {...question,id:'second'};
+  state = later;
+  await f.poll();
+  assert.equal(f.latest().question.id,'second');
+  assert.equal(f.timers.size,0);
+});
+
+test('refresh resumes a progressive session with its saved question and preparation polling', async () => {
+  const state = {...session('active',{ready:1,answered:0}), study_started:true, preparing:true, question_ready:true};
+  const f = fixture(async url => url.endsWith('/question') ? question : state);
+  await f.controller.refresh();
+  assert.equal(f.latest().question,question);
+  assert.equal(f.timers.size,1);
+  f.controller.stop();
+  assert.equal(f.timers.size,0);
+});
+
 test('leaving stops polling, aborts reads, and discards a late response', async () => {
   let resolveStatus;
   const f = fixture(() => new Promise(resolve => { resolveStatus = resolve; }));

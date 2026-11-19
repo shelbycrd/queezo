@@ -4,6 +4,8 @@ import asyncio
 import hashlib
 import json
 import random
+from collections import defaultdict
+from contextlib import nullcontext
 from weakref import WeakValueDictionary
 
 from fastapi import HTTPException
@@ -56,22 +58,55 @@ def _valid_choices(choices, back: str, count: int = 3) -> bool:
     return True
 
 
-def _cached_choices(db, row, fingerprint: str, model: str, version: int, deck_id: int, back: str):
-    if (row is None or row.content_fingerprint != fingerprint or row.ollama_model != model
-            or row.generation_version != version or not _valid_choices(row.distractors, back)):
-        return None
-    sources = db.execute(
+def _cache_matches(row, fingerprint: str, model: str, version: int, back: str):
+    return (row.content_fingerprint == fingerprint and row.ollama_model == model
+            and row.generation_version == version and _valid_choices(row.distractors, back))
+
+
+def _cache_sources(db, card_ids, deck_id: int):
+    return db.execute(
         select(FlashcardDistractorSource, Flashcard.deck_id, Flashcard.front, Flashcard.back)
         .outerjoin(Flashcard, and_(Flashcard.id == FlashcardDistractorSource.source_card_id,
                                    Flashcard.deck_id == deck_id))
-        .where(FlashcardDistractorSource.flashcard_id == row.flashcard_id)
+        .where(FlashcardDistractorSource.flashcard_id.in_(card_ids))
     )
-    for source, source_deck, source_front, source_back in sources:
-        if (source_deck != deck_id
-                or source.content_fingerprint != _fingerprint(source_front, source_back)
-                or row.distractors[source.position] != source_back.strip()):
-            return None
-    return row.distractors
+
+
+def _sources_match(row, sources, deck_id: int):
+    return all(
+        source_deck == deck_id and source.content_fingerprint == _fingerprint(source_front, source_back)
+        and row.distractors[source.position] == source_back.strip()
+        for source, source_deck, source_front, source_back in sources
+    )
+
+
+def _cached_choices(db, row, fingerprint: str, model: str, version: int, deck_id: int, back: str):
+    if (row is not None and _cache_matches(row, fingerprint, model, version, back)
+            and _sources_match(row, _cache_sources(db, [row.flashcard_id], deck_id), deck_id)):
+        return row.distractors
+    return None
+
+
+def cached_choices_for_deck(db, deck_id: int, cards: dict[int, Flashcard]) -> dict[int, list[str]]:
+    """Read caches for cards already authorized in the caller's transaction."""
+    if not cards:
+        return {}
+    model, version = distractors.configured_model(), distractors.GENERATION_VERSION
+    rows = db.scalars(select(FlashcardDistractorCache).where(FlashcardDistractorCache.flashcard_id.in_(cards)))
+    matches = {}
+    for row in rows:
+        card = cards[row.flashcard_id]
+        if _cache_matches(row, _fingerprint(card.front, card.back), model, version, card.back):
+            matches[row.flashcard_id] = row
+    if not matches:
+        return {}
+    sources = defaultdict(list)
+    for provenance in _cache_sources(db, matches, deck_id):
+        sources[provenance[0].flashcard_id].append(provenance)
+    return {
+        card_id: row.distractors for card_id, row in matches.items()
+        if _sources_match(row, sources.get(card_id, ()), deck_id)
+    }
 
 
 def _lookup(card_id: int, user_id: int, model: str, version: int):
@@ -141,10 +176,11 @@ def _store(card_id, user_id, fingerprint, model, version, choices, failure_reaso
 
 async def get_or_generate_distractors(
     card_id: int, user: User, *, expected_content: tuple[str, str] | None = None,
+    model_slot: asyncio.Lock | None = None,
 ) -> list[str]:
     """Load or assemble choices for a card owned by the authenticated user.
 
-    Database sessions are short-lived and never held open during inference.
+    Database sessions are short-lived. The optional shared slot covers only inference.
     """
     if user is None or user.id is None:
         raise HTTPException(401, "Please log in to continue.")
@@ -161,7 +197,8 @@ async def get_or_generate_distractors(
             return cached
         failure_reason = "insufficient_distractors"
         try:
-            choices = await distractors.generate_distractors(front, back, model=model)
+            async with model_slot if model_slot is not None else nullcontext():
+                choices = await distractors.generate_distractors(front, back, model=model)
             if not _valid_choices(choices, back):
                 raise distractors.DistractorGenerationError(
                     "Ollama returned invalid distractors.", reason="invalid_ai_response",

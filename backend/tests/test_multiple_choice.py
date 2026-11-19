@@ -17,7 +17,7 @@ from sqlalchemy import select, text
 from app.auth.service import create_user
 from app.database import init_database
 from app.models import (
-    Flashcard, FlashcardDistractorCache, MultipleChoiceQuestion, MultipleChoiceSession, User, utcnow,
+    Flashcard, FlashcardDistractorCache, FlashcardDistractorSource, MultipleChoiceQuestion, MultipleChoiceSession, User, utcnow,
 )
 from app.services import distractor_cache, distractors, multiple_choice as study
 from app.services.distractors import DistractorGenerationError
@@ -331,6 +331,130 @@ def test_generation_progress_and_concurrency_across_decks(mc, monkeypatch):
     assert calls == 3 and peak == 1
 
 
+def test_cached_card_commits_first_without_changing_study_order(mc, monkeypatch):
+    deck_id = deck(mc, count=2)
+    with mc.factory() as db:
+        owner = db.get(User, mc.test_user_id)
+        first, cached = db.scalars(select(Flashcard).where(Flashcard.deck_id == deck_id)
+                                   .order_by(Flashcard.id)).all()
+    mock_generation(monkeypatch, return_value=CHOICES)
+    asyncio.run(distractor_cache.get_or_generate_distractors(cached.id, owner))
+    photo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jSxsAAAAASUVORK5CYII="
+    with mc.factory.begin() as db:
+        card = db.get(Flashcard, cached.id)
+        card.front_image = photo
+        card.back_image = photo
+    monkeypatch.setattr(study, "random", SimpleNamespace(shuffle=lambda items: None))
+    entered, release = Event(), Event()
+
+    async def generate(front, back, *, model):
+        assert front == first.front
+        entered.set()
+        while not release.is_set():
+            await asyncio.sleep(0.01)
+        return CHOICES
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    path, state = start(mc, deck_id)
+    try:
+        assert entered.wait(5)
+        preparing = mc.get(path).json()
+        assert preparing["status"] == "preparing" and preparing["progress"]["ready"] == 1
+        assert mc.get(path + "/question").status_code == 409
+        with mc.factory() as db:
+            slots = db.scalars(select(MultipleChoiceQuestion).where(MultipleChoiceQuestion.session_id == state["id"])
+                               .order_by(MultipleChoiceQuestion.position)).all()
+        assert [slot.source_card_id for slot in slots] == [first.id, cached.id]
+        assert slots[0].options is None
+        cached_options = slots[1].options
+        assert len(cached_options) == 4
+        assert slots[1].front_image == slots[1].back_image == photo
+        with mc.factory.begin() as db:
+            card = db.get(Flashcard, cached.id)
+            card.front_image = card.back_image = None
+    finally:
+        release.set()
+    wait_for_state(mc, path, "active")
+    question = mc.get(path + "/question").json()
+    assert question["front"] == first.front
+    assert mc.post(path + "/answer", json={
+        "question_id": question["id"], "option_id": question["options"][0]["id"],
+    }).status_code == 200
+    next_question = mc.get(path + "/question").json()
+    assert next_question["front"] == cached.front and next_question["options"] == cached_options
+    assert next_question["front_image"] == photo
+    grade = mc.post(path + "/answer", json={
+        "question_id": next_question["id"], "option_id": next_question["options"][0]["id"],
+    })
+    assert grade.status_code == 200 and grade.json()["back_image"] == photo
+
+
+def test_warm_session_finishes_while_another_session_owns_the_model_slot(mc, monkeypatch):
+    cold_deck, warm_deck = deck(mc), deck(mc)
+    with mc.factory() as db:
+        owner = db.get(User, mc.test_user_id)
+        warm_card = db.scalar(select(Flashcard.id).where(Flashcard.deck_id == warm_deck))
+    mock_generation(monkeypatch, return_value=CHOICES)
+    asyncio.run(distractor_cache.get_or_generate_distractors(warm_card, owner))
+    entered, release = Event(), Event()
+    inference_calls = []
+
+    async def generate(front, back, *, model):
+        inference_calls.append(front)
+        entered.set()
+        while not release.is_set():
+            await asyncio.sleep(0.01)
+        return CHOICES
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    cold_path, _ = start(mc, cold_deck)
+    try:
+        assert entered.wait(5)
+        warm_path, _ = start(mc, warm_deck)
+        assert wait_for_state(mc, warm_path, "active")["progress"]["ready"] == 1
+        assert mc.get(cold_path).json()["status"] == "preparing"
+        classic = mc.post(f"/api/decks/{warm_deck}/study")
+        assert classic.status_code == 201
+        review(mc, classic.json())
+        assert len(inference_calls) == 1
+    finally:
+        release.set()
+    wait_for_state(mc, cold_path, "active")
+
+
+@pytest.mark.parametrize("stale", ["fingerprint", "model", "version", "choice", "provenance"])
+def test_cache_pass_queues_invalid_entries_for_generation(mc, monkeypatch, stale):
+    deck_id = deck(mc, count=2)
+    generator = mock_generation(monkeypatch, return_value=CHOICES)
+    with mc.factory() as db:
+        owner = db.get(User, mc.test_user_id)
+        target, source = db.scalars(select(Flashcard).where(Flashcard.deck_id == deck_id)
+                                    .order_by(Flashcard.id)).all()
+    asyncio.run(distractor_cache.get_or_generate_distractors(target.id, owner))
+    asyncio.run(distractor_cache.get_or_generate_distractors(source.id, owner))
+    generator.reset_mock()
+    with mc.factory.begin() as db:
+        row = db.get(FlashcardDistractorCache, target.id)
+        if stale == "fingerprint":
+            row.content_fingerprint = "0" * 64
+        elif stale == "model":
+            row.ollama_model = "old-model"
+        elif stale == "version":
+            row.generation_version -= 1
+        elif stale == "choice":
+            row.distractors = [target.back, *CHOICES[1:]]
+        else:
+            row.distractors = [source.back, *CHOICES[1:]]
+            db.add(FlashcardDistractorSource(
+                flashcard_id=target.id, position=0, source_card_id=source.id, content_fingerprint="0" * 64,
+            ))
+    path, _ = start(mc, deck_id)
+    assert wait_for_state(mc, path, "active")["progress"]["ready"] == 2
+    generator.assert_awaited_once_with(target.front, target.back, model=distractors.configured_model())
+    with mc.factory() as db:
+        assert db.get(FlashcardDistractorCache, target.id).distractors == CHOICES
+
+
 @pytest.mark.parametrize("resolution", ["retry", "continue"])
 @pytest.mark.parametrize("reason", ["insufficient_distractors", "invalid_ai_response"])
 def test_partial_generation_failure_can_retry_or_continue(mc, monkeypatch, resolution, reason):
@@ -548,6 +672,190 @@ def test_timing_migration_preserves_existing_multiple_choice_sessions(mc, monkey
     init_database(engine)
     assert mc.get(path).json() == before
     assert mc.get(path + "/question").json() == question
+
+
+def test_progressive_study_obeys_the_shuffled_prefix_and_waits_at_gaps(mc, monkeypatch):
+    deck_id = deck(mc, count=9)
+    with mc.factory.begin() as db:
+        owner = db.get(User, mc.test_user_id)
+        order = list(db.scalars(select(Flashcard).where(Flashcard.deck_id == deck_id)
+                                .order_by(Flashcard.id.desc())))
+        for card in order:
+            card.back = "Repeated answer"
+    monkeypatch.setattr(study, "random", SimpleNamespace(shuffle=lambda items: items.reverse()))
+    mock_generation(monkeypatch, return_value=CHOICES)
+    for index in (2, 4, 6, 7, 8):
+        asyncio.run(distractor_cache.get_or_generate_distractors(order[index].id, owner))
+
+    first, tail, release_first, release_tail = Event(), Event(), Event(), Event()
+
+    async def generate(front, back, *, model):
+        if front == order[0].front:
+            first.set()
+            while not release_first.is_set():
+                await asyncio.sleep(0.01)
+        if front == order[5].front:
+            tail.set()
+            while not release_tail.is_set():
+                await asyncio.sleep(0.01)
+            raise DistractorGenerationError("No valid choices")
+        return CHOICES
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    path, _ = start(mc, deck_id)
+    try:
+        assert first.wait(5)
+        state = mc.get(path).json()
+        assert state["progress"]["ready"] == 5 and not state["can_start"]
+        assert state["opening"] == {"ready": 0, "target": 5}
+        assert mc.post(path + "/start").status_code == 409
+        release_first.set()
+        assert tail.wait(5)
+        state = mc.get(path).json()
+        assert state["can_start"] and state["opening"] == {"ready": 5, "target": 5}
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            starts = [pool.submit(mc.post, path + "/start") for _ in range(2)]
+            assert all(call.result(timeout=5).status_code == 200 for call in starts)
+        for expected in order[:5]:
+            question = mc.get(path + "/question").json()
+            assert question["front"] == expected.front
+            assert mc.get(path + "/question").json() == question
+            correct = next(option for option in question["options"] if option["text"] == expected.back)
+            response = mc.post(path + "/answer", json={"question_id": question["id"], "option_id": correct["id"]})
+            assert response.status_code == 200
+            assert response.json()["is_correct"]
+        state = mc.get(path).json()
+        assert state["status"] == "active" and state["preparing"] and not state["question_ready"]
+        assert mc.get(path + "/question").status_code == 409
+    finally:
+        release_first.set()
+        release_tail.set()
+
+    deadline = monotonic() + 5
+    while mc.get(path).json()["preparing"] and monotonic() < deadline:
+        sleep(0.02)
+    state = mc.get(path).json()
+    assert not state["preparing"]
+    assert state["failures"] == [{"card_id": order[5].id, "reason": "insufficient_distractors"}]
+    for expected in order[6:]:
+        question = mc.get(path + "/question").json()
+        assert question["front"] == expected.front
+        assert mc.post(path + "/answer", json={
+            "question_id": question["id"], "option_id": question["options"][0]["id"],
+        }).status_code == 200
+    assert mc.get(path).json()["status"] == "completed"
+
+
+def stage_progressive_prefix(mc, count=7, timing=None, failed_first=False):
+    deck_id = deck(mc, count=count)
+    state, _ = study.create_session(deck_id, mc.test_user_id, timing)
+    with mc.factory.begin() as db:
+        slots = db.scalars(select(MultipleChoiceQuestion).where(MultipleChoiceQuestion.session_id == state["id"])
+                           .order_by(MultipleChoiceQuestion.position)).all()
+        if failed_first:
+            slots[0].failure = "insufficient_distractors"
+        offset = int(failed_first)
+        for slot in slots[offset:offset + 5]:
+            study._snapshot(slot, db.get(Flashcard, slot.source_card_id), CHOICES)
+    return f"/api/multiple-choice/{state['id']}", slots
+
+
+def test_progressive_recovery_retries_only_interrupted_positions(mc, monkeypatch):
+    path, slots = stage_progressive_prefix(mc, failed_first=True)
+    assert mc.post(path + "/start").status_code == 200
+    first = mc.get(path + "/question").json()
+    assert first["id"] == slots[1].id
+    study.recover_interrupted()
+    recovered = mc.get(path).json()
+    assert recovered["status"] == "failed" and recovered["study_started"]
+    assert {item["reason"] for item in recovered["failures"]} == {"interrupted", "insufficient_distractors"}
+    generator = mock_generation(monkeypatch, return_value=CHOICES)
+    assert mc.post(path + "/retry").status_code == 202
+    deadline = monotonic() + 5
+    while mc.get(path).json()["preparing"] and monotonic() < deadline:
+        sleep(0.02)
+    state = mc.get(path).json()
+    assert state["status"] == "active" and not state["preparing"]
+    assert state["failures"] == [{"card_id": slots[0].source_card_id, "reason": "insufficient_distractors"}]
+    assert mc.get(path + "/question").json() == first
+    generator.assert_awaited_once()
+
+
+@pytest.mark.parametrize("ending", ["cancel", "expired", "deck_timer"])
+def test_progressive_terminal_states_stop_or_reject_inference(mc, monkeypatch, ending):
+    now = utcnow()
+    monkeypatch.setattr(study, "utcnow", lambda: now)
+    timing = SimpleNamespace(scope="deck", seconds=10) if ending == "deck_timer" else None
+    path, slots = stage_progressive_prefix(mc, timing=timing)
+    assert mc.post(path + "/start").status_code == 200
+    if timing:
+        assert mc.post(path + "/question").json()["question"]["id"] == slots[0].id
+
+    # Attach a real worker to the staged session and block its model request.
+    began, stopped = Event(), Event()
+
+    async def generate(*args, **kwargs):
+        began.set()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            stopped.set()
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    if ending == "expired":
+        now += timedelta(hours=24)
+        assert mc.get(path).json()["status"] == "expired"
+        assert mc.post(path + "/start").status_code == 410
+        return
+
+    # Restart recovery gives the HTTP retry endpoint an interrupted job to launch.
+    study.recover_interrupted()
+    assert mc.post(path + "/retry").status_code == 202
+    assert began.wait(5)
+    if ending == "cancel":
+        assert mc.post(path + "/cancel").json()["status"] == "cancelled"
+    else:
+        now += timedelta(seconds=10)
+        state = mc.get(path).json()
+        assert state["status"] == "active" and state["preparing"] and state["deck_time_over"]
+        opened = mc.post(path + "/question").json()
+        assert opened["question"] is None
+        assert opened["session"]["status"] == "completed" and not opened["session"]["preparing"]
+        assert opened["session"]["timed_out"] == 5
+    assert stopped.wait(5)
+
+
+def test_short_deck_waits_until_every_slot_is_resolved(mc):
+    path, slots = stage_progressive_prefix(mc, count=4)
+    session_id = slots[0].session_id
+    with mc.factory.begin() as db:
+        last = db.get(MultipleChoiceQuestion, slots[-1].id)
+        last.options = None
+        last.correct_option_id = None
+    assert not mc.get(path).json()["can_start"]
+    assert mc.post(path + "/start").status_code == 409
+    with mc.factory.begin() as db:
+        study._settle(db, db.get(MultipleChoiceSession, session_id), "insufficient_distractors")
+    state = mc.get(path).json()
+    assert state["status"] == "failed" and state["progress"]["completed"] == 4
+    assert mc.post(path + "/continue").status_code == 200
+    assert mc.get(path + "/question").json()["id"] == slots[0].id
+
+
+def test_progressive_migration_preserves_an_existing_ready_snapshot(mc, monkeypatch):
+    mock_generation(monkeypatch, return_value=CHOICES)
+    path, _ = start(mc, deck(mc))
+    wait_for_state(mc, path, "active")
+    snapshot = mc.get(path + "/question").json()
+    engine = mc.factory.kw["bind"]
+    with engine.begin() as db:
+        for column in ("study_started_at", "preparation_finished_at"):
+            db.execute(text(f"ALTER TABLE multiple_choice_sessions DROP COLUMN {column}"))
+    init_database(engine)
+    init_database(engine)
+    state = mc.get(path).json()
+    assert state["study_started"] and not state["preparing"]
+    assert mc.get(path + "/question").json() == snapshot
 
 
 def test_additive_upgrade_preserves_classic_history_and_deck_deletion_cascades(mc, monkeypatch):

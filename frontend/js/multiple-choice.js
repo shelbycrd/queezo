@@ -14,6 +14,7 @@ const FAILURE_LABELS = {
   card_missing:'The card was deleted or is no longer accessible.',
   card_changed:'The card changed during preparation.',
   preparation_timeout:'Preparation ran out of time.',
+  study_timeout:'The study timer ended before this question was prepared.',
   interrupted:'Preparation was interrupted.',
   preparation_failed:'Could not prepare this card.',
 };
@@ -25,6 +26,14 @@ const deckLink = session => session
   ? `<a class="button secondary flat-button" href="#deck/${escape(session.deck_id)}">Return to deck</a>`
   : '<a class="button secondary flat-button" href="#decks">Return to Flashcards</a>';
 
+function preparationProgress(session) {
+  const {ready, target} = session.opening;
+  return `<div class="mc-preparation-progress" role="status">
+    <div class="progress-text"><strong>${ready} of ${target} opening questions ready</strong></div>
+    <progress max="${target}" value="${ready}" aria-label="Opening questions ready"></progress>
+  </div>`;
+}
+
 function preparationView(session, pending) {
   const {progress, status} = session;
   const failed = status === 'failed';
@@ -34,14 +43,11 @@ function preparationView(session, pending) {
   const explanation = failed
     ? (progress.ready ? 'Retry failed cards, study the ready questions, or return to your deck.' :
       'Retry the failed cards or return to your deck to use Classic Mode.')
-    : 'Queezo reuses saved choices and generates missing ones locally with Ollama.';
+    : 'Checking the first questions in your shuffled deck.';
   return `<section class="panel mc-panel" aria-labelledby="mc-state-heading">
     <h2 id="mc-state-heading" data-mc-focus tabindex="-1">${heading}</h2>
     <p class="muted">${explanation}</p>
-    <div class="mc-preparation-progress" role="status">
-      <div class="progress-text"><strong>${progress.completed} of ${progress.total} prepared or checked</strong><span>${progress.ready} ready · ${progress.failed} failed</span></div>
-      <progress max="${progress.total}" value="${progress.completed}" aria-label="Question preparation progress"></progress>
-    </div>
+    ${failed ? `<p class="muted">${progress.ready} ready · ${progress.failed} failed</p>` : preparationProgress(session)}
     ${session.failures.length ? `<details class="mc-failures"><summary>See failed cards (${session.failures.length})</summary>
       <ul>${session.failures.map(item => `<li><strong>Card ID ${escape(item.card_id)}</strong><span>${escape(FAILURE_LABELS[item.reason] || 'Could not prepare this card.')}</span></li>`).join('')}</ul></details>` : ''}
     <div class="actions mc-actions">
@@ -52,31 +58,46 @@ function preparationView(session, pending) {
 }
 
 function questionView(session, question, grade, pending, selection) {
-  const ready = session.progress.ready;
+  const ready = session.preparing ? session.progress.total - session.progress.failed : session.progress.ready;
   const completed = session.answered + (session.timed_out ?? 0);
   const ordinal = grade ? completed : completed + 1;
   const options = question.options.map((option, index) => {
-    const text = `<span class="mc-letter" aria-hidden="true">${String.fromCharCode(65 + index)}</span><span class="mc-option-text">${escape(option.text)}</span>`;
-    if (!grade) return `<label class="mc-option"><input name="answer" type="radio" required value="${escape(option.id)}" ${selection === option.id ? 'checked' : ''}>${text}</label>`;
-    const correct = option.id === grade.correct_option.id;
-    const chosen = option.id === grade.selected_option_id;
-    const mark = correct && chosen ? 'Correct answer · Your choice' : correct ? 'Correct answer' : chosen ? 'Your choice' : '';
-    const image = correct ? safeImageUrl(grade.back_image) : '';
-    return `<li class="mc-option ${correct ? 'mc-correct' : chosen ? 'mc-incorrect' : ''}">${text}
-      ${mark ? `<span class="mc-option-mark">${mark}</span>` : ''}
-      ${image ? `<div class="mc-option-photo"><img class="card-photo" src="${image}" alt="Answer photo"></div>` : ''}</li>`;
+    const correct = option.id === grade?.correct_option.id;
+    const chosen = option.id === grade?.selected_option_id;
+    return `<label class="mc-option ${correct ? 'mc-correct' : chosen ? 'mc-incorrect' : ''}">
+      <input name="answer" type="radio" required value="${escape(option.id)}"
+        ${(!grade && selection === option.id) || chosen ? 'checked' : ''}>
+      <span class="mc-letter" aria-hidden="true">${String.fromCharCode(65 + index)}</span>
+      <span class="mc-option-text">${escape(option.text)}</span>
+      <small class="mc-option-mark">
+        <span class="${correct ? 'is-visible' : ''}">Correct answer</span>
+        <span class="${chosen ? 'is-visible' : ''}">Your choice</span>
+      </small>
+    </label>`;
   }).join('');
+  const image = safeImageUrl(grade?.back_image);
   return `<div class="progress-text"><strong>Question ${ordinal} of ${ready}</strong><span>${session.answered} answered${session.timed_out ? ` · ${session.timed_out} timed out` : ''}</span></div>
     <progress max="${ready}" value="${completed}" aria-label="Questions completed"></progress>
     <article class="study-sheet mc-question"><section class="study-question">
       <h2 class="content-label" data-mc-focus tabindex="-1">Question ${ordinal}</h2>
       ${renderCardContent(question.front, question.front_image, 'Question photo')}
     </section></article>
-    ${grade ? `<ul class="mc-options mc-graded-options" data-mc-feedback tabindex="-1" aria-label="${grade.is_correct ? 'Correct. Answer choices' : 'Incorrect. Answer choices'}">${options}</ul>
-      <div class="actions mc-actions">${button('next', pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question', false, pending)}${session.status === 'active' ? button('cancel', 'End session', true, pending) : ''}</div>`
-    : `<form id="mc-answer-form"><fieldset class="mc-choices" ${pending ? 'disabled' : ''}>
-      <legend>Choose one answer</legend><div class="mc-options">${options}</div></fieldset>
-      <div class="actions mc-actions"><button type="submit" ${pending ? 'disabled' : ''}>${pending === 'answer' ? 'Checking…' : 'Check answer'}</button>${button('cancel', pending === 'cancel' ? 'Ending…' : 'End session', true, pending)}</div></form>`}`;
+    <form id="mc-answer-form"><fieldset class="mc-choices ${grade ? 'mc-graded' : ''}" ${grade || pending ? 'disabled' : ''}>
+      <legend>Answer choices</legend><div class="mc-options" ${grade ? `data-mc-feedback tabindex="-1" role="group" aria-label="${grade.is_correct ? 'Correct' : 'Incorrect'}. Answer choices"` : ''}>${options}</div></fieldset>
+      <div class="actions mc-actions">${grade
+        ? button('next', pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question', false, pending)
+        : `<button type="submit" ${pending ? 'disabled' : ''}>${pending === 'answer' ? 'Checking…' : 'Check answer'}</button>`}
+      ${session.status === 'active' ? button('cancel', pending === 'cancel' ? 'Ending…' : 'End session', true, pending) : ''}</div>
+      ${image ? `<img class="card-photo" src="${image}" alt="Correct answer photo">` : ''}
+    </form>`;
+}
+
+function waitingView(session, pending) {
+  return `<section class="panel mc-panel">
+    <h2 data-mc-focus tabindex="-1">${session.deck_time_over ? 'Finishing your session' : 'Preparing the next question'}</h2>
+    <p class="muted">${session.deck_time_over ? 'The deck timer has ended.' : 'Your place is saved. The next question will open when it’s ready.'}</p>
+    <div class="actions mc-actions">${button('cancel', 'End session', true, pending)}</div>
+  </section>`;
 }
 
 function summaryView(session, choosing) {
@@ -138,22 +159,25 @@ export async function multipleChoicePage(sessionId, route) {
     previousView = view;
     const {session, question, grade, problem, pending, message, clock} = view;
     clearInterval(clockInterval);
-    const showClock = clock && !problem && session?.status === 'active' && (!grade || session.timing.scope === 'deck');
+    const showClock = clock && !problem && (grade || session?.status === 'active');
     const questionId = problem ? lastQuestionId : question?.id;
     if (lastQuestionId !== questionId) selection = undefined;
     lastQuestionId = questionId;
     const focusedAction = document.activeElement?.dataset.mcAction;
+    const focusedOption = document.activeElement?.name === 'answer' ? document.activeElement.value : null;
     let content;
     let phase;
     if (problem) { phase = 'problem'; content = problemView(view); }
     else if (grade || (session?.status === 'active' && question)) {
       phase = grade ? `feedback:${question.id}` : `question:${question.id}`;
       content = questionView(session, question, grade, pending, selection);
+    } else if (session?.status === 'active' && session.study_started !== false) {
+      phase = 'waiting'; content = waitingView(session, pending);
     } else if (session?.status === 'completed') {
       phase = 'completed'; content = summaryView(session, choosing);
     } else if (session && ['expired','cancelled'].includes(session.status)) {
       phase = session.status; content = endedView(session);
-    } else if (session && ['preparing','failed'].includes(session.status)) {
+    } else if (session && (['preparing','failed'].includes(session.status) || session.can_start)) {
       phase = session.status; content = preparationView(session, pending);
     } else {
       phase = 'loading'; content = '<p class="muted" role="status">Loading study session…</p>';
@@ -173,7 +197,9 @@ export async function multipleChoicePage(sessionId, route) {
         timeLeft.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
       };
       updateClock();
-      clockInterval = setInterval(updateClock, 250);
+      if (!grade || (session.status === 'active' && session.timing.scope === 'deck')) {
+        clockInterval = setInterval(updateClock, 250);
+      }
     }
     const failures = shell.querySelector('.mc-failures');
     if (failures && failuresOpen) failures.open = true;
@@ -189,10 +215,13 @@ export async function multipleChoicePage(sessionId, route) {
     form?.addEventListener('submit', event => {
       event.preventDefault();
       const option = form.querySelector('input:checked');
-      if (option) void controller.answer(option.value);
+      if (!grade && option) void controller.answer(option.value);
     });
     if (phase !== lastPhase) {
-      shell.querySelector(grade && !problem ? '[data-mc-feedback]' : '[data-mc-focus]')?.focus();
+      shell.querySelector(grade && !problem ? '[data-mc-feedback]' : '[data-mc-focus]')?.focus({preventScroll:Boolean(grade)});
+    } else if (focusedOption && !pending) {
+      [...shell.querySelectorAll('input[name=answer]')].find(input =>
+        input.value === focusedOption)?.focus({preventScroll:true});
     } else if (focusedAction) {
       [...shell.querySelectorAll('[data-mc-action]')].find(element =>
         element.dataset.mcAction === focusedAction && !element.disabled)?.focus({preventScroll:true});

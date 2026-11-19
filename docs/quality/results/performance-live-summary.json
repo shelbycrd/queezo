@@ -1,0 +1,678 @@
+{
+  "mode": "live",
+  "seed": 42,
+  "python": "3.12.16",
+  "sqlite": "3.46.1",
+  "container_kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "model": "qwen3:1.7b",
+  "generation_version": 2,
+  "attempt_timeout_s": 60.0,
+  "max_attempts": 3,
+  "preparation_timeout_s": 900,
+  "mock_delay_ms": null,
+  "scenarios": [
+    {
+      "scenario": "cold",
+      "size": 10,
+      "started_utc_epoch": 1795079708.0556643,
+      "finished_utc_epoch": 1795079720.7417789,
+      "wall_s": 12.692215218001365,
+      "per_card_latency_s": {
+        "mean": 1.2621942286001286,
+        "median": 0.6263076044997433,
+        "p95": 7.0170344460020715
+      },
+      "per_card_slot_wait_s": {
+        "mean": 3.1960000342223795e-06,
+        "median": 2.5885001377901062e-06,
+        "p95": 6.048001523595303e-06
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 10,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0012654049969569314
+        },
+        "preparation": {
+          "queries": 126,
+          "cursor_s": 0.01111120303539792
+        }
+      },
+      "python_cpu_s": 0.813939067,
+      "python_avg_cpu_pct_one_core": 6.4128999786072844,
+      "python_peak_rss_bytes": 85794816,
+      "python_process_high_water_rss_kib": 83296,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 10,
+      "live_ollama_requests": 10,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 12.251923446998262,
+      "live_ollama_http_wall_s": 12.144987715000752,
+      "ollama_reported_total_s": 11.8780052,
+      "ready": 10,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 10,
+          "failed": 0,
+          "time_to_first_s": 7.038928940000915,
+          "time_to_five_s": 9.420856235999963,
+          "preparation_s": 12.662530459001573,
+          "create_s": 0.029013446997851133,
+          "queued_s": 0.02953361300023971,
+          "finished_s": 12.692064072001813
+        }
+      ],
+      "host_ollama": {
+        "samples": 23,
+        "cpu_s": 0.78125,
+        "cpu_sample_span_s": 12.217000007629395,
+        "sampled_peak_working_set_bytes": 72790016
+      }
+    },
+    {
+      "scenario": "warm",
+      "size": 10,
+      "started_utc_epoch": 1795079720.7612832,
+      "finished_utc_epoch": 1795079720.9897602,
+      "wall_s": 0.22847104399988893,
+      "per_card_latency_s": {
+        "mean": 0.01912113100042916,
+        "median": 0.01644423349716817,
+        "p95": 0.03122076200088486
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.9765004001092164e-06,
+        "median": 3.02649823424872e-06,
+        "p95": 4.1530001908540726e-06
+      },
+      "cache": {
+        "hits": 10,
+        "misses": 0,
+        "hit_rate": 1.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0006030119984643534
+        },
+        "preparation": {
+          "queries": 106,
+          "cursor_s": 0.009323850990767824
+        }
+      },
+      "python_cpu_s": 0.14808066100000028,
+      "python_avg_cpu_pct_one_core": 64.81375425415935,
+      "python_peak_rss_bytes": 85876736,
+      "python_process_high_water_rss_kib": 83424,
+      "peak_request_concurrency": 0,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 0,
+      "live_ollama_requests": 0,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 0.0,
+      "live_ollama_http_wall_s": 0,
+      "ollama_reported_total_s": 0.0,
+      "ready": 10,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 10,
+          "failed": 0,
+          "time_to_first_s": 0.018960912002512487,
+          "time_to_five_s": 0.08850923900172347,
+          "preparation_s": 0.20763161900322302,
+          "create_s": 0.02000905199747649,
+          "queued_s": 0.020726466998894466,
+          "finished_s": 0.2283580860021175
+        }
+      ],
+      "host_ollama": {
+        "samples": 0,
+        "cpu_s": null,
+        "cpu_sample_span_s": null,
+        "sampled_peak_working_set_bytes": null
+      }
+    },
+    {
+      "scenario": "hybrid",
+      "size": 10,
+      "started_utc_epoch": 1795079721.0120597,
+      "finished_utc_epoch": 1795079723.7351127,
+      "wall_s": 2.723047464998672,
+      "per_card_latency_s": {
+        "mean": 0.26941987409954893,
+        "median": 0.029410559498501243,
+        "p95": 0.7424940249984502
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.859399683075026e-06,
+        "median": 2.644999767653644e-06,
+        "p95": 6.013000529492274e-06
+      },
+      "cache": {
+        "hits": 5,
+        "misses": 5,
+        "hit_rate": 0.5
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.00045956799658597447
+        },
+        "preparation": {
+          "queries": 118,
+          "cursor_s": 0.007661622985324357
+        }
+      },
+      "python_cpu_s": 0.29026874700000027,
+      "python_avg_cpu_pct_one_core": 10.659702070237026,
+      "python_peak_rss_bytes": 85970944,
+      "python_process_high_water_rss_kib": 83552,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 1,
+      "requests": 5,
+      "live_ollama_requests": 4,
+      "injected_outages": 1,
+      "retries": 0,
+      "generation_wall_s": 2.4470326110022143,
+      "live_ollama_http_wall_s": 2.4038615289973677,
+      "ollama_reported_total_s": 2.2166643,
+      "ready": 10,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 10,
+          "failed": 0,
+          "time_to_first_s": 0.5891476500000863,
+          "time_to_five_s": 2.0147659979993477,
+          "preparation_s": 2.7078256370004965,
+          "create_s": 0.014558970000507543,
+          "queued_s": 0.015091102999576833,
+          "finished_s": 2.7229167400000733
+        }
+      ],
+      "host_ollama": {
+        "samples": 5,
+        "cpu_s": 0.078125,
+        "cpu_sample_span_s": 2.2820000648498535,
+        "sampled_peak_working_set_bytes": 60313600
+      }
+    },
+    {
+      "scenario": "cold",
+      "size": 50,
+      "started_utc_epoch": 1795079723.763203,
+      "finished_utc_epoch": 1795079756.0892808,
+      "wall_s": 32.32805026400092,
+      "per_card_latency_s": {
+        "mean": 0.6455822757600981,
+        "median": 0.6163251050002145,
+        "p95": 0.7907406490012363
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.7860202681040393e-06,
+        "median": 2.285498339915648e-06,
+        "p95": 5.489000614034012e-06
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 50,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0003458199971646536
+        },
+        "preparation": {
+          "queries": 606,
+          "cursor_s": 0.04075207701680483
+        }
+      },
+      "python_cpu_s": 2.7104649000000003,
+      "python_avg_cpu_pct_one_core": 8.384251069475269,
+      "python_peak_rss_bytes": 88526848,
+      "python_process_high_water_rss_kib": 85856,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 50,
+      "live_ollama_requests": 50,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 30.616891215999203,
+      "live_ollama_http_wall_s": 30.057600386993727,
+      "ollama_reported_total_s": 28.4069253,
+      "ready": 50,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 50,
+          "failed": 0,
+          "time_to_first_s": 0.640406079000968,
+          "time_to_five_s": 3.179972795998765,
+          "preparation_s": 32.3110540029993,
+          "create_s": 0.016300570001476444,
+          "queued_s": 0.01682884500041837,
+          "finished_s": 32.32788284799972
+        }
+      ],
+      "host_ollama": {
+        "samples": 58,
+        "cpu_s": 2.28125,
+        "cpu_sample_span_s": 31.53600001335144,
+        "sampled_peak_working_set_bytes": 61063168
+      }
+    },
+    {
+      "scenario": "warm",
+      "size": 50,
+      "started_utc_epoch": 1795079756.1078017,
+      "finished_utc_epoch": 1795079757.0012558,
+      "wall_s": 0.8934420599980513,
+      "per_card_latency_s": {
+        "mean": 0.016846743780261023,
+        "median": 0.01597624799978803,
+        "p95": 0.02862760000061826
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.3718799639027567e-06,
+        "median": 1.9145008991472423e-06,
+        "p95": 4.027999239042401e-06
+      },
+      "cache": {
+        "hits": 50,
+        "misses": 0,
+        "hit_rate": 1.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0019190139973943587
+        },
+        "preparation": {
+          "queries": 506,
+          "cursor_s": 0.02646586798437056
+        }
+      },
+      "python_cpu_s": 0.5612647980000007,
+      "python_avg_cpu_pct_one_core": 62.82050321217527,
+      "python_peak_rss_bytes": 88748032,
+      "python_process_high_water_rss_kib": 85984,
+      "peak_request_concurrency": 0,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 0,
+      "live_ollama_requests": 0,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 0.0,
+      "live_ollama_http_wall_s": 0,
+      "ollama_reported_total_s": 0.0,
+      "ready": 50,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 50,
+          "failed": 0,
+          "time_to_first_s": 0.020272506000765134,
+          "time_to_five_s": 0.10283540300224558,
+          "preparation_s": 0.8689045870014525,
+          "create_s": 0.023209342998598004,
+          "queued_s": 0.024073540997051168,
+          "finished_s": 0.8929781279985036
+        }
+      ],
+      "host_ollama": {
+        "samples": 2,
+        "cpu_s": 0,
+        "cpu_sample_span_s": 0.5419998168945312,
+        "sampled_peak_working_set_bytes": 60268544
+      }
+    },
+    {
+      "scenario": "hybrid",
+      "size": 50,
+      "started_utc_epoch": 1795079757.0380564,
+      "finished_utc_epoch": 1795079770.8234317,
+      "wall_s": 13.785368889999518,
+      "per_card_latency_s": {
+        "mean": 0.2745572519399138,
+        "median": 0.026287446000424097,
+        "p95": 0.7609784849992138
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.694440117920749e-06,
+        "median": 2.635499185998924e-06,
+        "p95": 4.625002475222573e-06
+      },
+      "cache": {
+        "hits": 25,
+        "misses": 25,
+        "hit_rate": 0.5
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.001222601997142192
+        },
+        "preparation": {
+          "queries": 566,
+          "cursor_s": 0.04187486992304912
+        }
+      },
+      "python_cpu_s": 1.5359871519999997,
+      "python_avg_cpu_pct_one_core": 11.142154876350599,
+      "python_peak_rss_bytes": 88924160,
+      "python_process_high_water_rss_kib": 86240,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 5,
+      "requests": 25,
+      "live_ollama_requests": 20,
+      "injected_outages": 5,
+      "retries": 0,
+      "generation_wall_s": 12.466662138995162,
+      "live_ollama_http_wall_s": 12.224550701001135,
+      "ollama_reported_total_s": 11.4585903,
+      "ready": 50,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 50,
+          "failed": 0,
+          "time_to_first_s": 0.6171006570002646,
+          "time_to_five_s": 2.1102485919982428,
+          "preparation_s": 13.76052485800028,
+          "create_s": 0.024051660002442077,
+          "queued_s": 0.024655283999891253,
+          "finished_s": 13.785180142000172
+        }
+      ],
+      "host_ollama": {
+        "samples": 25,
+        "cpu_s": 0.828125,
+        "cpu_sample_span_s": 13.394999980926514,
+        "sampled_peak_working_set_bytes": 61009920
+      }
+    },
+    {
+      "scenario": "cold",
+      "size": 150,
+      "started_utc_epoch": 1795079770.9011292,
+      "finished_utc_epoch": 1795080048.7459998,
+      "wall_s": 98.76218982200226,
+      "per_card_latency_s": {
+        "mean": 0.6577564295467891,
+        "median": 0.6023280284989596,
+        "p95": 0.8550149990005593
+      },
+      "per_card_slot_wait_s": {
+        "mean": 3.1954732548911124e-06,
+        "median": 2.435501301079057e-06,
+        "p95": 5.0439994083717465e-06
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 150,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0016125759975693654
+        },
+        "preparation": {
+          "queries": 1806,
+          "cursor_s": 0.15175555193127366
+        }
+      },
+      "python_cpu_s": 8.394898185999999,
+      "python_avg_cpu_pct_one_core": 8.500113455493453,
+      "python_peak_rss_bytes": 90951680,
+      "python_process_high_water_rss_kib": 88160,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 150,
+      "live_ollama_requests": 150,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 93.86633543298012,
+      "live_ollama_http_wall_s": 92.01437396900656,
+      "ollama_reported_total_s": 264.7797564,
+      "ready": 150,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 150,
+          "failed": 0,
+          "time_to_first_s": 0.5880648179991113,
+          "time_to_five_s": 3.056066600001941,
+          "preparation_s": 98.74088751700037,
+          "create_s": 0.020558349999191705,
+          "queued_s": 0.0209989430004498,
+          "finished_s": 98.76188646000082
+        }
+      ],
+      "host_ollama": {
+        "samples": 169,
+        "cpu_s": 6.015625,
+        "cpu_sample_span_s": 277.32499980926514,
+        "sampled_peak_working_set_bytes": 60841984
+      }
+    },
+    {
+      "scenario": "warm",
+      "size": 150,
+      "started_utc_epoch": 1795080048.7949958,
+      "finished_utc_epoch": 1795080050.5741675,
+      "wall_s": 1.7826641649990052,
+      "per_card_latency_s": {
+        "mean": 0.011327022006638193,
+        "median": 0.010338254000089364,
+        "p95": 0.018291855001734802
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.559299634109872e-06,
+        "median": 2.0904972188873217e-06,
+        "p95": 5.0150010793004185e-06
+      },
+      "cache": {
+        "hits": 150,
+        "misses": 0,
+        "hit_rate": 1.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.003729565996763995
+        },
+        "preparation": {
+          "queries": 1506,
+          "cursor_s": 0.06196815704970504
+        }
+      },
+      "python_cpu_s": 1.3228566840000013,
+      "python_avg_cpu_pct_one_core": 74.20672440570092,
+      "python_peak_rss_bytes": 91914240,
+      "python_process_high_water_rss_kib": 88928,
+      "peak_request_concurrency": 0,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 0,
+      "live_ollama_requests": 0,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 0.0,
+      "live_ollama_http_wall_s": 0,
+      "ollama_reported_total_s": 0.0,
+      "ready": 150,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 150,
+          "failed": 0,
+          "time_to_first_s": 0.00921826700141537,
+          "time_to_five_s": 0.0655758560023969,
+          "preparation_s": 1.7515530790005869,
+          "create_s": 0.030295117998321075,
+          "queued_s": 0.030874339998263167,
+          "finished_s": 1.78242741899885
+        }
+      ],
+      "host_ollama": {
+        "samples": 3,
+        "cpu_s": 0,
+        "cpu_sample_span_s": 1.182999849319458,
+        "sampled_peak_working_set_bytes": 60850176
+      }
+    },
+    {
+      "scenario": "hybrid",
+      "size": 150,
+      "started_utc_epoch": 1795080050.620175,
+      "finished_utc_epoch": 1795080090.053468,
+      "wall_s": 39.43680565999966,
+      "per_card_latency_s": {
+        "mean": 0.26225154256006744,
+        "median": 0.0211710250005126,
+        "p95": 0.7268027050013188
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.830566688013884e-06,
+        "median": 2.5339995772810653e-06,
+        "p95": 4.973000613972545e-06
+      },
+      "cache": {
+        "hits": 75,
+        "misses": 75,
+        "hit_rate": 0.5
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0016092400001070928
+        },
+        "preparation": {
+          "queries": 1686,
+          "cursor_s": 0.10601012198094395
+        }
+      },
+      "python_cpu_s": 4.320075076000002,
+      "python_avg_cpu_pct_one_core": 10.954424436008031,
+      "python_peak_rss_bytes": 92332032,
+      "python_process_high_water_rss_kib": 89312,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 15,
+      "requests": 75,
+      "live_ollama_requests": 60,
+      "injected_outages": 15,
+      "retries": 0,
+      "generation_wall_s": 36.24169448700923,
+      "live_ollama_http_wall_s": 35.57758362099776,
+      "ollama_reported_total_s": 33.6841373,
+      "ready": 150,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 150,
+          "failed": 0,
+          "time_to_first_s": 0.7100440399990475,
+          "time_to_five_s": 2.5074217319997842,
+          "preparation_s": 39.41345118800018,
+          "create_s": 0.022427856998547213,
+          "queued_s": 0.022914025001227856,
+          "finished_s": 39.43636521300141
+        }
+      ],
+      "host_ollama": {
+        "samples": 65,
+        "cpu_s": 2.34375,
+        "cpu_sample_span_s": 38.84500002861023,
+        "sampled_peak_working_set_bytes": 61071360
+      }
+    },
+    {
+      "scenario": "two_cold_sessions",
+      "size": 10,
+      "started_utc_epoch": 1795080090.1366472,
+      "finished_utc_epoch": 1795080102.2465935,
+      "wall_s": 12.10992736299886,
+      "per_card_latency_s": {
+        "mean": 1.1682388820501728,
+        "median": 1.1687441284993838,
+        "p95": 1.3216489970000111
+      },
+      "per_card_slot_wait_s": {
+        "mean": 0.5518399664000754,
+        "median": 0.5620893964987772,
+        "p95": 0.6909991440006706
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 20,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 12,
+          "cursor_s": 0.0010441070044180378
+        },
+        "preparation": {
+          "queries": 252,
+          "cursor_s": 0.11774470502859913
+        }
+      },
+      "python_cpu_s": 1.099871566000001,
+      "python_avg_cpu_pct_one_core": 9.082396062593991,
+      "python_peak_rss_bytes": 92868608,
+      "python_process_high_water_rss_kib": 89824,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 20,
+      "live_ollama_requests": 20,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 11.614179848998901,
+      "live_ollama_http_wall_s": 11.390688236999267,
+      "ollama_reported_total_s": 10.8776539,
+      "ready": 20,
+      "failed": 0,
+      "sessions": [
+        {
+          "ready": 10,
+          "failed": 0,
+          "time_to_first_s": 0.6241156260002754,
+          "time_to_five_s": 5.507061655000143,
+          "preparation_s": 11.491543980002461,
+          "create_s": 0.00835094099966227,
+          "queued_s": 0.018622531999426428,
+          "finished_s": 11.510166512001888
+        },
+        {
+          "ready": 10,
+          "failed": 0,
+          "time_to_first_s": 1.2012905650008179,
+          "time_to_five_s": 6.0529488930005755,
+          "preparation_s": 12.090963187998568,
+          "create_s": 0.00975713200023165,
+          "queued_s": 0.018649349000043003,
+          "finished_s": 12.109612536998611
+        }
+      ],
+      "host_ollama": {
+        "samples": 22,
+        "cpu_s": 0.703125,
+        "cpu_sample_span_s": 11.729000091552734,
+        "sampled_peak_working_set_bytes": 60694528
+      }
+    }
+  ],
+  "ollama_version": "0.40.16",
+  "model_digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "journal_mode": "wal"
+}

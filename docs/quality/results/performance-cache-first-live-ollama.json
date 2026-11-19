@@ -1,0 +1,8 @@
+[
+  {
+    "name": "qwen3:1.7b",
+    "size": 1706788125,
+    "size_vram": 1706788125,
+    "context_length": 4096
+  }
+]

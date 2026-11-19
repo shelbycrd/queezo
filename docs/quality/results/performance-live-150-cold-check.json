@@ -1,0 +1,4129 @@
+{
+  "mode": "live",
+  "seed": 42,
+  "cold_only": true,
+  "python": "3.12.16",
+  "sqlite": "3.46.1",
+  "container_kernel": "6.18.58.1-microsoft-standard-WSL2",
+  "model": "qwen3:1.7b",
+  "generation_version": 2,
+  "attempt_timeout_s": 60.0,
+  "max_attempts": 3,
+  "preparation_timeout_s": 900,
+  "mock_delay_ms": null,
+  "scenarios": [
+    {
+      "scenario": "cold",
+      "size": 150,
+      "sessions": [
+        {
+          "id": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "ready": 150,
+          "failed": 0,
+          "time_to_first_s": 0.935011289002432,
+          "time_to_five_s": 3.3904364590016485,
+          "preparation_s": 94.43053329500253,
+          "create_s": 0.024634844998217886,
+          "queued_s": 0.02529529399907915,
+          "finished_s": 94.45582858900161
+        }
+      ],
+      "started_utc_epoch": 1795080301.6892743,
+      "finished_utc_epoch": 1795080396.1359267,
+      "wall_s": 94.45618728699992,
+      "per_card_latency_s": {
+        "mean": 0.6289759805467232,
+        "median": 0.6020199720005621,
+        "p95": 0.7770624500008125
+      },
+      "per_card_slot_wait_s": {
+        "mean": 2.4562465841881932e-06,
+        "median": 2.0940024114679545e-06,
+        "p95": 4.200999683234841e-06
+      },
+      "cache": {
+        "hits": 0,
+        "misses": 150,
+        "hit_rate": 0.0
+      },
+      "sql": {
+        "create_session": {
+          "queries": 6,
+          "cursor_s": 0.0011105479970865417
+        },
+        "preparation": {
+          "queries": 1806,
+          "cursor_s": 0.1237888160503644
+        }
+      },
+      "python_cpu_s": 7.80857087,
+      "python_avg_cpu_pct_one_core": 8.266870698765436,
+      "python_peak_rss_bytes": 89583616,
+      "python_process_high_water_rss_kib": 86868,
+      "peak_request_concurrency": 1,
+      "generated_cards_using_deck_fallback": 0,
+      "requests": 150,
+      "live_ollama_requests": 150,
+      "injected_outages": 0,
+      "retries": 0,
+      "generation_wall_s": 89.14817950898941,
+      "live_ollama_http_wall_s": 87.42479927602835,
+      "ollama_reported_total_s": 83.1311731,
+      "cards": [
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 64,
+          "ordinal": 63,
+          "started_s": 0.043706214000849286,
+          "sql_queries": 12,
+          "sql_s": 0.0015217440050037112,
+          "generation_s": 0.8683582180019584,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 0.060313146001135465,
+              "status": 200,
+              "total_duration_ns": 843254400,
+              "load_duration_ns": 12992300,
+              "prompt_eval_duration_ns": 285468000,
+              "eval_duration_ns": 534383000,
+              "elapsed_s": 0.8590666950003651
+            }
+          ],
+          "model_slot_wait_s": 5.7150027714669704e-06,
+          "cache_hit": false,
+          "finished_s": 0.9603065830015112,
+          "latency_s": 0.9166003690006619,
+          "failure": null,
+          "question": "453386b6-9b1c-46d9-831e-f9bf20abb8be"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 134,
+          "ordinal": 133,
+          "started_s": 0.9605899170019256,
+          "sql_queries": 12,
+          "sql_s": 0.000598043992795283,
+          "generation_s": 0.5398618590006663,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 0.9704523000000336,
+              "status": 200,
+              "total_duration_ns": 510218800,
+              "load_duration_ns": 15766400,
+              "prompt_eval_duration_ns": 33329000,
+              "eval_duration_ns": 447081000,
+              "elapsed_s": 0.5323118099986459
+            }
+          ],
+          "model_slot_wait_s": 4.770001396536827e-06,
+          "cache_hit": false,
+          "finished_s": 1.5405484740003885,
+          "latency_s": 0.5799585569984629,
+          "failure": null,
+          "question": "b31ee8ab-004a-42c2-9836-387a3cd5e1bb"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 110,
+          "ordinal": 109,
+          "started_s": 1.5409540900000138,
+          "sql_queries": 12,
+          "sql_s": 0.00038026699621696025,
+          "generation_s": 0.5676657350013556,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 1.557209934999264,
+              "status": 200,
+              "total_duration_ns": 511495900,
+              "load_duration_ns": 22312400,
+              "prompt_eval_duration_ns": 35450000,
+              "eval_duration_ns": 439681000,
+              "elapsed_s": 0.554396244999225
+            }
+          ],
+          "model_slot_wait_s": 2.8889990062452853e-06,
+          "cache_hit": false,
+          "finished_s": 2.130214467000769,
+          "latency_s": 0.5892603770007554,
+          "failure": null,
+          "question": "3b28089d-eda2-4589-abd9-b96b8384610f"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 135,
+          "ordinal": 134,
+          "started_s": 2.130420932000561,
+          "sql_queries": 12,
+          "sql_s": 0.0005622979988402221,
+          "generation_s": 0.6843112210008258,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 2.1378134170008707,
+              "status": 200,
+              "total_duration_ns": 655169300,
+              "load_duration_ns": 18546800,
+              "prompt_eval_duration_ns": 24349000,
+              "eval_duration_ns": 602365000,
+              "elapsed_s": 0.6766540540011192
+            }
+          ],
+          "model_slot_wait_s": 1.3220014807302505e-06,
+          "cache_hit": false,
+          "finished_s": 2.8508242319985584,
+          "latency_s": 0.7204032999979972,
+          "failure": null,
+          "question": "db8be511-1131-46f9-bc81-afc9e9cee34b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 76,
+          "ordinal": 75,
+          "started_s": 2.8511298910016194,
+          "sql_queries": 12,
+          "sql_s": 0.0005621440031973179,
+          "generation_s": 0.5263913029994001,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 2.870467237000412,
+              "status": 200,
+              "total_duration_ns": 488557100,
+              "load_duration_ns": 12807000,
+              "prompt_eval_duration_ns": 34064000,
+              "eval_duration_ns": 432513000,
+              "elapsed_s": 0.5129953940013365
+            }
+          ],
+          "model_slot_wait_s": 2.230997779406607e-06,
+          "cache_hit": false,
+          "finished_s": 3.4157317530007276,
+          "latency_s": 0.5646018619991082,
+          "failure": null,
+          "question": "1efe0612-ac1c-4660-98d0-6ba1a19af5d0"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 62,
+          "ordinal": 61,
+          "started_s": 3.416185318001226,
+          "sql_queries": 12,
+          "sql_s": 0.0007154880004236475,
+          "generation_s": 0.5836846509992029,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 3.440965835001407,
+              "status": 200,
+              "total_duration_ns": 526577800,
+              "load_duration_ns": 23567100,
+              "prompt_eval_duration_ns": 38402000,
+              "eval_duration_ns": 452459000,
+              "elapsed_s": 0.5656297409987019
+            }
+          ],
+          "model_slot_wait_s": 2.9469993023667485e-06,
+          "cache_hit": false,
+          "finished_s": 4.032142119998753,
+          "latency_s": 0.6159568019975268,
+          "failure": null,
+          "question": "3205f560-9278-4d97-8299-a34cfb0febd9"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 131,
+          "ordinal": 130,
+          "started_s": 4.032596074001049,
+          "sql_queries": 12,
+          "sql_s": 0.001136394996137824,
+          "generation_s": 0.5536887560010655,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 4.050951396999153,
+              "status": 200,
+              "total_duration_ns": 491160200,
+              "load_duration_ns": 17406100,
+              "prompt_eval_duration_ns": 28078000,
+              "eval_duration_ns": 433137000,
+              "elapsed_s": 0.5407246310023766
+            }
+          ],
+          "model_slot_wait_s": 4.0339982660952955e-06,
+          "cache_hit": false,
+          "finished_s": 4.615377713998896,
+          "latency_s": 0.5827816399978474,
+          "failure": null,
+          "question": "23225352-5ad4-4873-95f9-93215039696b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 40,
+          "ordinal": 39,
+          "started_s": 4.615728630000376,
+          "sql_queries": 12,
+          "sql_s": 0.00043743800415541045,
+          "generation_s": 0.5562112250008795,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 4.623742327999935,
+              "status": 200,
+              "total_duration_ns": 523186900,
+              "load_duration_ns": 18245500,
+              "prompt_eval_duration_ns": 30017000,
+              "eval_duration_ns": 449917000,
+              "elapsed_s": 0.5496106040009181
+            }
+          ],
+          "model_slot_wait_s": 3.6620003811549395e-06,
+          "cache_hit": false,
+          "finished_s": 5.207461361002061,
+          "latency_s": 0.5917327310016844,
+          "failure": null,
+          "question": "33810350-849d-42ac-b29d-1f9e59ab388f"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 41,
+          "ordinal": 40,
+          "started_s": 5.207925908001926,
+          "sql_queries": 12,
+          "sql_s": 0.00042703399594756775,
+          "generation_s": 0.567177767999965,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 5.2191209310003615,
+              "status": 200,
+              "total_duration_ns": 530990200,
+              "load_duration_ns": 25446300,
+              "prompt_eval_duration_ns": 40165000,
+              "eval_duration_ns": 450437000,
+              "elapsed_s": 0.5570740990006016
+            }
+          ],
+          "model_slot_wait_s": 3.483000909909606e-06,
+          "cache_hit": false,
+          "finished_s": 5.811148593998951,
+          "latency_s": 0.6032226859970251,
+          "failure": null,
+          "question": "d2f19abb-7225-4897-95d6-3ea1db035539"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 39,
+          "ordinal": 38,
+          "started_s": 5.811366500998702,
+          "sql_queries": 12,
+          "sql_s": 0.00041911999869626015,
+          "generation_s": 0.5446173629970872,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 5.819296898000175,
+              "status": 200,
+              "total_duration_ns": 522161800,
+              "load_duration_ns": 24714700,
+              "prompt_eval_duration_ns": 29636000,
+              "eval_duration_ns": 447624000,
+              "elapsed_s": 0.5381073930002458
+            }
+          ],
+          "model_slot_wait_s": 1.4659999578725547e-06,
+          "cache_hit": false,
+          "finished_s": 6.390513829999691,
+          "latency_s": 0.579147329000989,
+          "failure": null,
+          "question": "e5bddb15-0620-4c6a-879b-25e5fcde0a6a"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 66,
+          "ordinal": 65,
+          "started_s": 6.390840493000724,
+          "sql_queries": 12,
+          "sql_s": 0.0004350100025476422,
+          "generation_s": 0.6942731220005953,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 6.401921715001663,
+              "status": 200,
+              "total_duration_ns": 664008100,
+              "load_duration_ns": 18007900,
+              "prompt_eval_duration_ns": 33216000,
+              "eval_duration_ns": 600641000,
+              "elapsed_s": 0.686817407997296
+            }
+          ],
+          "model_slot_wait_s": 2.0599982235580683e-06,
+          "cache_hit": false,
+          "finished_s": 7.119989953000186,
+          "latency_s": 0.7291494599994621,
+          "failure": null,
+          "question": "d2916e5c-918c-4e9b-afc7-fdfedfeb5eba"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 86,
+          "ordinal": 85,
+          "started_s": 7.120216776002053,
+          "sql_queries": 12,
+          "sql_s": 0.0005340770003385842,
+          "generation_s": 0.5192212809997727,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 7.129078029000084,
+              "status": 200,
+              "total_duration_ns": 486108500,
+              "load_duration_ns": 16237700,
+              "prompt_eval_duration_ns": 25016000,
+              "eval_duration_ns": 435526000,
+              "elapsed_s": 0.5102655010014132
+            }
+          ],
+          "model_slot_wait_s": 1.5400000847876072e-06,
+          "cache_hit": false,
+          "finished_s": 7.682444386999123,
+          "latency_s": 0.5622276109970699,
+          "failure": null,
+          "question": "4f641278-073f-4fb4-b317-a2aa59de4867"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 1,
+          "ordinal": 0,
+          "started_s": 7.68312038699878,
+          "sql_queries": 12,
+          "sql_s": 0.0016942060137807857,
+          "generation_s": 0.7484314260000247,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 7.7091892620010185,
+              "status": 200,
+              "total_duration_ns": 692919000,
+              "load_duration_ns": 40547900,
+              "prompt_eval_duration_ns": 36023000,
+              "eval_duration_ns": 598426000,
+              "elapsed_s": 0.7314831029980269
+            }
+          ],
+          "model_slot_wait_s": 3.5679986467584968e-06,
+          "cache_hit": false,
+          "finished_s": 8.465970152999944,
+          "latency_s": 0.7828497660011635,
+          "failure": null,
+          "question": "d4be27bc-0aaa-4153-8b9a-a7bfda57016a"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 142,
+          "ordinal": 141,
+          "started_s": 8.46616948800147,
+          "sql_queries": 12,
+          "sql_s": 0.0004497239970078226,
+          "generation_s": 0.5275748089989065,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 8.475849364000169,
+              "status": 200,
+              "total_duration_ns": 498814800,
+              "load_duration_ns": 17344800,
+              "prompt_eval_duration_ns": 30951000,
+              "eval_duration_ns": 438736000,
+              "elapsed_s": 0.5193286380017526
+            }
+          ],
+          "model_slot_wait_s": 1.2880009307991713e-06,
+          "cache_hit": false,
+          "finished_s": 9.025353107001138,
+          "latency_s": 0.5591836189996684,
+          "failure": null,
+          "question": "c8a47a42-b1dd-4ca1-b2c9-c83e0296cb1b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 96,
+          "ordinal": 95,
+          "started_s": 9.025683758001833,
+          "sql_queries": 12,
+          "sql_s": 0.0007662609932594933,
+          "generation_s": 0.5707723150007951,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 9.037443125002028,
+              "status": 200,
+              "total_duration_ns": 534904400,
+              "load_duration_ns": 35503600,
+              "prompt_eval_duration_ns": 39436000,
+              "eval_duration_ns": 439636000,
+              "elapsed_s": 0.5617523939981766
+            }
+          ],
+          "model_slot_wait_s": 2.0930019672960043e-06,
+          "cache_hit": false,
+          "finished_s": 9.638599271998828,
+          "latency_s": 0.6129155139969953,
+          "failure": null,
+          "question": "4919225d-a66a-4e8d-9d04-9f1fb6d1c0bd"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 33,
+          "ordinal": 32,
+          "started_s": 9.638978135000798,
+          "sql_queries": 12,
+          "sql_s": 0.0018050379985652398,
+          "generation_s": 0.5619989560000249,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 9.658169178001117,
+              "status": 200,
+              "total_duration_ns": 509869300,
+              "load_duration_ns": 18993200,
+              "prompt_eval_duration_ns": 26685000,
+              "eval_duration_ns": 453588000,
+              "elapsed_s": 0.545260334998602
+            }
+          ],
+          "model_slot_wait_s": 2.234999556094408e-06,
+          "cache_hit": false,
+          "finished_s": 10.244356458999391,
+          "latency_s": 0.6053783239985933,
+          "failure": null,
+          "question": "40b17ceb-6794-429a-94c0-8584f956cf35"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 132,
+          "ordinal": 131,
+          "started_s": 10.244616644999041,
+          "sql_queries": 12,
+          "sql_s": 0.0005833469986100681,
+          "generation_s": 0.5877189310012909,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 10.26273690599919,
+              "status": 200,
+              "total_duration_ns": 543974500,
+              "load_duration_ns": 29591900,
+              "prompt_eval_duration_ns": 42426000,
+              "eval_duration_ns": 447812000,
+              "elapsed_s": 0.5744748290017014
+            }
+          ],
+          "model_slot_wait_s": 1.7640013538766652e-06,
+          "cache_hit": false,
+          "finished_s": 10.86244118600007,
+          "latency_s": 0.6178245410010277,
+          "failure": null,
+          "question": "a0b6d262-23d6-47be-b6c7-3f0a3cac16cd"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 19,
+          "ordinal": 18,
+          "started_s": 10.86270706399955,
+          "sql_queries": 12,
+          "sql_s": 0.0005945629927737173,
+          "generation_s": 0.5395988509990275,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 10.874536513001658,
+              "status": 200,
+              "total_duration_ns": 509207200,
+              "load_duration_ns": 19027900,
+              "prompt_eval_duration_ns": 28186000,
+              "eval_duration_ns": 448129000,
+              "elapsed_s": 0.5310392779974791
+            }
+          ],
+          "model_slot_wait_s": 2.162996679544449e-06,
+          "cache_hit": false,
+          "finished_s": 11.433853323000221,
+          "latency_s": 0.5711462590006704,
+          "failure": null,
+          "question": "2fb99dfa-bb86-4dab-a0ca-cb30284b2926"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 84,
+          "ordinal": 83,
+          "started_s": 11.43404456799908,
+          "sql_queries": 12,
+          "sql_s": 0.0005391080085246358,
+          "generation_s": 0.7183636599984311,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 11.443156971999997,
+              "status": 200,
+              "total_duration_ns": 679850200,
+              "load_duration_ns": 24121800,
+              "prompt_eval_duration_ns": 29037000,
+              "eval_duration_ns": 606941000,
+              "elapsed_s": 0.7113607600003888
+            }
+          ],
+          "model_slot_wait_s": 1.543998223496601e-06,
+          "cache_hit": false,
+          "finished_s": 12.181496658999095,
+          "latency_s": 0.7474520910000138,
+          "failure": null,
+          "question": "2a06818d-cab7-4ecd-a36f-68b427321d9d"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 31,
+          "ordinal": 30,
+          "started_s": 12.182070079001278,
+          "sql_queries": 12,
+          "sql_s": 0.001371207010379294,
+          "generation_s": 0.7268092499980412,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 12.202780296000128,
+              "status": 200,
+              "total_duration_ns": 682879800,
+              "load_duration_ns": 20237300,
+              "prompt_eval_duration_ns": 42446000,
+              "eval_duration_ns": 604551000,
+              "elapsed_s": 0.708228504001454
+            }
+          ],
+          "model_slot_wait_s": 3.6560013541020453e-06,
+          "cache_hit": false,
+          "finished_s": 12.946006823000062,
+          "latency_s": 0.7639367439987836,
+          "failure": null,
+          "question": "ba30325d-d6f6-40cc-85fd-eb261bdb13e4"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 120,
+          "ordinal": 119,
+          "started_s": 12.946289131999947,
+          "sql_queries": 12,
+          "sql_s": 0.0005225780041655526,
+          "generation_s": 0.5301117060007527,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 12.95681428700118,
+              "status": 200,
+              "total_duration_ns": 499435300,
+              "load_duration_ns": 23490800,
+              "prompt_eval_duration_ns": 29430000,
+              "eval_duration_ns": 436512000,
+              "elapsed_s": 0.5236514059979527
+            }
+          ],
+          "model_slot_wait_s": 1.7620004655327648e-06,
+          "cache_hit": false,
+          "finished_s": 13.504085243999725,
+          "latency_s": 0.5577961119997781,
+          "failure": null,
+          "question": "d8527e42-1416-4509-a1d7-c84635959517"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 133,
+          "ordinal": 132,
+          "started_s": 13.50435691900202,
+          "sql_queries": 12,
+          "sql_s": 0.0006591330020455644,
+          "generation_s": 0.5702459690000978,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 13.513511190998543,
+              "status": 200,
+              "total_duration_ns": 519555300,
+              "load_duration_ns": 26136600,
+              "prompt_eval_duration_ns": 27119000,
+              "eval_duration_ns": 446691000,
+              "elapsed_s": 0.5620096240018029
+            }
+          ],
+          "model_slot_wait_s": 1.9610015442594886e-06,
+          "cache_hit": false,
+          "finished_s": 14.108542776000832,
+          "latency_s": 0.6041858569988108,
+          "failure": null,
+          "question": "2cfafda5-ea03-45ee-8a17-740504fa8099"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 73,
+          "ordinal": 72,
+          "started_s": 14.10897066599864,
+          "sql_queries": 12,
+          "sql_s": 0.0006114339994383045,
+          "generation_s": 0.5253347119978571,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 14.123068780001631,
+              "status": 200,
+              "total_duration_ns": 497135300,
+              "load_duration_ns": 17687700,
+              "prompt_eval_duration_ns": 25420000,
+              "eval_duration_ns": 436766000,
+              "elapsed_s": 0.5148261649992492
+            }
+          ],
+          "model_slot_wait_s": 3.4759978007059544e-06,
+          "cache_hit": false,
+          "finished_s": 14.662999414998922,
+          "latency_s": 0.5540287490002811,
+          "failure": null,
+          "question": "5c89bd35-4491-472f-8974-c63066d01e4b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 124,
+          "ordinal": 123,
+          "started_s": 14.663337531001162,
+          "sql_queries": 12,
+          "sql_s": 0.0007610249958815984,
+          "generation_s": 0.6964636819975567,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 14.673154586998862,
+              "status": 200,
+              "total_duration_ns": 668835600,
+              "load_duration_ns": 13998400,
+              "prompt_eval_duration_ns": 29354000,
+              "eval_duration_ns": 611043000,
+              "elapsed_s": 0.6878943540032196
+            }
+          ],
+          "model_slot_wait_s": 1.710999640636146e-06,
+          "cache_hit": false,
+          "finished_s": 15.405021638998733,
+          "latency_s": 0.7416841079975711,
+          "failure": null,
+          "question": "26a401d7-29d2-4b27-ae10-e2cbe5ee715e"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 129,
+          "ordinal": 128,
+          "started_s": 15.405494411999825,
+          "sql_queries": 12,
+          "sql_s": 0.0009940450036083348,
+          "generation_s": 0.5530742939990887,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 15.432537378001143,
+              "status": 200,
+              "total_duration_ns": 509553700,
+              "load_duration_ns": 20006200,
+              "prompt_eval_duration_ns": 33982000,
+              "eval_duration_ns": 442448000,
+              "elapsed_s": 0.5341366749998997
+            }
+          ],
+          "model_slot_wait_s": 2.5369990908075124e-06,
+          "cache_hit": false,
+          "finished_s": 16.000294467001368,
+          "latency_s": 0.5948000550015422,
+          "failure": null,
+          "question": "8e9c526f-05ec-4baa-a469-b5b8c2a74e8d"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 137,
+          "ordinal": 136,
+          "started_s": 16.00079926900071,
+          "sql_queries": 12,
+          "sql_s": 0.0015642899888916872,
+          "generation_s": 0.5722170019980695,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 16.018786634998833,
+              "status": 200,
+              "total_duration_ns": 532715600,
+              "load_duration_ns": 29438600,
+              "prompt_eval_duration_ns": 36818000,
+              "eval_duration_ns": 453709000,
+              "elapsed_s": 0.5602331680020143
+            }
+          ],
+          "model_slot_wait_s": 2.881999535020441e-06,
+          "cache_hit": false,
+          "finished_s": 16.624666444000468,
+          "latency_s": 0.6238671749997593,
+          "failure": null,
+          "question": "33a8ed08-c5eb-42c2-b508-50ede8e56d5d"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 4,
+          "ordinal": 3,
+          "started_s": 16.625033136999264,
+          "sql_queries": 12,
+          "sql_s": 0.0004865509981755167,
+          "generation_s": 0.5248079939992749,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 16.639363202000823,
+              "status": 200,
+              "total_duration_ns": 490279500,
+              "load_duration_ns": 13498800,
+              "prompt_eval_duration_ns": 28278000,
+              "eval_duration_ns": 440740000,
+              "elapsed_s": 0.5095882360001269
+            }
+          ],
+          "model_slot_wait_s": 2.3040011001285166e-06,
+          "cache_hit": false,
+          "finished_s": 17.17998138099938,
+          "latency_s": 0.5549482440001157,
+          "failure": null,
+          "question": "acd9f373-84bc-417b-aef9-d1c367915424"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 54,
+          "ordinal": 53,
+          "started_s": 17.180342419000226,
+          "sql_queries": 12,
+          "sql_s": 0.0009256580015062355,
+          "generation_s": 0.5543299069977365,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 17.19597789600084,
+              "status": 200,
+              "total_duration_ns": 508003100,
+              "load_duration_ns": 25814900,
+              "prompt_eval_duration_ns": 26113000,
+              "eval_duration_ns": 445832000,
+              "elapsed_s": 0.5399387869983912
+            }
+          ],
+          "model_slot_wait_s": 2.2330023057293147e-06,
+          "cache_hit": false,
+          "finished_s": 17.774441158999252,
+          "latency_s": 0.5940987399990263,
+          "failure": null,
+          "question": "f000c3cc-08e2-4cdf-a9f8-dd36f2963509"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 128,
+          "ordinal": 127,
+          "started_s": 17.77490259700062,
+          "sql_queries": 12,
+          "sql_s": 0.0020987990028515924,
+          "generation_s": 0.5329106530007266,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 17.791299771000922,
+              "status": 200,
+              "total_duration_ns": 485214500,
+              "load_duration_ns": 14301200,
+              "prompt_eval_duration_ns": 24065000,
+              "eval_duration_ns": 433664000,
+              "elapsed_s": 0.5226702990003105
+            }
+          ],
+          "model_slot_wait_s": 3.110999386990443e-06,
+          "cache_hit": false,
+          "finished_s": 18.339953822000098,
+          "latency_s": 0.565051224999479,
+          "failure": null,
+          "question": "91769c69-634a-4419-b58c-26b0eb75b360"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 93,
+          "ordinal": 92,
+          "started_s": 18.340163896999,
+          "sql_queries": 12,
+          "sql_s": 0.0016499710036441684,
+          "generation_s": 0.6148331029980909,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 18.361028770999837,
+              "status": 200,
+              "total_duration_ns": 559826000,
+              "load_duration_ns": 33568700,
+              "prompt_eval_duration_ns": 40874000,
+              "eval_duration_ns": 453643000,
+              "elapsed_s": 0.598979603000771
+            }
+          ],
+          "model_slot_wait_s": 1.3520002539735287e-06,
+          "cache_hit": false,
+          "finished_s": 19.00318386300205,
+          "latency_s": 0.6630199660030485,
+          "failure": null,
+          "question": "726d0010-6f1d-4108-b310-c7b1b216b3fc"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 61,
+          "ordinal": 60,
+          "started_s": 19.003948361998482,
+          "sql_queries": 12,
+          "sql_s": 0.0007048809966363478,
+          "generation_s": 0.5491943650013127,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 19.020740242998727,
+              "status": 200,
+              "total_duration_ns": 514545700,
+              "load_duration_ns": 17806900,
+              "prompt_eval_duration_ns": 33357000,
+              "eval_duration_ns": 445954000,
+              "elapsed_s": 0.5371696630027145
+            }
+          ],
+          "model_slot_wait_s": 3.622000804170966e-06,
+          "cache_hit": false,
+          "finished_s": 19.5883821919997,
+          "latency_s": 0.5844338300012168,
+          "failure": null,
+          "question": "789c801a-edb7-4e47-b90e-5b78e29f53d9"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 68,
+          "ordinal": 67,
+          "started_s": 19.588610736998817,
+          "sql_queries": 12,
+          "sql_s": 0.0009306920001108665,
+          "generation_s": 0.5755227819972788,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 19.603783883001597,
+              "status": 200,
+              "total_duration_ns": 534868500,
+              "load_duration_ns": 39123700,
+              "prompt_eval_duration_ns": 27463000,
+              "eval_duration_ns": 450240000,
+              "elapsed_s": 0.5656076759987627
+            }
+          ],
+          "model_slot_wait_s": 1.3469980331137776e-06,
+          "cache_hit": false,
+          "finished_s": 20.19987854699866,
+          "latency_s": 0.6112678099998448,
+          "failure": null,
+          "question": "7a421914-0bfe-435a-b314-9f24451a29d2"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 43,
+          "ordinal": 42,
+          "started_s": 20.200253719998727,
+          "sql_queries": 12,
+          "sql_s": 0.0010451649795868434,
+          "generation_s": 0.570443800999783,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 20.21821240400095,
+              "status": 200,
+              "total_duration_ns": 529022000,
+              "load_duration_ns": 28060700,
+              "prompt_eval_duration_ns": 29237000,
+              "eval_duration_ns": 455195000,
+              "elapsed_s": 0.556633634998434
+            }
+          ],
+          "model_slot_wait_s": 3.315999492770061e-06,
+          "cache_hit": false,
+          "finished_s": 20.815863218998857,
+          "latency_s": 0.6156094990001293,
+          "failure": null,
+          "question": "62b4b9e1-a33e-4371-8e4f-f83a4cff5951"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 147,
+          "ordinal": 146,
+          "started_s": 20.816099268999096,
+          "sql_queries": 12,
+          "sql_s": 0.0008488459970976692,
+          "generation_s": 0.5278791330019885,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 20.84108184300203,
+              "status": 200,
+              "total_duration_ns": 485178500,
+              "load_duration_ns": 18942700,
+              "prompt_eval_duration_ns": 24786000,
+              "eval_duration_ns": 431627000,
+              "elapsed_s": 0.5109731219999958
+            }
+          ],
+          "model_slot_wait_s": 1.3899989426136017e-06,
+          "cache_hit": false,
+          "finished_s": 21.39044201300203,
+          "latency_s": 0.5743427440029336,
+          "failure": null,
+          "question": "cb4256cd-7f5a-4021-b520-faa83341596b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 138,
+          "ordinal": 137,
+          "started_s": 21.390794349001226,
+          "sql_queries": 12,
+          "sql_s": 0.0005820610058435705,
+          "generation_s": 0.7502365950022067,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 21.417467055998713,
+              "status": 200,
+              "total_duration_ns": 699026700,
+              "load_duration_ns": 41967100,
+              "prompt_eval_duration_ns": 27864000,
+              "eval_duration_ns": 594483000,
+              "elapsed_s": 0.73059538200323
+            }
+          ],
+          "model_slot_wait_s": 2.7659989427775145e-06,
+          "cache_hit": false,
+          "finished_s": 22.170076358001097,
+          "latency_s": 0.7792820089998713,
+          "failure": null,
+          "question": "06227171-77f5-4b9c-9175-fb96c72d24c6"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 111,
+          "ordinal": 110,
+          "started_s": 22.170582195998577,
+          "sql_queries": 12,
+          "sql_s": 0.0008152650007104967,
+          "generation_s": 0.583997719000763,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 22.19778571400093,
+              "status": 200,
+              "total_duration_ns": 521415200,
+              "load_duration_ns": 19709800,
+              "prompt_eval_duration_ns": 29166000,
+              "eval_duration_ns": 460210000,
+              "elapsed_s": 0.5616445810010191
+            }
+          ],
+          "model_slot_wait_s": 2.6620000426191837e-06,
+          "cache_hit": false,
+          "finished_s": 22.78906110400203,
+          "latency_s": 0.6184789080034534,
+          "failure": null,
+          "question": "54e3d2c1-e09a-441a-8baf-a70a4db375ba"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 119,
+          "ordinal": 118,
+          "started_s": 22.789672744998825,
+          "sql_queries": 12,
+          "sql_s": 0.00048188500659307465,
+          "generation_s": 0.5554018949987949,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 22.809075203000248,
+              "status": 200,
+              "total_duration_ns": 497801800,
+              "load_duration_ns": 17717200,
+              "prompt_eval_duration_ns": 25751000,
+              "eval_duration_ns": 442092000,
+              "elapsed_s": 0.5381194910005433
+            }
+          ],
+          "model_slot_wait_s": 1.968001015484333e-06,
+          "cache_hit": false,
+          "finished_s": 23.37983894699937,
+          "latency_s": 0.590166202000546,
+          "failure": null,
+          "question": "fd2ffd98-8281-4185-98da-63f8aa0f233b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 87,
+          "ordinal": 86,
+          "started_s": 23.38001373500083,
+          "sql_queries": 12,
+          "sql_s": 0.0007203199966170359,
+          "generation_s": 0.7441375570015225,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 23.392498387998785,
+              "status": 200,
+              "total_duration_ns": 701881000,
+              "load_duration_ns": 22389100,
+              "prompt_eval_duration_ns": 41635000,
+              "eval_duration_ns": 612244000,
+              "elapsed_s": 0.7315383830027713
+            }
+          ],
+          "model_slot_wait_s": 1.0850017133634537e-06,
+          "cache_hit": false,
+          "finished_s": 24.157076185001642,
+          "latency_s": 0.7770624500008125,
+          "failure": null,
+          "question": "3c5339df-4b36-45f7-ab32-131908c7e3dd"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 117,
+          "ordinal": 116,
+          "started_s": 24.15743518599993,
+          "sql_queries": 12,
+          "sql_s": 0.0010340130065742414,
+          "generation_s": 0.5508459609991405,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 24.170639396001206,
+              "status": 200,
+              "total_duration_ns": 492887500,
+              "load_duration_ns": 19040100,
+              "prompt_eval_duration_ns": 24331000,
+              "eval_duration_ns": 439465000,
+              "elapsed_s": 0.5423557899994194
+            }
+          ],
+          "model_slot_wait_s": 2.602002496132627e-06,
+          "cache_hit": false,
+          "finished_s": 24.742144109000947,
+          "latency_s": 0.584708923001017,
+          "failure": null,
+          "question": "9ff108f9-4dec-4059-b573-f59a02471561"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 67,
+          "ordinal": 66,
+          "started_s": 24.742345777998707,
+          "sql_queries": 12,
+          "sql_s": 0.0010351609998906497,
+          "generation_s": 0.7343943570012925,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 24.759045453,
+              "status": 200,
+              "total_duration_ns": 696485800,
+              "load_duration_ns": 36771900,
+              "prompt_eval_duration_ns": 44797000,
+              "eval_duration_ns": 595653000,
+              "elapsed_s": 0.7230303120013559
+            }
+          ],
+          "model_slot_wait_s": 1.5369987522717565e-06,
+          "cache_hit": false,
+          "finished_s": 25.518156772999646,
+          "latency_s": 0.7758109950009384,
+          "failure": null,
+          "question": "b55a2602-166a-494f-9784-d2849e15a3be"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 82,
+          "ordinal": 81,
+          "started_s": 25.518431773001794,
+          "sql_queries": 12,
+          "sql_s": 0.000888424001459498,
+          "generation_s": 0.6701271120000456,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 25.533451608000178,
+              "status": 200,
+              "total_duration_ns": 635707600,
+              "load_duration_ns": 10456400,
+              "prompt_eval_duration_ns": 23272000,
+              "eval_duration_ns": 593726000,
+              "elapsed_s": 0.6589305140005308
+            }
+          ],
+          "model_slot_wait_s": 1.224001607624814e-06,
+          "cache_hit": false,
+          "finished_s": 26.227978131999407,
+          "latency_s": 0.7095463589976134,
+          "failure": null,
+          "question": "e22ddbf7-5e30-4170-9370-2ebaba924bd5"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 102,
+          "ordinal": 101,
+          "started_s": 26.228273240998533,
+          "sql_queries": 12,
+          "sql_s": 0.0008163909988070372,
+          "generation_s": 0.7366436230004183,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 26.24635917300111,
+              "status": 200,
+              "total_duration_ns": 683795400,
+              "load_duration_ns": 36744300,
+              "prompt_eval_duration_ns": 28832000,
+              "eval_duration_ns": 596019000,
+              "elapsed_s": 0.7248555639998813
+            }
+          ],
+          "model_slot_wait_s": 2.6890011213254184e-06,
+          "cache_hit": false,
+          "finished_s": 26.998846532002062,
+          "latency_s": 0.7705732910035294,
+          "failure": null,
+          "question": "ba7f1a9b-009e-4b84-b1d2-fd4de8706623"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 92,
+          "ordinal": 91,
+          "started_s": 26.99905621200014,
+          "sql_queries": 12,
+          "sql_s": 0.0007091809966368601,
+          "generation_s": 0.541533255000104,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 27.00786763400174,
+              "status": 200,
+              "total_duration_ns": 506168600,
+              "load_duration_ns": 20576200,
+              "prompt_eval_duration_ns": 26364000,
+              "eval_duration_ns": 441295000,
+              "elapsed_s": 0.5344265179992362
+            }
+          ],
+          "model_slot_wait_s": 1.548996806377545e-06,
+          "cache_hit": false,
+          "finished_s": 27.569688653999037,
+          "latency_s": 0.570632441998896,
+          "failure": null,
+          "question": "18ded810-e2f1-413a-a0f0-dd262d109a5b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 17,
+          "ordinal": 16,
+          "started_s": 27.570024969998485,
+          "sql_queries": 12,
+          "sql_s": 0.000944729006732814,
+          "generation_s": 0.6859044359989639,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 27.5799011909985,
+              "status": 200,
+              "total_duration_ns": 645940200,
+              "load_duration_ns": 22367700,
+              "prompt_eval_duration_ns": 27184000,
+              "eval_duration_ns": 584446000,
+              "elapsed_s": 0.6768453670010786
+            }
+          ],
+          "model_slot_wait_s": 2.4089968064799905e-06,
+          "cache_hit": false,
+          "finished_s": 28.293249256999843,
+          "latency_s": 0.7232242870013579,
+          "failure": null,
+          "question": "4b4ada10-923e-4e4f-bbf3-d2f2382f9fd2"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 105,
+          "ordinal": 104,
+          "started_s": 28.29360315500162,
+          "sql_queries": 12,
+          "sql_s": 0.0009695360058685765,
+          "generation_s": 0.5396046480018413,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 28.307472344000416,
+              "status": 200,
+              "total_duration_ns": 499026800,
+              "load_duration_ns": 13858700,
+              "prompt_eval_duration_ns": 26885000,
+              "eval_duration_ns": 446995000,
+              "elapsed_s": 0.5272479009981907
+            }
+          ],
+          "model_slot_wait_s": 1.9569997675716877e-06,
+          "cache_hit": false,
+          "finished_s": 28.885185641000135,
+          "latency_s": 0.591582485998515,
+          "failure": null,
+          "question": "e2410ee4-72a2-4ced-ab87-1b365739a339"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 89,
+          "ordinal": 88,
+          "started_s": 28.88538148400039,
+          "sql_queries": 12,
+          "sql_s": 0.000626970999292098,
+          "generation_s": 0.6997984259978693,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 28.9015009499999,
+              "status": 200,
+              "total_duration_ns": 656268400,
+              "load_duration_ns": 33046600,
+              "prompt_eval_duration_ns": 34308000,
+              "eval_duration_ns": 573341000,
+              "elapsed_s": 0.6875179820017365
+            }
+          ],
+          "model_slot_wait_s": 1.5750010788906366e-06,
+          "cache_hit": false,
+          "finished_s": 29.623976935999963,
+          "latency_s": 0.7385954519995721,
+          "failure": null,
+          "question": "9c6a0975-d4b4-4f75-8adc-5a5c2f70155f"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 50,
+          "ordinal": 49,
+          "started_s": 29.624450617000548,
+          "sql_queries": 12,
+          "sql_s": 0.0006909450094099157,
+          "generation_s": 0.746908777000499,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 29.65015544600101,
+              "status": 200,
+              "total_duration_ns": 686376100,
+              "load_duration_ns": 22089700,
+              "prompt_eval_duration_ns": 42383000,
+              "eval_duration_ns": 607576000,
+              "elapsed_s": 0.7283043120005459
+            }
+          ],
+          "model_slot_wait_s": 2.655000571394339e-06,
+          "cache_hit": false,
+          "finished_s": 30.40792282700204,
+          "latency_s": 0.7834722100014915,
+          "failure": null,
+          "question": "dfb0d09f-7d68-4b63-8b09-74a1a7d549f7"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 146,
+          "ordinal": 145,
+          "started_s": 30.408107488001406,
+          "sql_queries": 12,
+          "sql_s": 0.0006725660168740433,
+          "generation_s": 0.5681830370012904,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 30.415012638000917,
+              "status": 200,
+              "total_duration_ns": 540795700,
+              "load_duration_ns": 29157800,
+              "prompt_eval_duration_ns": 42052000,
+              "eval_duration_ns": 451541000,
+              "elapsed_s": 0.562759095999354
+            }
+          ],
+          "model_slot_wait_s": 1.3460012269206345e-06,
+          "cache_hit": false,
+          "finished_s": 31.012232176999532,
+          "latency_s": 0.6041246889981267,
+          "failure": null,
+          "question": "4b581a2f-0f63-4642-afeb-43a65a3d8bb6"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 99,
+          "ordinal": 98,
+          "started_s": 31.01241717100129,
+          "sql_queries": 12,
+          "sql_s": 0.0004670589987654239,
+          "generation_s": 0.596413321,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 31.021995376999257,
+              "status": 200,
+              "total_duration_ns": 556793600,
+              "load_duration_ns": 28925200,
+              "prompt_eval_duration_ns": 30722000,
+              "eval_duration_ns": 481689000,
+              "elapsed_s": 0.5883304960007081
+            }
+          ],
+          "model_slot_wait_s": 1.4830002328380942e-06,
+          "cache_hit": false,
+          "finished_s": 31.64396616999875,
+          "latency_s": 0.6315489989974594,
+          "failure": null,
+          "question": "b2c3f61f-f4d6-46ea-9073-781ca24021ed"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 65,
+          "ordinal": 64,
+          "started_s": 31.64416556699871,
+          "sql_queries": 12,
+          "sql_s": 0.00043906499558943324,
+          "generation_s": 0.571955628998694,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 31.651448237000295,
+              "status": 200,
+              "total_duration_ns": 541967400,
+              "load_duration_ns": 26361700,
+              "prompt_eval_duration_ns": 38757000,
+              "eval_duration_ns": 456914000,
+              "elapsed_s": 0.5657309400012309
+            }
+          ],
+          "model_slot_wait_s": 1.5859986888244748e-06,
+          "cache_hit": false,
+          "finished_s": 32.24854530700031,
+          "latency_s": 0.6043797400016047,
+          "failure": null,
+          "question": "43bb0073-7fa2-45ec-add1-362775ea1a9c"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 123,
+          "ordinal": 122,
+          "started_s": 32.24872980500004,
+          "sql_queries": 12,
+          "sql_s": 0.0004823970011784695,
+          "generation_s": 0.5558635359993787,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 32.258158486001776,
+              "status": 200,
+              "total_duration_ns": 516374300,
+              "load_duration_ns": 25317700,
+              "prompt_eval_duration_ns": 34186000,
+              "eval_duration_ns": 438356000,
+              "elapsed_s": 0.5485638829995878
+            }
+          ],
+          "model_slot_wait_s": 2.4310029402840883e-06,
+          "cache_hit": false,
+          "finished_s": 32.83661277699866,
+          "latency_s": 0.5878829719986243,
+          "failure": null,
+          "question": "79eb29f9-9e63-4c7f-9afb-786db250ff22"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 97,
+          "ordinal": 96,
+          "started_s": 32.83717695299856,
+          "sql_queries": 12,
+          "sql_s": 0.0006480689953605179,
+          "generation_s": 0.5539825600026234,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 32.859335793000355,
+              "status": 200,
+              "total_duration_ns": 511788700,
+              "load_duration_ns": 33991400,
+              "prompt_eval_duration_ns": 29555000,
+              "eval_duration_ns": 438676000,
+              "elapsed_s": 0.5384783959998458
+            }
+          ],
+          "model_slot_wait_s": 3.7099998735357076e-06,
+          "cache_hit": false,
+          "finished_s": 33.418143752001924,
+          "latency_s": 0.5809667990033631,
+          "failure": null,
+          "question": "a5d0c24e-45f0-4e8e-991e-195ea7823c4b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 77,
+          "ordinal": 76,
+          "started_s": 33.41839725200043,
+          "sql_queries": 12,
+          "sql_s": 0.00047267699483199976,
+          "generation_s": 0.5377830260003975,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 33.43025425900123,
+              "status": 200,
+              "total_duration_ns": 504242500,
+              "load_duration_ns": 15950500,
+              "prompt_eval_duration_ns": 27915000,
+              "eval_duration_ns": 446740000,
+              "elapsed_s": 0.5278977060006582
+            }
+          ],
+          "model_slot_wait_s": 1.2019991117995232e-06,
+          "cache_hit": false,
+          "finished_s": 33.984687517000566,
+          "latency_s": 0.5662902650001342,
+          "failure": null,
+          "question": "c551c12e-fb55-4354-9fc0-e57892f7f542"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 37,
+          "ordinal": 36,
+          "started_s": 33.984920498001884,
+          "sql_queries": 12,
+          "sql_s": 0.00036345600165077485,
+          "generation_s": 0.7193051699978241,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 33.997633268001664,
+              "status": 200,
+              "total_duration_ns": 682509000,
+              "load_duration_ns": 26661500,
+              "prompt_eval_duration_ns": 34050000,
+              "eval_duration_ns": 597571000,
+              "elapsed_s": 0.7083075089976774
+            }
+          ],
+          "model_slot_wait_s": 1.6289995983242989e-06,
+          "cache_hit": false,
+          "finished_s": 34.726899971999956,
+          "latency_s": 0.7419794739980716,
+          "failure": null,
+          "question": "8e5969af-1aef-48e0-a6aa-7c4b70022c87"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 116,
+          "ordinal": 115,
+          "started_s": 34.72710518299937,
+          "sql_queries": 12,
+          "sql_s": 0.0006390820017259102,
+          "generation_s": 0.5430714220019581,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 34.73429248699904,
+              "status": 200,
+              "total_duration_ns": 511933800,
+              "load_duration_ns": 19838500,
+              "prompt_eval_duration_ns": 24972000,
+              "eval_duration_ns": 444306000,
+              "elapsed_s": 0.5361776370009466
+            }
+          ],
+          "model_slot_wait_s": 1.3919998309575021e-06,
+          "cache_hit": false,
+          "finished_s": 35.309245016000204,
+          "latency_s": 0.5821398330008378,
+          "failure": null,
+          "question": "b12a0e73-086e-4c4d-a9bb-e6ac0aa90257"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 5,
+          "ordinal": 4,
+          "started_s": 35.30981106699983,
+          "sql_queries": 12,
+          "sql_s": 0.0008215579873649403,
+          "generation_s": 0.6161048159992788,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 35.33036790999904,
+              "status": 200,
+              "total_duration_ns": 521351000,
+              "load_duration_ns": 24334300,
+              "prompt_eval_duration_ns": 26849000,
+              "eval_duration_ns": 443191000,
+              "elapsed_s": 0.5971165129994915
+            }
+          ],
+          "model_slot_wait_s": 1.6740013961680233e-06,
+          "cache_hit": false,
+          "finished_s": 35.96121215099993,
+          "latency_s": 0.6514010840000992,
+          "failure": null,
+          "question": "b25210fc-c9ca-4f84-b760-dbf77a94cc69"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 18,
+          "ordinal": 17,
+          "started_s": 35.96164792499985,
+          "sql_queries": 12,
+          "sql_s": 0.0006293810001807287,
+          "generation_s": 0.6903829099974246,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 35.974660768999456,
+              "status": 200,
+              "total_duration_ns": 651615500,
+              "load_duration_ns": 24033900,
+              "prompt_eval_duration_ns": 23240000,
+              "eval_duration_ns": 591604000,
+              "elapsed_s": 0.6813823640004557
+            }
+          ],
+          "model_slot_wait_s": 2.4030014174059033e-06,
+          "cache_hit": false,
+          "finished_s": 36.68489276800028,
+          "latency_s": 0.7232448430004297,
+          "failure": null,
+          "question": "d4b10b84-c992-441a-b3ba-67b6e08c554d"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 26,
+          "ordinal": 25,
+          "started_s": 36.685151513000164,
+          "sql_queries": 12,
+          "sql_s": 0.0004678670084103942,
+          "generation_s": 0.517234284998267,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 36.69846469600088,
+              "status": 200,
+              "total_duration_ns": 487640400,
+              "load_duration_ns": 13608800,
+              "prompt_eval_duration_ns": 25487000,
+              "eval_duration_ns": 435830000,
+              "elapsed_s": 0.5075022989985882
+            }
+          ],
+          "model_slot_wait_s": 2.4769979063421488e-06,
+          "cache_hit": false,
+          "finished_s": 37.23141617500005,
+          "latency_s": 0.546264661999885,
+          "failure": null,
+          "question": "45825798-4150-4902-847c-d03b22050073"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 70,
+          "ordinal": 69,
+          "started_s": 37.23171525900034,
+          "sql_queries": 12,
+          "sql_s": 0.0008889149976312183,
+          "generation_s": 0.5475856859993655,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 37.24676163199911,
+              "status": 200,
+              "total_duration_ns": 515693500,
+              "load_duration_ns": 20794600,
+              "prompt_eval_duration_ns": 36311000,
+              "eval_duration_ns": 446518000,
+              "elapsed_s": 0.5366344790018047
+            }
+          ],
+          "model_slot_wait_s": 1.5900004655122757e-06,
+          "cache_hit": false,
+          "finished_s": 37.8164060099989,
+          "latency_s": 0.5846907509985613,
+          "failure": null,
+          "question": "c9798b93-c5ca-4a5c-9048-cde26b758313"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 52,
+          "ordinal": 51,
+          "started_s": 37.816861549999885,
+          "sql_queries": 12,
+          "sql_s": 0.000743523003620794,
+          "generation_s": 0.5945207059994573,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 37.83766414999991,
+              "status": 200,
+              "total_duration_ns": 546637800,
+              "load_duration_ns": 32110400,
+              "prompt_eval_duration_ns": 37143000,
+              "eval_duration_ns": 451845000,
+              "elapsed_s": 0.5761550710012671
+            }
+          ],
+          "model_slot_wait_s": 3.477998689049855e-06,
+          "cache_hit": false,
+          "finished_s": 38.445658696000464,
+          "latency_s": 0.6287971460005792,
+          "failure": null,
+          "question": "1dd98006-77ec-4b55-ad44-1dd0f78c2eb5"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 3,
+          "ordinal": 2,
+          "started_s": 38.44639998799903,
+          "sql_queries": 12,
+          "sql_s": 0.0006117569973866921,
+          "generation_s": 0.5870320399990305,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 38.46560383099859,
+              "status": 200,
+              "total_duration_ns": 515267100,
+              "load_duration_ns": 34404000,
+              "prompt_eval_duration_ns": 24116000,
+              "eval_duration_ns": 434799000,
+              "elapsed_s": 0.5734243580009206
+            }
+          ],
+          "model_slot_wait_s": 2.3989996407181025e-06,
+          "cache_hit": false,
+          "finished_s": 39.071393261001504,
+          "latency_s": 0.6249932730024739,
+          "failure": null,
+          "question": "69357b7c-4cf7-4e37-83ca-955f8b9d42d4"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 53,
+          "ordinal": 52,
+          "started_s": 39.07162739100022,
+          "sql_queries": 12,
+          "sql_s": 0.0014852340063953307,
+          "generation_s": 0.5643216890020994,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 39.081899976001296,
+              "status": 200,
+              "total_duration_ns": 524338800,
+              "load_duration_ns": 19331200,
+              "prompt_eval_duration_ns": 32695000,
+              "eval_duration_ns": 456703000,
+              "elapsed_s": 0.5538967719985521
+            }
+          ],
+          "model_slot_wait_s": 1.3930002751294523e-06,
+          "cache_hit": false,
+          "finished_s": 39.6721894250004,
+          "latency_s": 0.6005620340001769,
+          "failure": null,
+          "question": "411bf28f-6884-4a04-ac68-41e16a724780"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 15,
+          "ordinal": 14,
+          "started_s": 39.6728464709995,
+          "sql_queries": 12,
+          "sql_s": 0.0008944049877754878,
+          "generation_s": 0.5803982549987268,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 39.692280225001014,
+              "status": 200,
+              "total_duration_ns": 539459800,
+              "load_duration_ns": 31419000,
+              "prompt_eval_duration_ns": 44612000,
+              "eval_duration_ns": 445583000,
+              "elapsed_s": 0.5669481250006356
+            }
+          ],
+          "model_slot_wait_s": 2.7710011636372656e-06,
+          "cache_hit": false,
+          "finished_s": 40.29202750100012,
+          "latency_s": 0.6191810300006182,
+          "failure": null,
+          "question": "ba7b51bd-0677-409a-b896-4234ded364eb"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 139,
+          "ordinal": 138,
+          "started_s": 40.29232176200094,
+          "sql_queries": 12,
+          "sql_s": 0.0006423270024242811,
+          "generation_s": 0.7023184600002423,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 40.31147555500138,
+              "status": 200,
+              "total_duration_ns": 654149600,
+              "load_duration_ns": 14818200,
+              "prompt_eval_duration_ns": 23413000,
+              "eval_duration_ns": 595829000,
+              "elapsed_s": 0.6880469949974213
+            }
+          ],
+          "model_slot_wait_s": 1.7860002117231488e-06,
+          "cache_hit": false,
+          "finished_s": 41.03004060799867,
+          "latency_s": 0.7377188459977333,
+          "failure": null,
+          "question": "1f84c4f0-967c-43b5-8c56-16e0daa826a4"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 42,
+          "ordinal": 41,
+          "started_s": 41.030323840001074,
+          "sql_queries": 12,
+          "sql_s": 0.0004987490028725006,
+          "generation_s": 0.5153525240020826,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 41.043964660999336,
+              "status": 200,
+              "total_duration_ns": 476909800,
+              "load_duration_ns": 13288100,
+              "prompt_eval_duration_ns": 24980000,
+              "eval_duration_ns": 427827000,
+              "elapsed_s": 0.5048074049991556
+            }
+          ],
+          "model_slot_wait_s": 2.1479972929228097e-06,
+          "cache_hit": false,
+          "finished_s": 41.572321324998484,
+          "latency_s": 0.5419974849974096,
+          "failure": null,
+          "question": "88067a89-1549-40df-bedb-1660408de6a7"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 150,
+          "ordinal": 149,
+          "started_s": 41.57272249000016,
+          "sql_queries": 12,
+          "sql_s": 0.0006145960032881703,
+          "generation_s": 0.5776582100006635,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 41.58880345199941,
+              "status": 200,
+              "total_duration_ns": 544394800,
+              "load_duration_ns": 34053000,
+              "prompt_eval_duration_ns": 39278000,
+              "eval_duration_ns": 445516000,
+              "elapsed_s": 0.5649271969996335
+            }
+          ],
+          "model_slot_wait_s": 2.687000232981518e-06,
+          "cache_hit": false,
+          "finished_s": 42.180767339999875,
+          "latency_s": 0.6080448499997146,
+          "failure": null,
+          "question": "10c0a410-6981-4f86-b7ba-9767c0b1fa19"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 75,
+          "ordinal": 74,
+          "started_s": 42.18092360100127,
+          "sql_queries": 12,
+          "sql_s": 0.0005322629986039829,
+          "generation_s": 0.5452383470001223,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 42.19594771600168,
+              "status": 200,
+              "total_duration_ns": 510501500,
+              "load_duration_ns": 21826000,
+              "prompt_eval_duration_ns": 37171000,
+              "eval_duration_ns": 434715000,
+              "elapsed_s": 0.53368232199864
+            }
+          ],
+          "model_slot_wait_s": 1.686999894445762e-06,
+          "cache_hit": false,
+          "finished_s": 42.75508560800154,
+          "latency_s": 0.5741620070002682,
+          "failure": null,
+          "question": "1c9021e9-c9e5-4e1f-9764-c74f23cc8292"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 83,
+          "ordinal": 82,
+          "started_s": 42.75528862600186,
+          "sql_queries": 12,
+          "sql_s": 0.0004624940011126455,
+          "generation_s": 0.5365185129994643,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 42.76512162899962,
+              "status": 200,
+              "total_duration_ns": 509493300,
+              "load_duration_ns": 19323400,
+              "prompt_eval_duration_ns": 27149000,
+              "eval_duration_ns": 448177000,
+              "elapsed_s": 0.5284574420002173
+            }
+          ],
+          "model_slot_wait_s": 1.4949982869438827e-06,
+          "cache_hit": false,
+          "finished_s": 43.32077300200035,
+          "latency_s": 0.5654843759984942,
+          "failure": null,
+          "question": "1bb87f3f-1c43-4c20-b805-719e15d39edc"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 136,
+          "ordinal": 135,
+          "started_s": 43.321055470998544,
+          "sql_queries": 12,
+          "sql_s": 0.0005318189942045137,
+          "generation_s": 0.5256289419994573,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 43.33403028600151,
+              "status": 200,
+              "total_duration_ns": 494095800,
+              "load_duration_ns": 14044200,
+              "prompt_eval_duration_ns": 23981000,
+              "eval_duration_ns": 442281000,
+              "elapsed_s": 0.5177368650001881
+            }
+          ],
+          "model_slot_wait_s": 1.6750018403399736e-06,
+          "cache_hit": false,
+          "finished_s": 43.87823636200119,
+          "latency_s": 0.5571808910026448,
+          "failure": null,
+          "question": "2d75fe11-c8fd-42b2-88b8-78b9b5bb4249"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 79,
+          "ordinal": 78,
+          "started_s": 43.878480826999294,
+          "sql_queries": 12,
+          "sql_s": 0.0009407919969817158,
+          "generation_s": 0.5674309410023852,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 43.8946029409999,
+              "status": 200,
+              "total_duration_ns": 517350300,
+              "load_duration_ns": 21364000,
+              "prompt_eval_duration_ns": 33722000,
+              "eval_duration_ns": 444461000,
+              "elapsed_s": 0.5563999900005001
+            }
+          ],
+          "model_slot_wait_s": 1.5160003385972232e-06,
+          "cache_hit": false,
+          "finished_s": 44.4790256999986,
+          "latency_s": 0.6005448729993077,
+          "failure": null,
+          "question": "e658eeb8-4a68-4f03-b3da-a0ef80782cce"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 32,
+          "ordinal": 31,
+          "started_s": 44.48051603899876,
+          "sql_queries": 12,
+          "sql_s": 0.000573193006857764,
+          "generation_s": 0.5422538700004225,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 44.493683939999755,
+              "status": 200,
+              "total_duration_ns": 502588600,
+              "load_duration_ns": 27308700,
+              "prompt_eval_duration_ns": 23107000,
+              "eval_duration_ns": 443833000,
+              "elapsed_s": 0.533582046002266
+            }
+          ],
+          "model_slot_wait_s": 3.749999450519681e-06,
+          "cache_hit": false,
+          "finished_s": 45.05369733200132,
+          "latency_s": 0.5731812930025626,
+          "failure": null,
+          "question": "57eb4308-d546-42f7-9a63-cfe1f1feab1d"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 103,
+          "ordinal": 102,
+          "started_s": 45.05392552400008,
+          "sql_queries": 12,
+          "sql_s": 0.0005148540076334029,
+          "generation_s": 0.5521126969979377,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 45.06389081299858,
+              "status": 200,
+              "total_duration_ns": 516940900,
+              "load_duration_ns": 20369400,
+              "prompt_eval_duration_ns": 37681000,
+              "eval_duration_ns": 445866000,
+              "elapsed_s": 0.5373261390013795
+            }
+          ],
+          "model_slot_wait_s": 1.3739991118200123e-06,
+          "cache_hit": false,
+          "finished_s": 45.63748212700011,
+          "latency_s": 0.5835566030000336,
+          "failure": null,
+          "question": "55301bcb-42f4-4e36-8c88-a2fef728a2f6"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 22,
+          "ordinal": 21,
+          "started_s": 45.6376446739996,
+          "sql_queries": 12,
+          "sql_s": 0.0007144129995140247,
+          "generation_s": 0.5246932949994516,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 45.64682196799913,
+              "status": 200,
+              "total_duration_ns": 482000100,
+              "load_duration_ns": 13543600,
+              "prompt_eval_duration_ns": 24795000,
+              "eval_duration_ns": 434632000,
+              "elapsed_s": 0.5158187209999596
+            }
+          ],
+          "model_slot_wait_s": 1.390999386785552e-06,
+          "cache_hit": false,
+          "finished_s": 46.19760950899945,
+          "latency_s": 0.5599648349998461,
+          "failure": null,
+          "question": "c9ac3214-380f-499a-b1e7-c358a0269e9d"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 10,
+          "ordinal": 9,
+          "started_s": 46.198222692000854,
+          "sql_queries": 12,
+          "sql_s": 0.0005927840065851342,
+          "generation_s": 0.5740083210002922,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 46.21679626400146,
+              "status": 200,
+              "total_duration_ns": 533152800,
+              "load_duration_ns": 29303700,
+              "prompt_eval_duration_ns": 31492000,
+              "eval_duration_ns": 454373000,
+              "elapsed_s": 0.5597210119994998
+            }
+          ],
+          "model_slot_wait_s": 6.189002306200564e-06,
+          "cache_hit": false,
+          "finished_s": 46.80170781800189,
+          "latency_s": 0.6034851260010328,
+          "failure": null,
+          "question": "d050d2b6-6680-40f4-a3e1-4911817d49da"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 35,
+          "ordinal": 34,
+          "started_s": 46.802010639999935,
+          "sql_queries": 12,
+          "sql_s": 0.001074408988642972,
+          "generation_s": 0.5307223569980124,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 46.81392420400152,
+              "status": 200,
+              "total_duration_ns": 498245800,
+              "load_duration_ns": 18269500,
+              "prompt_eval_duration_ns": 25539000,
+              "eval_duration_ns": 441493000,
+              "elapsed_s": 0.5232745309986058
+            }
+          ],
+          "model_slot_wait_s": 2.0709994714707136e-06,
+          "cache_hit": false,
+          "finished_s": 47.36582710700168,
+          "latency_s": 0.5638164670017431,
+          "failure": null,
+          "question": "41b2d33f-80ac-4918-afc6-3ea30c7fd892"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 144,
+          "ordinal": 143,
+          "started_s": 47.36647579300188,
+          "sql_queries": 12,
+          "sql_s": 0.0017292000156885479,
+          "generation_s": 0.6010925529990345,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 47.377810361998854,
+              "status": 200,
+              "total_duration_ns": 566488700,
+              "load_duration_ns": 43196400,
+              "prompt_eval_duration_ns": 47550000,
+              "eval_duration_ns": 456425000,
+              "elapsed_s": 0.5902472480011056
+            }
+          ],
+          "model_slot_wait_s": 1.4079996617510915e-06,
+          "cache_hit": false,
+          "finished_s": 48.00641085100142,
+          "latency_s": 0.6399350579995371,
+          "failure": null,
+          "question": "104fd5bb-a949-4152-8b49-9a04ef48dae7"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 112,
+          "ordinal": 111,
+          "started_s": 48.00686273899919,
+          "sql_queries": 12,
+          "sql_s": 0.0005125289935676847,
+          "generation_s": 0.5361448370022117,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 48.017475345001,
+              "status": 200,
+              "total_duration_ns": 496622300,
+              "load_duration_ns": 23471600,
+              "prompt_eval_duration_ns": 34401000,
+              "eval_duration_ns": 425871000,
+              "elapsed_s": 0.5296183059981558
+            }
+          ],
+          "model_slot_wait_s": 3.2419993658550084e-06,
+          "cache_hit": false,
+          "finished_s": 48.572632420000446,
+          "latency_s": 0.5657696810012567,
+          "failure": null,
+          "question": "599a5838-b4ae-4069-8737-ef141a8ff0b4"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 48,
+          "ordinal": 47,
+          "started_s": 48.57293977700101,
+          "sql_queries": 12,
+          "sql_s": 0.0007551680064352695,
+          "generation_s": 0.6359290270011115,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 48.605458926998836,
+              "status": 200,
+              "total_duration_ns": 587478700,
+              "load_duration_ns": 67482800,
+              "prompt_eval_duration_ns": 43419000,
+              "eval_duration_ns": 449213000,
+              "elapsed_s": 0.6164622790020076
+            }
+          ],
+          "model_slot_wait_s": 2.4889995984267443e-06,
+          "cache_hit": false,
+          "finished_s": 49.2569019520015,
+          "latency_s": 0.6839621750004881,
+          "failure": null,
+          "question": "219b5b78-820b-440b-bd41-8bef7b683a88"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 125,
+          "ordinal": 124,
+          "started_s": 49.25707846300065,
+          "sql_queries": 12,
+          "sql_s": 0.0004844150025746785,
+          "generation_s": 0.5609525600011693,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 49.266618906000076,
+              "status": 200,
+              "total_duration_ns": 531209300,
+              "load_duration_ns": 25577400,
+              "prompt_eval_duration_ns": 26799000,
+              "eval_duration_ns": 447693000,
+              "elapsed_s": 0.5520070109996595
+            }
+          ],
+          "model_slot_wait_s": 1.4449979062192142e-06,
+          "cache_hit": false,
+          "finished_s": 49.851748125001905,
+          "latency_s": 0.5946696620012517,
+          "failure": null,
+          "question": "19cb5a5e-4cbd-4da4-ae48-04baf03830e9"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 95,
+          "ordinal": 94,
+          "started_s": 49.85197547699863,
+          "sql_queries": 12,
+          "sql_s": 0.000958137014094973,
+          "generation_s": 0.7464627260014822,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 49.86274639600015,
+              "status": 200,
+              "total_duration_ns": 707386600,
+              "load_duration_ns": 42703200,
+              "prompt_eval_duration_ns": 33073000,
+              "eval_duration_ns": 600398000,
+              "elapsed_s": 0.7360133250003855
+            }
+          ],
+          "model_slot_wait_s": 1.8049977370537817e-06,
+          "cache_hit": false,
+          "finished_s": 50.63816311000119,
+          "latency_s": 0.7861876330025552,
+          "failure": null,
+          "question": "b2cd12e0-549f-488f-b3f5-52bb70138071"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 107,
+          "ordinal": 106,
+          "started_s": 50.63870112400036,
+          "sql_queries": 12,
+          "sql_s": 0.0006105109969212208,
+          "generation_s": 0.5550850869985879,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 50.661391334000655,
+              "status": 200,
+              "total_duration_ns": 512458600,
+              "load_duration_ns": 26004400,
+              "prompt_eval_duration_ns": 41378000,
+              "eval_duration_ns": 429808000,
+              "elapsed_s": 0.539459446001274
+            }
+          ],
+          "model_slot_wait_s": 3.4199983929283917e-06,
+          "cache_hit": false,
+          "finished_s": 51.22497940000176,
+          "latency_s": 0.5862782760013943,
+          "failure": null,
+          "question": "873af90b-797e-4220-acdc-d89cb38a9150"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 121,
+          "ordinal": 120,
+          "started_s": 51.22526764500071,
+          "sql_queries": 12,
+          "sql_s": 0.0008984659980342258,
+          "generation_s": 0.5387819999996282,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 51.23915874999875,
+              "status": 200,
+              "total_duration_ns": 500692800,
+              "load_duration_ns": 20660900,
+              "prompt_eval_duration_ns": 23902000,
+              "eval_duration_ns": 441958000,
+              "elapsed_s": 0.531192682999972
+            }
+          ],
+          "model_slot_wait_s": 3.5890006984118372e-06,
+          "cache_hit": false,
+          "finished_s": 51.80849474899878,
+          "latency_s": 0.5832271039980697,
+          "failure": null,
+          "question": "0cf75a6d-0072-4871-99a6-0499b0d9c22c"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 101,
+          "ordinal": 100,
+          "started_s": 51.80870746599976,
+          "sql_queries": 12,
+          "sql_s": 0.0020284429992898367,
+          "generation_s": 0.5617146219992719,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 51.82007795499885,
+              "status": 200,
+              "total_duration_ns": 520712800,
+              "load_duration_ns": 21114800,
+              "prompt_eval_duration_ns": 37206000,
+              "eval_duration_ns": 444923000,
+              "elapsed_s": 0.5518766250024782
+            }
+          ],
+          "model_slot_wait_s": 1.234002411365509e-06,
+          "cache_hit": false,
+          "finished_s": 52.40478665499904,
+          "latency_s": 0.5960791889992834,
+          "failure": null,
+          "question": "00719602-1017-4664-9b70-4d1dc677be3c"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 113,
+          "ordinal": 112,
+          "started_s": 52.405318289002025,
+          "sql_queries": 12,
+          "sql_s": 0.000515805008035386,
+          "generation_s": 0.536153191998892,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 52.418244660999335,
+              "status": 200,
+              "total_duration_ns": 491048300,
+              "load_duration_ns": 26919200,
+              "prompt_eval_duration_ns": 23971000,
+              "eval_duration_ns": 430261000,
+              "elapsed_s": 0.526943573000608
+            }
+          ],
+          "model_slot_wait_s": 3.0810006137471646e-06,
+          "cache_hit": false,
+          "finished_s": 52.97699212600128,
+          "latency_s": 0.5716738369992527,
+          "failure": null,
+          "question": "82467df6-ccc1-4b0a-a1ab-abd38d46fbb3"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 88,
+          "ordinal": 87,
+          "started_s": 52.97725305000131,
+          "sql_queries": 12,
+          "sql_s": 0.0004956350057909731,
+          "generation_s": 0.537401855999633,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 52.99327427400203,
+              "status": 200,
+              "total_duration_ns": 505004500,
+              "load_duration_ns": 18718500,
+              "prompt_eval_duration_ns": 31519000,
+              "eval_duration_ns": 443287000,
+              "elapsed_s": 0.5245751929978724
+            }
+          ],
+          "model_slot_wait_s": 1.5599980542901903e-06,
+          "cache_hit": false,
+          "finished_s": 53.54540613100107,
+          "latency_s": 0.5681530809997639,
+          "failure": null,
+          "question": "02d3db1e-64a2-4e4b-9a31-65e7c14dc2df"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 100,
+          "ordinal": 99,
+          "started_s": 53.545578385001136,
+          "sql_queries": 12,
+          "sql_s": 0.001111220000893809,
+          "generation_s": 0.523585686001752,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 53.5581441079994,
+              "status": 200,
+              "total_duration_ns": 491405000,
+              "load_duration_ns": 14724300,
+              "prompt_eval_duration_ns": 27030000,
+              "eval_duration_ns": 434990000,
+              "elapsed_s": 0.5111990879995574
+            }
+          ],
+          "model_slot_wait_s": 1.7949969333130866e-06,
+          "cache_hit": false,
+          "finished_s": 54.10600511600205,
+          "latency_s": 0.5604267310009163,
+          "failure": null,
+          "question": "a026136e-700c-42f3-9557-9149f9d8da2a"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 118,
+          "ordinal": 117,
+          "started_s": 54.10639928100136,
+          "sql_queries": 12,
+          "sql_s": 0.000735125009668991,
+          "generation_s": 0.5591312430005928,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 54.126682952999545,
+              "status": 200,
+              "total_duration_ns": 489939900,
+              "load_duration_ns": 13284900,
+              "prompt_eval_duration_ns": 24183000,
+              "eval_duration_ns": 440701000,
+              "elapsed_s": 0.5474112550000427
+            }
+          ],
+          "model_slot_wait_s": 3.654000465758145e-06,
+          "cache_hit": false,
+          "finished_s": 54.702425546001905,
+          "latency_s": 0.5960262650005461,
+          "failure": null,
+          "question": "24ae28f5-e0bb-4fca-a3e5-5e0310dfdc07"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 30,
+          "ordinal": 29,
+          "started_s": 54.70267400400189,
+          "sql_queries": 12,
+          "sql_s": 0.0005225240056461189,
+          "generation_s": 0.7139325089992781,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 54.71893652500148,
+              "status": 200,
+              "total_duration_ns": 678290700,
+              "load_duration_ns": 25372400,
+              "prompt_eval_duration_ns": 38092000,
+              "eval_duration_ns": 598491000,
+              "elapsed_s": 0.699667225999292
+            }
+          ],
+          "model_slot_wait_s": 1.2809978215955198e-06,
+          "cache_hit": false,
+          "finished_s": 55.45099526500053,
+          "latency_s": 0.7483212609986367,
+          "failure": null,
+          "question": "5f7c8643-7a1b-4e5b-a821-fbcb068c2048"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 85,
+          "ordinal": 84,
+          "started_s": 55.451207932001125,
+          "sql_queries": 12,
+          "sql_s": 0.0005640909985231701,
+          "generation_s": 0.7496562019987323,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 55.46569089100012,
+              "status": 200,
+              "total_duration_ns": 690743200,
+              "load_duration_ns": 25401900,
+              "prompt_eval_duration_ns": 35287000,
+              "eval_duration_ns": 606556000,
+              "elapsed_s": 0.7382289990018762
+            }
+          ],
+          "model_slot_wait_s": 1.5909972717054188e-06,
+          "cache_hit": false,
+          "finished_s": 56.22812897200129,
+          "latency_s": 0.7769210400001612,
+          "failure": null,
+          "question": "267f8c28-789a-4fad-a965-0910b1334e14"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 106,
+          "ordinal": 105,
+          "started_s": 56.22882938100156,
+          "sql_queries": 12,
+          "sql_s": 0.0006946250068722293,
+          "generation_s": 0.5669035950013495,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 56.2446401720008,
+              "status": 200,
+              "total_duration_ns": 527774600,
+              "load_duration_ns": 45639500,
+              "prompt_eval_duration_ns": 32939999,
+              "eval_duration_ns": 429797000,
+              "elapsed_s": 0.5543703910007025
+            }
+          ],
+          "model_slot_wait_s": 4.007000825367868e-06,
+          "cache_hit": false,
+          "finished_s": 56.825272472000506,
+          "latency_s": 0.596443090998946,
+          "failure": null,
+          "question": "9548d606-82d5-458a-907f-734ad19722b7"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 143,
+          "ordinal": 142,
+          "started_s": 56.82571794799878,
+          "sql_queries": 12,
+          "sql_s": 0.0005182529966987204,
+          "generation_s": 0.561173565001809,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 56.838093719001336,
+              "status": 200,
+              "total_duration_ns": 527467200,
+              "load_duration_ns": 19849500,
+              "prompt_eval_duration_ns": 31133000,
+              "eval_duration_ns": 453691000,
+              "elapsed_s": 0.5517526589974295
+            }
+          ],
+          "model_slot_wait_s": 3.1390009098686278e-06,
+          "cache_hit": false,
+          "finished_s": 57.416667305999,
+          "latency_s": 0.5909493580002163,
+          "failure": null,
+          "question": "e46afbfa-4829-48b9-aeb6-a5c992b5416a"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 91,
+          "ordinal": 90,
+          "started_s": 57.41727548899871,
+          "sql_queries": 12,
+          "sql_s": 0.0011248160044488031,
+          "generation_s": 0.5536692429996037,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 57.43073402799928,
+              "status": 200,
+              "total_duration_ns": 518309700,
+              "load_duration_ns": 14202400,
+              "prompt_eval_duration_ns": 39138000,
+              "eval_duration_ns": 443989000,
+              "elapsed_s": 0.5436988430010388
+            }
+          ],
+          "model_slot_wait_s": 3.553999704308808e-06,
+          "cache_hit": false,
+          "finished_s": 57.997234065001976,
+          "latency_s": 0.5799585760032642,
+          "failure": null,
+          "question": "f1c87aaa-6cef-4267-9302-8e57a9e2b0c1"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 25,
+          "ordinal": 24,
+          "started_s": 57.997498805998475,
+          "sql_queries": 12,
+          "sql_s": 0.0012128299931646325,
+          "generation_s": 0.5550430919975042,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 58.0120640310015,
+              "status": 200,
+              "total_duration_ns": 526409900,
+              "load_duration_ns": 14628400,
+              "prompt_eval_duration_ns": 39709000,
+              "eval_duration_ns": 456817000,
+              "elapsed_s": 0.5449627909983974
+            }
+          ],
+          "model_slot_wait_s": 3.716999344760552e-06,
+          "cache_hit": false,
+          "finished_s": 58.59086518500044,
+          "latency_s": 0.5933663790019637,
+          "failure": null,
+          "question": "17a9333f-6c81-4560-9513-c84bcc24ca70"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 74,
+          "ordinal": 73,
+          "started_s": 58.59167919000174,
+          "sql_queries": 12,
+          "sql_s": 0.0007365720084635541,
+          "generation_s": 0.5579307219995826,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 58.605070266999974,
+              "status": 200,
+              "total_duration_ns": 505012400,
+              "load_duration_ns": 20141200,
+              "prompt_eval_duration_ns": 26843000,
+              "eval_duration_ns": 443553000,
+              "elapsed_s": 0.5492201980014215
+            }
+          ],
+          "model_slot_wait_s": 3.4959994081873447e-06,
+          "cache_hit": false,
+          "finished_s": 59.182063849999395,
+          "latency_s": 0.5903846599976532,
+          "failure": null,
+          "question": "6d99daf7-1add-4f95-b20f-9dd673816db8"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 47,
+          "ordinal": 46,
+          "started_s": 59.18228852700122,
+          "sql_queries": 12,
+          "sql_s": 0.0008292819984490052,
+          "generation_s": 0.53544424500069,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 59.19400719500118,
+              "status": 200,
+              "total_duration_ns": 499067900,
+              "load_duration_ns": 12737400,
+              "prompt_eval_duration_ns": 25391000,
+              "eval_duration_ns": 450981000,
+              "elapsed_s": 0.5238225829998555
+            }
+          ],
+          "model_slot_wait_s": 2.0049992599524558e-06,
+          "cache_hit": false,
+          "finished_s": 59.74849189100132,
+          "latency_s": 0.5662033640001027,
+          "failure": null,
+          "question": "0c26572d-dfc9-4248-a182-787d4b61e5ff"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 80,
+          "ordinal": 79,
+          "started_s": 59.74879054399935,
+          "sql_queries": 12,
+          "sql_s": 0.0009359539944853168,
+          "generation_s": 0.5609694399972796,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 59.7705638059997,
+              "status": 200,
+              "total_duration_ns": 510442700,
+              "load_duration_ns": 24082900,
+              "prompt_eval_duration_ns": 27298000,
+              "eval_duration_ns": 444869000,
+              "elapsed_s": 0.5424222649999138
+            }
+          ],
+          "model_slot_wait_s": 2.182001480832696e-06,
+          "cache_hit": false,
+          "finished_s": 60.352249778999976,
+          "latency_s": 0.6034592350006278,
+          "failure": null,
+          "question": "8a631184-9ba1-4602-b22a-e02c5699bf42"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 81,
+          "ordinal": 80,
+          "started_s": 60.3525077359991,
+          "sql_queries": 12,
+          "sql_s": 0.0009000080026453361,
+          "generation_s": 0.6862486530008027,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 60.37443260700093,
+              "status": 200,
+              "total_duration_ns": 640155300,
+              "load_duration_ns": 12770000,
+              "prompt_eval_duration_ns": 24466000,
+              "eval_duration_ns": 588490000,
+              "elapsed_s": 0.6690617220010608
+            }
+          ],
+          "model_slot_wait_s": 1.4379984349943697e-06,
+          "cache_hit": false,
+          "finished_s": 61.078123228999175,
+          "latency_s": 0.7256154930000775,
+          "failure": null,
+          "question": "a3cb61b5-61de-48c1-a474-8113efea3768"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 38,
+          "ordinal": 37,
+          "started_s": 61.078311942001164,
+          "sql_queries": 12,
+          "sql_s": 0.0007422169983328786,
+          "generation_s": 0.5655597770019085,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 61.09058350199848,
+              "status": 200,
+              "total_duration_ns": 524043700,
+              "load_duration_ns": 35639600,
+              "prompt_eval_duration_ns": 27784000,
+              "eval_duration_ns": 441984000,
+              "elapsed_s": 0.5534925710016978
+            }
+          ],
+          "model_slot_wait_s": 1.1809970601461828e-06,
+          "cache_hit": false,
+          "finished_s": 61.67983750900021,
+          "latency_s": 0.6015255669990438,
+          "failure": null,
+          "question": "b08df4d9-b4fe-4051-8ef0-db106c3ccd13"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 148,
+          "ordinal": 147,
+          "started_s": 61.680159579002066,
+          "sql_queries": 12,
+          "sql_s": 0.0006392780014721211,
+          "generation_s": 0.5335353529990243,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 61.69538273999933,
+              "status": 200,
+              "total_duration_ns": 502056200,
+              "load_duration_ns": 29048200,
+              "prompt_eval_duration_ns": 30018000,
+              "eval_duration_ns": 431736000,
+              "elapsed_s": 0.5233376310025051
+            }
+          ],
+          "model_slot_wait_s": 2.0980005501769483e-06,
+          "cache_hit": false,
+          "finished_s": 62.245826079000835,
+          "latency_s": 0.5656664999987697,
+          "failure": null,
+          "question": "0a781276-5364-4785-97dd-dded5ee05097"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 11,
+          "ordinal": 10,
+          "started_s": 62.246154184998886,
+          "sql_queries": 12,
+          "sql_s": 0.001714122001430951,
+          "generation_s": 0.6997468150002533,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 62.25606946799962,
+              "status": 200,
+              "total_duration_ns": 666086700,
+              "load_duration_ns": 19560900,
+              "prompt_eval_duration_ns": 31376000,
+              "eval_duration_ns": 599629000,
+              "elapsed_s": 0.6912277170013112
+            }
+          ],
+          "model_slot_wait_s": 2.2849999368190765e-06,
+          "cache_hit": false,
+          "finished_s": 62.98570264299997,
+          "latency_s": 0.7395484580010816,
+          "failure": null,
+          "question": "0f4caa9a-cde9-4e83-843c-0e4176dffdd8"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 114,
+          "ordinal": 113,
+          "started_s": 62.98600041800091,
+          "sql_queries": 12,
+          "sql_s": 0.0005380980001064017,
+          "generation_s": 0.5754393689967401,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 62.99648446900028,
+              "status": 200,
+              "total_duration_ns": 542120300,
+              "load_duration_ns": 21061500,
+              "prompt_eval_duration_ns": 33192000,
+              "eval_duration_ns": 444894000,
+              "elapsed_s": 0.5659292060008738
+            }
+          ],
+          "model_slot_wait_s": 2.0029983716085553e-06,
+          "cache_hit": false,
+          "finished_s": 63.598946369998885,
+          "latency_s": 0.6129459519979719,
+          "failure": null,
+          "question": "0beffc57-93ef-465c-a24e-69bf281cb357"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 16,
+          "ordinal": 15,
+          "started_s": 63.59917938700164,
+          "sql_queries": 12,
+          "sql_s": 0.0008589119970565662,
+          "generation_s": 0.5952916349997395,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 63.61758736499905,
+              "status": 200,
+              "total_duration_ns": 541562200,
+              "load_duration_ns": 32007000,
+              "prompt_eval_duration_ns": 38286000,
+              "eval_duration_ns": 458446000,
+              "elapsed_s": 0.5812754990001849
+            }
+          ],
+          "model_slot_wait_s": 1.3899989426136017e-06,
+          "cache_hit": false,
+          "finished_s": 64.23580779700205,
+          "latency_s": 0.6366284100004123,
+          "failure": null,
+          "question": "e9cad5c1-c74d-4c5c-be27-129464638352"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 69,
+          "ordinal": 68,
+          "started_s": 64.23609646000114,
+          "sql_queries": 12,
+          "sql_s": 0.0005099020017951261,
+          "generation_s": 0.5346379739967233,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 64.25200900300115,
+              "status": 200,
+              "total_duration_ns": 498797700,
+              "load_duration_ns": 22175300,
+              "prompt_eval_duration_ns": 23263000,
+              "eval_duration_ns": 441396000,
+              "elapsed_s": 0.523976832999324
+            }
+          ],
+          "model_slot_wait_s": 2.1000014385208488e-06,
+          "cache_hit": false,
+          "finished_s": 64.80942206300097,
+          "latency_s": 0.5733256029998302,
+          "failure": null,
+          "question": "0b387f78-cb08-4d2e-8942-3b071412d372"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 59,
+          "ordinal": 58,
+          "started_s": 64.81002200299918,
+          "sql_queries": 12,
+          "sql_s": 0.0007339709991356358,
+          "generation_s": 0.5459158809971996,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 64.82794121999905,
+              "status": 200,
+              "total_duration_ns": 506050800,
+              "load_duration_ns": 23152800,
+              "prompt_eval_duration_ns": 25768000,
+              "eval_duration_ns": 444122000,
+              "elapsed_s": 0.5332832580024842
+            }
+          ],
+          "model_slot_wait_s": 3.7489990063477308e-06,
+          "cache_hit": false,
+          "finished_s": 65.38502697600052,
+          "latency_s": 0.5750049730013416,
+          "failure": null,
+          "question": "a433df03-3b1b-402c-82a1-9efeaa285802"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 94,
+          "ordinal": 93,
+          "started_s": 65.38541409400204,
+          "sql_queries": 12,
+          "sql_s": 0.0011994660089840181,
+          "generation_s": 0.5493632770012482,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 65.39481154900204,
+              "status": 200,
+              "total_duration_ns": 518668400,
+              "load_duration_ns": 23823600,
+              "prompt_eval_duration_ns": 34941000,
+              "eval_duration_ns": 444855000,
+              "elapsed_s": 0.542999424997106
+            }
+          ],
+          "model_slot_wait_s": 2.3120010155253112e-06,
+          "cache_hit": false,
+          "finished_s": 65.96514079400004,
+          "latency_s": 0.5797266999979911,
+          "failure": null,
+          "question": "e870f03d-bce2-49eb-a3db-9cc6201baaef"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 6,
+          "ordinal": 5,
+          "started_s": 65.96566273799908,
+          "sql_queries": 12,
+          "sql_s": 0.0007632319939148147,
+          "generation_s": 0.7183455209997192,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 65.98921772999893,
+              "status": 200,
+              "total_duration_ns": 681834200,
+              "load_duration_ns": 22813900,
+              "prompt_eval_duration_ns": 34181000,
+              "eval_duration_ns": 609334000,
+              "elapsed_s": 0.7042081569998118
+            }
+          ],
+          "model_slot_wait_s": 3.7099998735357076e-06,
+          "cache_hit": false,
+          "finished_s": 66.7278796060018,
+          "latency_s": 0.7622168680027244,
+          "failure": null,
+          "question": "11f0f6fc-9a5e-40d3-a8a1-06f50cbc8463"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 126,
+          "ordinal": 125,
+          "started_s": 66.72820898699865,
+          "sql_queries": 12,
+          "sql_s": 0.0009002070037240628,
+          "generation_s": 0.5624717130012868,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 66.73968775300091,
+              "status": 200,
+              "total_duration_ns": 528455900,
+              "load_duration_ns": 29113700,
+              "prompt_eval_duration_ns": 30760000,
+              "eval_duration_ns": 455326000,
+              "elapsed_s": 0.5541195990008418
+            }
+          ],
+          "model_slot_wait_s": 2.1179985196795315e-06,
+          "cache_hit": false,
+          "finished_s": 67.31927262200043,
+          "latency_s": 0.591063635001774,
+          "failure": null,
+          "question": "4d28dd5d-c9e7-4f38-8879-f8b2027f0a20"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 34,
+          "ordinal": 33,
+          "started_s": 67.31966609799929,
+          "sql_queries": 12,
+          "sql_s": 0.000639635996776633,
+          "generation_s": 0.7067502829995647,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 67.33188387300106,
+              "status": 200,
+              "total_duration_ns": 672800300,
+              "load_duration_ns": 22085000,
+              "prompt_eval_duration_ns": 39246000,
+              "eval_duration_ns": 589509000,
+              "elapsed_s": 0.6985158440002124
+            }
+          ],
+          "model_slot_wait_s": 2.0570005290210247e-06,
+          "cache_hit": false,
+          "finished_s": 68.05507911200039,
+          "latency_s": 0.7354130140010966,
+          "failure": null,
+          "question": "04acaef5-d932-48e5-be0c-853c2215f565"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 78,
+          "ordinal": 77,
+          "started_s": 68.05583400799878,
+          "sql_queries": 12,
+          "sql_s": 0.0009526570065645501,
+          "generation_s": 0.5792998809993151,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 68.07266985699971,
+              "status": 200,
+              "total_duration_ns": 536592700,
+              "load_duration_ns": 45763800,
+              "prompt_eval_duration_ns": 26114000,
+              "eval_duration_ns": 445591000,
+              "elapsed_s": 0.5674585130000196
+            }
+          ],
+          "model_slot_wait_s": 3.473000106168911e-06,
+          "cache_hit": false,
+          "finished_s": 68.67591177600116,
+          "latency_s": 0.6200777680023748,
+          "failure": null,
+          "question": "8bdb1486-0ac0-4c01-b79c-35ecbb5501b6"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 45,
+          "ordinal": 44,
+          "started_s": 68.67607730199961,
+          "sql_queries": 12,
+          "sql_s": 0.0006677130040770862,
+          "generation_s": 0.7125370430003386,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 68.68657767699915,
+              "status": 200,
+              "total_duration_ns": 676736500,
+              "load_duration_ns": 27840700,
+              "prompt_eval_duration_ns": 40873000,
+              "eval_duration_ns": 592798000,
+              "elapsed_s": 0.7037298180002836
+            }
+          ],
+          "model_slot_wait_s": 1.5510013327002525e-06,
+          "cache_hit": false,
+          "finished_s": 69.42231107100088,
+          "latency_s": 0.7462337690012646,
+          "failure": null,
+          "question": "c908ac58-e5cc-4785-9551-509fa36fd3f3"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 141,
+          "ordinal": 140,
+          "started_s": 69.42248239200126,
+          "sql_queries": 12,
+          "sql_s": 0.0006275919913605321,
+          "generation_s": 0.5325980170018738,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 69.43545064100181,
+              "status": 200,
+              "total_duration_ns": 499920600,
+              "load_duration_ns": 14112600,
+              "prompt_eval_duration_ns": 25390000,
+              "eval_duration_ns": 449872000,
+              "elapsed_s": 0.5218276630002947
+            }
+          ],
+          "model_slot_wait_s": 1.3219978427514434e-06,
+          "cache_hit": false,
+          "finished_s": 69.98442725000132,
+          "latency_s": 0.5619448580000608,
+          "failure": null,
+          "question": "652ed57c-24de-4baa-a1f7-be32d0ebd1f3"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 46,
+          "ordinal": 45,
+          "started_s": 69.98480249199929,
+          "sql_queries": 12,
+          "sql_s": 0.0005719540022255387,
+          "generation_s": 0.7067737899997155,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 69.99821093599894,
+              "status": 200,
+              "total_duration_ns": 676888300,
+              "load_duration_ns": 27697300,
+              "prompt_eval_duration_ns": 35986000,
+              "eval_duration_ns": 602641000,
+              "elapsed_s": 0.6985020430001896
+            }
+          ],
+          "model_slot_wait_s": 2.163000317523256e-06,
+          "cache_hit": false,
+          "finished_s": 70.71874199800004,
+          "latency_s": 0.7339395060007519,
+          "failure": null,
+          "question": "dd3d71ec-85c4-4313-907c-43abb533f032"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 13,
+          "ordinal": 12,
+          "started_s": 70.71918439799992,
+          "sql_queries": 12,
+          "sql_s": 0.0013245839945739135,
+          "generation_s": 0.55816612900162,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 70.7271960399994,
+              "status": 200,
+              "total_duration_ns": 525500600,
+              "load_duration_ns": 14265700,
+              "prompt_eval_duration_ns": 40715000,
+              "eval_duration_ns": 455621000,
+              "elapsed_s": 0.5521803390001878
+            }
+          ],
+          "model_slot_wait_s": 2.4379987735301256e-06,
+          "cache_hit": false,
+          "finished_s": 71.31232887599981,
+          "latency_s": 0.5931444779998856,
+          "failure": null,
+          "question": "59ef3ded-070a-4260-9bc6-c12351b8da6e"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 49,
+          "ordinal": 48,
+          "started_s": 71.31264622000162,
+          "sql_queries": 12,
+          "sql_s": 0.0008633739926153794,
+          "generation_s": 0.7405572870011383,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 71.33296946100018,
+              "status": 200,
+              "total_duration_ns": 693048900,
+              "load_duration_ns": 32713400,
+              "prompt_eval_duration_ns": 35989000,
+              "eval_duration_ns": 597825000,
+              "elapsed_s": 0.7247699920008017
+            }
+          ],
+          "model_slot_wait_s": 2.3380016500595957e-06,
+          "cache_hit": false,
+          "finished_s": 72.09312381600103,
+          "latency_s": 0.7804775959994004,
+          "failure": null,
+          "question": "2378a2b2-ed79-4efe-b51d-ced187d9a86c"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 12,
+          "ordinal": 11,
+          "started_s": 72.09348359000069,
+          "sql_queries": 12,
+          "sql_s": 0.0011105779922218062,
+          "generation_s": 0.5654331769983401,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 72.1194345699987,
+              "status": 200,
+              "total_duration_ns": 520280800,
+              "load_duration_ns": 20071400,
+              "prompt_eval_duration_ns": 38118000,
+              "eval_duration_ns": 449216000,
+              "elapsed_s": 0.5444636690008338
+            }
+          ],
+          "model_slot_wait_s": 6.300000677583739e-06,
+          "cache_hit": false,
+          "finished_s": 72.7020489380011,
+          "latency_s": 0.6085653480004112,
+          "failure": null,
+          "question": "aff6527a-3ca5-44fc-8b5f-69ffcf4cec26"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 14,
+          "ordinal": 13,
+          "started_s": 72.70242357900133,
+          "sql_queries": 12,
+          "sql_s": 0.0005339939998521004,
+          "generation_s": 0.5710945009996067,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 72.71424445700177,
+              "status": 200,
+              "total_duration_ns": 538430900,
+              "load_duration_ns": 32462200,
+              "prompt_eval_duration_ns": 43860000,
+              "eval_duration_ns": 446322000,
+              "elapsed_s": 0.5655440479968092
+            }
+          ],
+          "model_slot_wait_s": 2.682001650100574e-06,
+          "cache_hit": false,
+          "finished_s": 73.30405958200208,
+          "latency_s": 0.601636003000749,
+          "failure": null,
+          "question": "b55332b1-5184-4b46-b838-6582b26f5701"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 122,
+          "ordinal": 121,
+          "started_s": 73.30427126799987,
+          "sql_queries": 12,
+          "sql_s": 0.0008220060008170549,
+          "generation_s": 0.5215261020020989,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 73.31098249700153,
+              "status": 200,
+              "total_duration_ns": 489207500,
+              "load_duration_ns": 12793200,
+              "prompt_eval_duration_ns": 25339000,
+              "eval_duration_ns": 436971000,
+              "elapsed_s": 0.5135730679976405
+            }
+          ],
+          "model_slot_wait_s": 1.7229976947419345e-06,
+          "cache_hit": false,
+          "finished_s": 73.86173044599855,
+          "latency_s": 0.5574591779986804,
+          "failure": null,
+          "question": "69b71d61-c757-4d3c-a213-33e15fded9a2"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 127,
+          "ordinal": 126,
+          "started_s": 73.86217653999847,
+          "sql_queries": 12,
+          "sql_s": 0.0006601139975828119,
+          "generation_s": 0.5988677370005462,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 73.88572152000052,
+              "status": 200,
+              "total_duration_ns": 547678200,
+              "load_duration_ns": 45877400,
+              "prompt_eval_duration_ns": 37285000,
+              "eval_duration_ns": 441700000,
+              "elapsed_s": 0.5790952069983177
+            }
+          ],
+          "model_slot_wait_s": 2.6859997888095677e-06,
+          "cache_hit": false,
+          "finished_s": 74.48639230000117,
+          "latency_s": 0.6242157600026985,
+          "failure": null,
+          "question": "c644a7db-18f3-4bee-aa42-cdc935019d1f"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 28,
+          "ordinal": 27,
+          "started_s": 74.4866224819998,
+          "sql_queries": 12,
+          "sql_s": 0.0014377570078067947,
+          "generation_s": 0.5286868629991659,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 74.49591650300135,
+              "status": 200,
+              "total_duration_ns": 494803700,
+              "load_duration_ns": 14016700,
+              "prompt_eval_duration_ns": 25697000,
+              "eval_duration_ns": 443445000,
+              "elapsed_s": 0.5201001139976142
+            }
+          ],
+          "model_slot_wait_s": 1.4350007404573262e-06,
+          "cache_hit": false,
+          "finished_s": 75.05317164799999,
+          "latency_s": 0.5665491660001862,
+          "failure": null,
+          "question": "6e66fe68-2b73-40c9-b992-e886dbdab30b"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 20,
+          "ordinal": 19,
+          "started_s": 75.05334185399988,
+          "sql_queries": 12,
+          "sql_s": 0.0006037779894541018,
+          "generation_s": 0.7822151489999669,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 75.07593641499989,
+              "status": 200,
+              "total_duration_ns": 725707700,
+              "load_duration_ns": 43861200,
+              "prompt_eval_duration_ns": 42259000,
+              "eval_duration_ns": 613035000,
+              "elapsed_s": 0.7655042350015719
+            }
+          ],
+          "model_slot_wait_s": 1.3190001482143998e-06,
+          "cache_hit": false,
+          "finished_s": 75.86504048999996,
+          "latency_s": 0.8116986360000737,
+          "failure": null,
+          "question": "37064681-80e4-4538-86e3-ad3d4c3027fe"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 145,
+          "ordinal": 144,
+          "started_s": 75.865235887999,
+          "sql_queries": 12,
+          "sql_s": 0.0011328260006848723,
+          "generation_s": 0.5292835870022827,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 75.87705620600173,
+              "status": 200,
+              "total_duration_ns": 495449900,
+              "load_duration_ns": 14594000,
+              "prompt_eval_duration_ns": 32893000,
+              "eval_duration_ns": 435158000,
+              "elapsed_s": 0.5194720289982797
+            }
+          ],
+          "model_slot_wait_s": 1.1930023902095854e-06,
+          "cache_hit": false,
+          "finished_s": 76.42557573700105,
+          "latency_s": 0.5603398490020481,
+          "failure": null,
+          "question": "71618e42-0ccf-4ff0-a1bd-1b8b62d2b025"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 44,
+          "ordinal": 43,
+          "started_s": 76.42613734300176,
+          "sql_queries": 12,
+          "sql_s": 0.0007125330012058839,
+          "generation_s": 0.6880858599979547,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 76.44457620200046,
+              "status": 200,
+              "total_duration_ns": 654861300,
+              "load_duration_ns": 16084700,
+              "prompt_eval_duration_ns": 26172000,
+              "eval_duration_ns": 604993000,
+              "elapsed_s": 0.677026189998287
+            }
+          ],
+          "model_slot_wait_s": 3.7940008041914552e-06,
+          "cache_hit": false,
+          "finished_s": 77.1519063170017,
+          "latency_s": 0.7257689739999478,
+          "failure": null,
+          "question": "8e7d9082-ff7a-4013-916d-e97d4f087755"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 55,
+          "ordinal": 54,
+          "started_s": 77.15220472199871,
+          "sql_queries": 12,
+          "sql_s": 0.0010759999895526562,
+          "generation_s": 0.568861198000377,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 77.17112736800118,
+              "status": 200,
+              "total_duration_ns": 528874800,
+              "load_duration_ns": 33650200,
+              "prompt_eval_duration_ns": 32667000,
+              "eval_duration_ns": 445832000,
+              "elapsed_s": 0.5571716699996614
+            }
+          ],
+          "model_slot_wait_s": 1.853000867413357e-06,
+          "cache_hit": false,
+          "finished_s": 77.75751277200106,
+          "latency_s": 0.6053080500023498,
+          "failure": null,
+          "question": "88b9b69f-0300-4497-8774-f8a4d45d8a76"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 90,
+          "ordinal": 89,
+          "started_s": 77.7577297099997,
+          "sql_queries": 12,
+          "sql_s": 0.0003893590073857922,
+          "generation_s": 0.5068148200007272,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 77.767214219999,
+              "status": 200,
+              "total_duration_ns": 478210600,
+              "load_duration_ns": 14781800,
+              "prompt_eval_duration_ns": 23454000,
+              "eval_duration_ns": 431476000,
+              "elapsed_s": 0.4985034490018734
+            }
+          ],
+          "model_slot_wait_s": 1.2809978215955198e-06,
+          "cache_hit": false,
+          "finished_s": 78.28947848600001,
+          "latency_s": 0.5317487760003132,
+          "failure": null,
+          "question": "efb8ad50-4a8a-4ade-8683-4ede96c146f2"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 21,
+          "ordinal": 20,
+          "started_s": 78.2900351060016,
+          "sql_queries": 12,
+          "sql_s": 0.000842490993818501,
+          "generation_s": 0.5291986770025687,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 78.30136965199927,
+              "status": 200,
+              "total_duration_ns": 497390200,
+              "load_duration_ns": 21795200,
+              "prompt_eval_duration_ns": 27004000,
+              "eval_duration_ns": 436774000,
+              "elapsed_s": 0.5214425520025543
+            }
+          ],
+          "model_slot_wait_s": 3.282999387010932e-06,
+          "cache_hit": false,
+          "finished_s": 78.84798600499926,
+          "latency_s": 0.5579508989976603,
+          "failure": null,
+          "question": "665bb4a0-14cd-4c79-a989-5f9a0901a244"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 104,
+          "ordinal": 103,
+          "started_s": 78.8482802590006,
+          "sql_queries": 12,
+          "sql_s": 0.002012652992561925,
+          "generation_s": 0.5735193299988168,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 78.86552360999849,
+              "status": 200,
+              "total_duration_ns": 532059600,
+              "load_duration_ns": 16839700,
+              "prompt_eval_duration_ns": 39647000,
+              "eval_duration_ns": 461570000,
+              "elapsed_s": 0.5585556060032104
+            }
+          ],
+          "model_slot_wait_s": 2.002001565415412e-06,
+          "cache_hit": false,
+          "finished_s": 79.47044078099862,
+          "latency_s": 0.622160521998012,
+          "failure": null,
+          "question": "fe7524c9-45fe-4b95-ac7b-4ff5342136b7"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 98,
+          "ordinal": 97,
+          "started_s": 79.47122134299934,
+          "sql_queries": 12,
+          "sql_s": 0.0008751109999138862,
+          "generation_s": 0.5878899070012267,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 79.49277231900123,
+              "status": 200,
+              "total_duration_ns": 541246100,
+              "load_duration_ns": 29208000,
+              "prompt_eval_duration_ns": 46491000,
+              "eval_duration_ns": 449616000,
+              "elapsed_s": 0.5779395489989838
+            }
+          ],
+          "model_slot_wait_s": 4.878998879576102e-06,
+          "cache_hit": false,
+          "finished_s": 80.09948385200187,
+          "latency_s": 0.6282625090025249,
+          "failure": null,
+          "question": "35018170-676a-41e1-9323-b3138e2f9e98"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 2,
+          "ordinal": 1,
+          "started_s": 80.09976846100108,
+          "sql_queries": 12,
+          "sql_s": 0.0011298689933028072,
+          "generation_s": 0.5392220950016053,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 80.10998029899929,
+              "status": 200,
+              "total_duration_ns": 507410100,
+              "load_duration_ns": 16143000,
+              "prompt_eval_duration_ns": 29159000,
+              "eval_duration_ns": 451917000,
+              "elapsed_s": 0.5320719760020438
+            }
+          ],
+          "model_slot_wait_s": 1.8099999579135329e-06,
+          "cache_hit": false,
+          "finished_s": 80.6671052749989,
+          "latency_s": 0.5673368139978265,
+          "failure": null,
+          "question": "7ae47957-4648-40d9-ba88-29760638c4b8"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 72,
+          "ordinal": 71,
+          "started_s": 80.66746776700165,
+          "sql_queries": 12,
+          "sql_s": 0.0005318990006344393,
+          "generation_s": 0.5811734380004054,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 80.68860197599861,
+              "status": 200,
+              "total_duration_ns": 528205700,
+              "load_duration_ns": 44979200,
+              "prompt_eval_duration_ns": 27866000,
+              "eval_duration_ns": 436841000,
+              "elapsed_s": 0.564954117002344
+            }
+          ],
+          "model_slot_wait_s": 4.200999683234841e-06,
+          "cache_hit": false,
+          "finished_s": 81.27062910500172,
+          "latency_s": 0.6031613380000636,
+          "failure": null,
+          "question": "32f6737a-e23f-4613-a99f-549daa422c7c"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 115,
+          "ordinal": 114,
+          "started_s": 81.2708247920018,
+          "sql_queries": 12,
+          "sql_s": 0.0007790939926053397,
+          "generation_s": 0.6970055249985307,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 81.27934115799872,
+              "status": 200,
+              "total_duration_ns": 666681000,
+              "load_duration_ns": 28436800,
+              "prompt_eval_duration_ns": 27429000,
+              "eval_duration_ns": 594598000,
+              "elapsed_s": 0.6877696640003705
+            }
+          ],
+          "model_slot_wait_s": 9.899995347950608e-07,
+          "cache_hit": false,
+          "finished_s": 82.00195330199858,
+          "latency_s": 0.731128509996779,
+          "failure": null,
+          "question": "0b5985d8-ef38-41f5-9fe6-ce1138388948"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 57,
+          "ordinal": 56,
+          "started_s": 82.00213562000135,
+          "sql_queries": 12,
+          "sql_s": 0.0004096530028618872,
+          "generation_s": 0.5344904379999207,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 82.0139268540006,
+              "status": 200,
+              "total_duration_ns": 498084700,
+              "load_duration_ns": 17424800,
+              "prompt_eval_duration_ns": 24158000,
+              "eval_duration_ns": 441251000,
+              "elapsed_s": 0.5237667670007795
+            }
+          ],
+          "model_slot_wait_s": 1.1349984561093152e-06,
+          "cache_hit": false,
+          "finished_s": 82.56652971700169,
+          "latency_s": 0.5643940970003314,
+          "failure": null,
+          "question": "5fc15692-ca8d-44f7-b046-069de5d0d674"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 108,
+          "ordinal": 107,
+          "started_s": 82.56674536699938,
+          "sql_queries": 12,
+          "sql_s": 0.001317842001299141,
+          "generation_s": 0.5987514080006804,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 82.58524841200051,
+              "status": 200,
+              "total_duration_ns": 557387600,
+              "load_duration_ns": 33526100,
+              "prompt_eval_duration_ns": 46421000,
+              "eval_duration_ns": 457884000,
+              "elapsed_s": 0.5841563799986034
+            }
+          ],
+          "model_slot_wait_s": 1.3640019460581243e-06,
+          "cache_hit": false,
+          "finished_s": 83.19586390200129,
+          "latency_s": 0.6291185350019077,
+          "failure": null,
+          "question": "c9855aa8-e8a3-49d6-acd6-934a7194a337"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 51,
+          "ordinal": 50,
+          "started_s": 83.19644688400149,
+          "sql_queries": 12,
+          "sql_s": 0.0005567119987972546,
+          "generation_s": 0.7110658829988097,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 83.20719437699881,
+              "status": 200,
+              "total_duration_ns": 674525900,
+              "load_duration_ns": 23030400,
+              "prompt_eval_duration_ns": 44412000,
+              "eval_duration_ns": 593164000,
+              "elapsed_s": 0.7034213510014524
+            }
+          ],
+          "model_slot_wait_s": 1.81560026248917e-05,
+          "cache_hit": false,
+          "finished_s": 83.93788114400013,
+          "latency_s": 0.7414342599986412,
+          "failure": null,
+          "question": "36ff981f-9b11-44da-a4a5-7fa972fadbc5"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 149,
+          "ordinal": 148,
+          "started_s": 83.93812673700086,
+          "sql_queries": 12,
+          "sql_s": 0.0008072180025919806,
+          "generation_s": 0.5575720950000687,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 83.9545478580003,
+              "status": 200,
+              "total_duration_ns": 524746300,
+              "load_duration_ns": 16773000,
+              "prompt_eval_duration_ns": 35589000,
+              "eval_duration_ns": 445040000,
+              "elapsed_s": 0.5491991269991559
+            }
+          ],
+          "model_slot_wait_s": 1.9319995772093534e-06,
+          "cache_hit": false,
+          "finished_s": 84.52202524599852,
+          "latency_s": 0.5838985089976632,
+          "failure": null,
+          "question": "9711911c-ba96-40f6-91db-0e5f96315010"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 130,
+          "ordinal": 129,
+          "started_s": 84.52219624999998,
+          "sql_queries": 12,
+          "sql_s": 0.0006780799994885456,
+          "generation_s": 0.580613699999958,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 84.53233124500184,
+              "status": 200,
+              "total_duration_ns": 545460400,
+              "load_duration_ns": 26590100,
+              "prompt_eval_duration_ns": 39180000,
+              "eval_duration_ns": 462419000,
+              "elapsed_s": 0.5691342709978926
+            }
+          ],
+          "model_slot_wait_s": 1.2589989637490362e-06,
+          "cache_hit": false,
+          "finished_s": 85.13588829099899,
+          "latency_s": 0.6136920409990125,
+          "failure": null,
+          "question": "74b0c729-673e-4361-89ac-3d10da70a841"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 60,
+          "ordinal": 59,
+          "started_s": 85.13632413400046,
+          "sql_queries": 12,
+          "sql_s": 0.0018161300031351857,
+          "generation_s": 0.5356813459984551,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 85.15231319699888,
+              "status": 200,
+              "total_duration_ns": 505204600,
+              "load_duration_ns": 12980400,
+              "prompt_eval_duration_ns": 35948000,
+              "eval_duration_ns": 447684000,
+              "elapsed_s": 0.5235058860016579
+            }
+          ],
+          "model_slot_wait_s": 1.8719983927439898e-06,
+          "cache_hit": false,
+          "finished_s": 85.71060389700142,
+          "latency_s": 0.5742797630009591,
+          "failure": null,
+          "question": "c4aff595-b0ad-41b3-be2c-fb18ef398d1e"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 56,
+          "ordinal": 55,
+          "started_s": 85.71119893500145,
+          "sql_queries": 12,
+          "sql_s": 0.0004882299981545657,
+          "generation_s": 0.6978337239997927,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 85.73059256199849,
+              "status": 200,
+              "total_duration_ns": 653562300,
+              "load_duration_ns": 19157900,
+              "prompt_eval_duration_ns": 23770000,
+              "eval_duration_ns": 601783000,
+              "elapsed_s": 0.6824240850000933
+            }
+          ],
+          "model_slot_wait_s": 4.188997991150245e-06,
+          "cache_hit": false,
+          "finished_s": 86.43945140299911,
+          "latency_s": 0.7282524679976632,
+          "failure": null,
+          "question": "24c4decc-dead-4086-bad5-855520a780ac"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 24,
+          "ordinal": 23,
+          "started_s": 86.43967477800106,
+          "sql_queries": 12,
+          "sql_s": 0.0008737749922147486,
+          "generation_s": 0.6808071340019524,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 86.45033536399933,
+              "status": 200,
+              "total_duration_ns": 648971600,
+              "load_duration_ns": 17519900,
+              "prompt_eval_duration_ns": 34332000,
+              "eval_duration_ns": 584451000,
+              "elapsed_s": 0.6705651539996325
+            }
+          ],
+          "model_slot_wait_s": 1.2689997674897313e-06,
+          "cache_hit": false,
+          "finished_s": 87.150077151,
+          "latency_s": 0.7104023729989422,
+          "failure": null,
+          "question": "a4c27247-ccca-4fe5-996d-b2a723c7156e"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 8,
+          "ordinal": 7,
+          "started_s": 87.15026875799958,
+          "sql_queries": 12,
+          "sql_s": 0.000606566001806641,
+          "generation_s": 0.5891442529973574,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 87.17095703100131,
+              "status": 200,
+              "total_duration_ns": 530603400,
+              "load_duration_ns": 31975100,
+              "prompt_eval_duration_ns": 32648000,
+              "eval_duration_ns": 447777000,
+              "elapsed_s": 0.5734902330004843
+            }
+          ],
+          "model_slot_wait_s": 1.696000254014507e-06,
+          "cache_hit": false,
+          "finished_s": 87.77940166500048,
+          "latency_s": 0.6291329070008942,
+          "failure": null,
+          "question": "c9872df2-37a3-4c74-8c22-3684860cb97e"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 9,
+          "ordinal": 8,
+          "started_s": 87.78011181200054,
+          "sql_queries": 12,
+          "sql_s": 0.0017525089970149565,
+          "generation_s": 0.5722311009994883,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 87.80039518999911,
+              "status": 200,
+              "total_duration_ns": 527836200,
+              "load_duration_ns": 44683700,
+              "prompt_eval_duration_ns": 28154000,
+              "eval_duration_ns": 430393000,
+              "elapsed_s": 0.5588385000010021
+            }
+          ],
+          "model_slot_wait_s": 4.990000888938084e-06,
+          "cache_hit": false,
+          "finished_s": 88.38297407199934,
+          "latency_s": 0.6028622599988012,
+          "failure": null,
+          "question": "75800ca3-cd3c-40fc-ac85-db708c035bc3"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 109,
+          "ordinal": 108,
+          "started_s": 88.3831755780011,
+          "sql_queries": 12,
+          "sql_s": 0.00046989800830488093,
+          "generation_s": 0.6862378069999977,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 88.39167519300099,
+              "status": 200,
+              "total_duration_ns": 646636100,
+              "load_duration_ns": 14930100,
+              "prompt_eval_duration_ns": 23615000,
+              "eval_duration_ns": 599358000,
+              "elapsed_s": 0.6779350920005527
+            }
+          ],
+          "model_slot_wait_s": 1.4880024536978453e-06,
+          "cache_hit": false,
+          "finished_s": 89.10354938599994,
+          "latency_s": 0.7203738079988398,
+          "failure": null,
+          "question": "2f42f25f-7701-4305-8a9e-246d61eb82dd"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 23,
+          "ordinal": 22,
+          "started_s": 89.10378753600162,
+          "sql_queries": 12,
+          "sql_s": 0.0007579319972137455,
+          "generation_s": 0.5702336540016404,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 89.11684573000093,
+              "status": 200,
+              "total_duration_ns": 523385300,
+              "load_duration_ns": 29563300,
+              "prompt_eval_duration_ns": 38352000,
+              "eval_duration_ns": 437996000,
+              "elapsed_s": 0.5606609969981946
+            }
+          ],
+          "model_slot_wait_s": 2.0950028556399047e-06,
+          "cache_hit": false,
+          "finished_s": 89.706191477002,
+          "latency_s": 0.6024039410003752,
+          "failure": null,
+          "question": "54553749-059f-42ad-ab37-00d04950eb89"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 140,
+          "ordinal": 139,
+          "started_s": 89.70638497700202,
+          "sql_queries": 12,
+          "sql_s": 0.0017106819941545837,
+          "generation_s": 0.5389717670004757,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 89.71593478900104,
+              "status": 200,
+              "total_duration_ns": 511261600,
+              "load_duration_ns": 23933700,
+              "prompt_eval_duration_ns": 34585000,
+              "eval_duration_ns": 439635000,
+              "elapsed_s": 0.5318927279986383
+            }
+          ],
+          "model_slot_wait_s": 1.543998223496601e-06,
+          "cache_hit": false,
+          "finished_s": 90.28216542000155,
+          "latency_s": 0.5757804429995304,
+          "failure": null,
+          "question": "7508125b-d681-4789-b3cd-dc511f98f8c4"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 27,
+          "ordinal": 26,
+          "started_s": 90.28234353299922,
+          "sql_queries": 12,
+          "sql_s": 0.00043512600677786395,
+          "generation_s": 0.5763766260024568,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 90.30603084099857,
+              "status": 200,
+              "total_duration_ns": 525908800,
+              "load_duration_ns": 24196200,
+              "prompt_eval_duration_ns": 43481000,
+              "eval_duration_ns": 442764000,
+              "elapsed_s": 0.5539094110026781
+            }
+          ],
+          "model_slot_wait_s": 1.3850003597326577e-06,
+          "cache_hit": false,
+          "finished_s": 90.88654290699924,
+          "latency_s": 0.604199374000018,
+          "failure": null,
+          "question": "4f12f54d-11d6-4092-aaef-9c13191b1a61"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 36,
+          "ordinal": 35,
+          "started_s": 90.88689333000002,
+          "sql_queries": 12,
+          "sql_s": 0.0013648910135088954,
+          "generation_s": 0.550264020999748,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 90.89866796600109,
+              "status": 200,
+              "total_duration_ns": 520678500,
+              "load_duration_ns": 26040200,
+              "prompt_eval_duration_ns": 31865000,
+              "eval_duration_ns": 442438000,
+              "elapsed_s": 0.5427078709981288
+            }
+          ],
+          "model_slot_wait_s": 2.568998752394691e-06,
+          "cache_hit": false,
+          "finished_s": 91.48007845100074,
+          "latency_s": 0.5931851210007153,
+          "failure": null,
+          "question": "a5752dd1-f812-4ced-9e96-dc699e8ac036"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 58,
+          "ordinal": 57,
+          "started_s": 91.48072732999935,
+          "sql_queries": 12,
+          "sql_s": 0.0007511799958592746,
+          "generation_s": 0.5659830860022339,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 91.4982097409993,
+              "status": 200,
+              "total_duration_ns": 519844800,
+              "load_duration_ns": 31547700,
+              "prompt_eval_duration_ns": 27067000,
+              "eval_duration_ns": 449204000,
+              "elapsed_s": 0.5510144479994779
+            }
+          ],
+          "model_slot_wait_s": 3.745000867638737e-06,
+          "cache_hit": false,
+          "finished_s": 92.08510418399965,
+          "latency_s": 0.604376854000293,
+          "failure": null,
+          "question": "85b81047-642f-4fbc-8c23-f4868b30e306"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 63,
+          "ordinal": 62,
+          "started_s": 92.08538836099979,
+          "sql_queries": 12,
+          "sql_s": 0.0006946810099179856,
+          "generation_s": 0.5444771049988049,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 92.10563580700182,
+              "status": 200,
+              "total_duration_ns": 508648700,
+              "load_duration_ns": 13472600,
+              "prompt_eval_duration_ns": 37561000,
+              "eval_duration_ns": 447244000,
+              "elapsed_s": 0.5285276409995276
+            }
+          ],
+          "model_slot_wait_s": 2.058000973192975e-06,
+          "cache_hit": false,
+          "finished_s": 92.67648583499977,
+          "latency_s": 0.5910974739999801,
+          "failure": null,
+          "question": "b36597f6-a0e5-4073-8b8c-ce091e8a65ff"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 71,
+          "ordinal": 70,
+          "started_s": 92.67677997099963,
+          "sql_queries": 12,
+          "sql_s": 0.0007136539970815647,
+          "generation_s": 0.5797238669983926,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 92.68944202499915,
+              "status": 200,
+              "total_duration_ns": 542821500,
+              "load_duration_ns": 36403000,
+              "prompt_eval_duration_ns": 37134000,
+              "eval_duration_ns": 452986000,
+              "elapsed_s": 0.5695142210024642
+            }
+          ],
+          "model_slot_wait_s": 2.1570012904703617e-06,
+          "cache_hit": false,
+          "finished_s": 93.29249802300183,
+          "latency_s": 0.6157180520021939,
+          "failure": null,
+          "question": "da59ee2c-fc32-4f1a-9813-de423ec016cf"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 7,
+          "ordinal": 6,
+          "started_s": 93.29271527599849,
+          "sql_queries": 12,
+          "sql_s": 0.0007423339957313146,
+          "generation_s": 0.5621228989984957,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 93.30387234799855,
+              "status": 200,
+              "total_duration_ns": 525517300,
+              "load_duration_ns": 26178400,
+              "prompt_eval_duration_ns": 33521000,
+              "eval_duration_ns": 446048000,
+              "elapsed_s": 0.5542370690018288
+            }
+          ],
+          "model_slot_wait_s": 1.5930017980281264e-06,
+          "cache_hit": false,
+          "finished_s": 93.8819940329995,
+          "latency_s": 0.5892787570010114,
+          "failure": null,
+          "question": "d6778cd9-5703-48a1-87c5-0d207a234db0"
+        },
+        {
+          "session": "15e077cc-aeb8-4c67-b060-34b401073057",
+          "card": 29,
+          "ordinal": 28,
+          "started_s": 93.88226103800116,
+          "sql_queries": 12,
+          "sql_s": 0.00043780700434581377,
+          "generation_s": 0.5346145000003162,
+          "requests": [
+            {
+              "kind": "live",
+              "started_s": 93.89201606300048,
+              "status": 200,
+              "total_duration_ns": 507814200,
+              "load_duration_ns": 18228900,
+              "prompt_eval_duration_ns": 28988000,
+              "eval_duration_ns": 448942000,
+              "elapsed_s": 0.5282708490012737
+            }
+          ],
+          "model_slot_wait_s": 2.245000359835103e-06,
+          "cache_hit": false,
+          "finished_s": 94.44300699100131,
+          "latency_s": 0.5607459530001506,
+          "failure": null,
+          "question": "428d1a60-c5db-4c59-b25d-5376e7d6cd2b"
+        }
+      ]
+    }
+  ],
+  "ollama_version": "0.40.16",
+  "model_digest": "8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7",
+  "journal_mode": "wal"
+}

@@ -47,13 +47,23 @@ def init_database(target=engine):
         migrate_sharing(connection)
         # Existing multiple-choice sessions default to unlimited timing.
         for table, fields in (
-            ("multiple_choice_sessions", {"timing_scope": "VARCHAR(8)", "timing_seconds": "INTEGER", "deck_deadline": "DATETIME"}),
+            ("multiple_choice_sessions", {
+                "timing_scope": "VARCHAR(8)", "timing_seconds": "INTEGER", "deck_deadline": "DATETIME",
+                "study_started_at": "DATETIME", "preparation_finished_at": "DATETIME",
+            }),
             ("multiple_choice_questions", {"question_deadline": "DATETIME", "timed_out_at": "DATETIME"}),
         ):
             columns = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table})"))}
             for name, kind in fields.items():
                 if name not in columns:
                     connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {kind}"))
+            if table == "multiple_choice_sessions" and "preparation_finished_at" not in columns:
+                connection.execute(text("""
+                    UPDATE multiple_choice_sessions
+                    SET preparation_finished_at = COALESCE(finished_at, created_at),
+                        study_started_at = CASE WHEN status IN ('active', 'completed') THEN created_at END
+                    WHERE status <> 'preparing'
+                """))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_login_throttles_window_started ON login_throttles (window_started)"))
         legacy = {table: [row["id"] for row in rows] for table, rows in legacy_cards(connection).items() if rows}
         if legacy:

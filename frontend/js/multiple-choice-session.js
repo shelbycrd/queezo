@@ -28,37 +28,50 @@ export function multipleChoiceSession(sessionId, {
 
   const current = token => !reads.signal.aborted && active() && token === version;
   const publish = () => update({...view});
+  const studying = session => session.status === 'active' && session.study_started !== false;
   function clearPoll() {
     clearTimer(timer);
     timer = undefined;
   }
   function schedule(token) {
     if (!current(token) || view.problem) return;
-    if (view.session?.status === 'preparing') {
+    const preparing = view.session?.preparing ?? (view.session?.status === 'preparing');
+    const timeLeft = view.session?.status === 'active' && view.clock &&
+      (!view.grade || view.session.timing.scope === 'deck') ? Math.max(0, view.clock - now()) : null;
+    if (timeLeft !== null && (!preparing || timeLeft <= 1500)) {
+      timer = setTimer(() => void run('clock', readState), timeLeft);
+    } else if (preparing) {
       timer = setTimer(() => void poll(), 1500);
-    } else if (view.session?.status === 'active' && view.clock &&
-               (!view.grade || view.session.timing.scope === 'deck')) {
-      timer = setTimer(() => void run('clock', readState), Math.max(0, view.clock - now()));
     }
   }
   async function readState(token, savedSession) {
     let session = savedSession ?? await request(path, {signal:reads.signal});
     if (!current(token)) return;
+    if (session.can_start && !session.study_started) {
+      try {
+        session = await request(path + '/start', {method:'POST'});
+      } catch (error) {
+        if (!current(token) || ![409,410].includes(error.status)) throw error;
+        session = await request(path, {signal:reads.signal});
+        if (session.can_start && !session.study_started) throw error;
+      }
+      if (!current(token)) return;
+    }
     let question = null;
     let clock = null;
-    if (session.status === 'active' && session.timing) {
+    if (studying(session) && session.timing) {
       const opened = await request(path + '/question', {method:'POST'});
       session = opened.session;
       question = opened.question;
       if (Number.isFinite(opened.remaining_ms)) clock = now() + opened.remaining_ms;
-    } else if (session.status === 'active') {
+    } else if (studying(session) && session.question_ready !== false) {
       try {
         question = await request(path + '/question', {signal:reads.signal});
       } catch (error) {
         if (!current(token) || ![409,410].includes(error.status)) throw error;
         // Another tab may finish or cancel between the status and question requests.
         session = await request(path, {signal:reads.signal});
-        if (current(token) && session.status === 'active') {
+        if (current(token) && studying(session) && session.question_ready !== false) {
           question = await request(path + '/question', {signal:reads.signal});
         }
       }
@@ -79,10 +92,18 @@ export function multipleChoiceSession(sessionId, {
     try {
       const session = await request(path, {signal:reads.signal});
       if (!current(token)) return;
-      const changed = session.status !== view.session.status ||
-        session.progress.completed !== view.session.progress.completed;
-      if (changed) {
-        await readState(token, session);
+      const previous = view.session;
+      const changed = session.progress.completed !== previous.progress.completed ||
+        ['status','can_start','preparing','study_started','question_ready','answered','timed_out','deck_time_over']
+          .some(key => session[key] !== previous[key]);
+      if (session.can_start && !session.study_started) {
+        await run('start', nextToken => readState(nextToken, session));
+      } else if (changed) {
+        const sameProgress = session.answered === previous.answered && session.timed_out === previous.timed_out;
+        const keepQuestion = view.question && sameProgress && !session.deck_time_over &&
+          (studying(session) || (view.grade && session.status === 'completed'));
+        if (keepQuestion) view.session = session;
+        else await readState(token, session);
         if (current(token)) publish();
       }
     } catch (error) {
@@ -145,7 +166,7 @@ export function multipleChoiceSession(sessionId, {
       }
     },
     transition(action) {
-      if (!['retry','continue','cancel'].includes(action) || view.problem) return;
+      if (!['start','retry','continue','cancel'].includes(action) || view.problem) return;
       return run(action, async token => {
         const session = await request(`${path}/${action}`, {method:'POST'});
         if (current(token)) await readState(token, session);

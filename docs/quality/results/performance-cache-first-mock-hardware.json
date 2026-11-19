@@ -1,0 +1,13 @@
+{
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "physical_cores": 8,
+  "logical_cores": 12,
+  "physical_memory_bytes": 16791048192,
+  "os": "Microsoft Windows 11 Home Single Language",
+  "os_build": "26200",
+  "docker": "29.9.2 / 6.18.58.1-microsoft-standard-WSL2 / 12 CPUs / 8135655424 bytes",
+  "gpu_nvidia": [
+    "NVIDIA GeForce RTX 3050 6GB Laptop GPU, 6144 MiB, 610.91"
+  ],
+  "host_sample_interval_ms": 500
+}

@@ -29,6 +29,11 @@ def status(session_id: str, user: User = Depends(require_user), db: Session = De
     return study.session_view(db, study.owned_session(db, session_id, user.id))
 
 
+@router.post("/multiple-choice/{session_id}/start")
+def begin_study(session_id: str, user: User = Depends(require_user)):
+    return study.begin_study(session_id, user.id)
+
+
 @router.post("/multiple-choice/{session_id}/retry", status_code=202)
 async def retry(session_id: str, request: Request, user: User = Depends(require_user)):
     state, attempt = await run_in_threadpool(study.retry_session, session_id, user.id)
@@ -54,8 +59,13 @@ def question(session_id: str, user: User = Depends(require_user), db: Session = 
 
 
 @router.post("/multiple-choice/{session_id}/question")
-def open_question(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
-    return study.open_question(db, study.owned_session(db, session_id, user.id))
+async def open_question(session_id: str, request: Request, user: User = Depends(require_user)):
+    result = await run_in_threadpool(study.open_owned_question, session_id, user.id)
+    if result["session"]["preparing"] and result["session"].get("deck_time_over"):
+        # Let the current job exit and settle before returning a completed timed session.
+        await request.app.state.multiple_choice_jobs.cancel(session_id)
+        result = await run_in_threadpool(study.open_owned_question, session_id, user.id, True)
+    return result
 
 
 @router.post("/multiple-choice/{session_id}/answer")

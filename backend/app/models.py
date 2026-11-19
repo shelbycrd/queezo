@@ -88,6 +88,8 @@ class MultipleChoiceSession(Base):
     timing_scope: Mapped[str | None] = mapped_column(String(8))
     timing_seconds: Mapped[int | None] = mapped_column(Integer)
     deck_deadline: Mapped[datetime | None] = mapped_column(DateTime)
+    study_started_at: Mapped[datetime | None] = mapped_column(DateTime)
+    preparation_finished_at: Mapped[datetime | None] = mapped_column(DateTime)
     expires_at: Mapped[datetime] = mapped_column(DateTime)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime)
     __table_args__ = (

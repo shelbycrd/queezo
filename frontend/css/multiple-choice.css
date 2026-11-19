@@ -24,7 +24,7 @@
   cursor: pointer;
 }
 .study-type-grid label:has(input:checked),
-.mc-option:has(input:checked) { border-color: #749de0; background: #edf5ff; }
+.mc-choices:not(.mc-graded) .mc-option:has(input:checked) { border-color: #749de0; background: #edf5ff; }
 .study-type-grid input, .mc-option input { width: 17px; height: 17px; flex: 0 0 17px; accent-color: var(--green); }
 .study-type-grid strong, .study-type-grid small { display: block; overflow-wrap: anywhere; }
 .study-type-grid small { color: var(--muted); font-weight: 500; }
@@ -48,8 +48,8 @@
 .mc-question .study-question { overflow-wrap: anywhere; }
 .mc-choices legend { font-size: .94rem; }
 .mc-option {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 17px 27px minmax(0, 1fr) max-content;
   align-items: center;
   gap: 8px;
   margin: 0;
@@ -59,15 +59,18 @@
   border: 2px solid #dce7f7;
   background: #fff;
   color: var(--ink);
+  font-size: .9rem;
   font-weight: 600;
 }
 label.mc-option { cursor: pointer; }
-label.mc-option:hover { border-color: #9cb9e8; }
+.mc-choices:not(.mc-graded) label.mc-option:hover { border-color: #9cb9e8; }
 .mc-option:has(input:focus-visible), .study-type-grid label:has(input:focus-visible) {
   outline: 2px solid #d19942;
   outline-offset: 2px;
 }
-.mc-option-text { flex: 1 1 120px; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mc-option-text { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mc-graded .mc-option input { visibility: hidden; }
+.mc-graded label.mc-option { cursor: default; }
 .mc-letter {
   display: inline-grid;
   place-items: center;
@@ -78,10 +81,16 @@ label.mc-option:hover { border-color: #9cb9e8; }
   color: #456aa7;
   font-size: .75rem;
 }
-.mc-graded-options { padding: 0; margin: 0; list-style: none; }
-.mc-option-mark { display: inline-block; border-radius: 999px; background: #fff; padding: 2px 7px; font-size: .7rem; }
-.mc-option-photo { flex-basis: 100%; }
-.mc-option-photo .card-photo { margin: 4px 0 0; }
+.mc-option-mark {
+  display: grid;
+  align-content: center;
+  min-height: 2.4em;
+  font-size: .7rem;
+  line-height: 1.2;
+  text-align: right;
+}
+.mc-option-mark:not(:has(.is-visible + .is-visible)) span { grid-area: 1 / 1; }
+.mc-option-mark span:not(.is-visible) { visibility: hidden; }
 .mc-correct { color: #245b36; border-color: #a8d5b6; background: #eff9f2; }
 .mc-incorrect { color: #803e37; border-color: #ebc1bb; background: #fff4f1; }
 .mc-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

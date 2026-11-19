@@ -8,17 +8,21 @@ from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import select, text, update
+from sqlalchemy import and_, select, text, update
+from sqlalchemy.orm import load_only
 from starlette.concurrency import run_in_threadpool
 
 from app.database import SessionLocal
 from app.models import Deck, Flashcard, MultipleChoiceQuestion, MultipleChoiceSession, User, utcnow
 from app.services.activity import mark_study_day
-from app.services.distractor_cache import InsufficientDistractorsError, get_or_generate_distractors
+from app.services.distractor_cache import (
+    InsufficientDistractorsError, cached_choices_for_deck, get_or_generate_distractors,
+)
 from app.services.ownership import owned_flashcards
 from app.services.presenters import iso
 
 PREPARATION_TIMEOUT = 900
+START_QUESTIONS = 5
 SESSION_LIFETIME = timedelta(hours=24)
 logger = logging.getLogger(__name__)
 
@@ -53,13 +57,31 @@ def _questions(session_id):
 
 def _status(session, now=None):
     now = now or utcnow()
-    if session.status == "active" and session.deck_deadline is not None and session.deck_deadline <= now:
+    if (session.status in {"active", "failed"} and session.preparation_finished_at is not None
+            and _deck_time_over(session, now)):
         return "completed"
     if session.status in {"preparing", "failed", "active"} and session.expires_at <= now:
         return "expired"
     if session.status == "preparing" and session.prepare_until <= now:
         return "failed"
     return session.status
+
+
+def _deck_time_over(session, now):
+    return session.deck_deadline is not None and session.deck_deadline <= now
+
+
+def _opening_progress(rows):
+    target = min(START_QUESTIONS, len(rows))
+    ready = 0
+    for row in rows:
+        if row.correct_option_id is not None:
+            ready += 1
+        elif not row.failure:
+            break
+        if ready == target:
+            break
+    return {"ready": ready, "target": target}
 
 
 def _require_status(session, *allowed, now=None):
@@ -75,7 +97,13 @@ def session_view(db, session):
     rows = db.execute(_questions(session.id).with_only_columns(
         q.source_card_id, q.correct_option_id, q.selected_option_id, q.failure, q.timed_out_at,
     ).order_by(q.position)).all()
-    status = _status(session)
+    now = utcnow()
+    status = _status(session, now)
+    preparing = session.preparation_finished_at is None and status in {"preparing", "active"}
+    next_slot = next((row for row in rows if row.selected_option_id is None
+                      and row.timed_out_at is None and not row.failure), None)
+    deck_time_over = _deck_time_over(session, now)
+    opening = _opening_progress(rows)
     stalled = session.status == "preparing" and status in {"failed", "expired"}
     failures = [{"card_id": row.source_card_id, "reason": row.failure or "preparation_timeout"}
                 for row in rows if row.failure or (stalled and row.correct_option_id is None)]
@@ -92,12 +120,20 @@ def session_view(db, session):
         timing = {
             "timing": {"scope": session.timing_scope, "seconds": session.timing_seconds},
             "timed_out": ready - answered if deck_timed_out else sum(row.timed_out_at is not None for row in rows),
+            "deck_time_over": deck_time_over,
         }
     return {
         "id": session.id, "mode": "multiple_choice", "deck_id": session.deck_id,
         "deck_title": session.deck_title, "status": status,
+        "preparing": preparing, "study_started": session.study_started_at is not None,
+        "can_start": session.study_started_at is None and (status == "active" or (
+            status == "preparing" and 0 < opening["target"] == opening["ready"]
+        )),
+        "question_ready": (status == "active" and not deck_time_over and next_slot is not None
+                           and next_slot.correct_option_id is not None),
         "progress": {"total": len(rows), "completed": ready + len(failures),
                      "ready": ready, "failed": len(failures)},
+        "opening": opening,
         "failures": failures, "answered": answered, "correct": correct,
         "created_at": iso(session.created_at), "expires_at": iso(session.expires_at),
         "finished_at": iso(finished_at), **timing,
@@ -128,16 +164,31 @@ def create_session(deck_id, user_id, timing=None):
         return session_view(db, session), session.attempt
 
 
+def begin_study(session_id, user_id):
+    with _write() as db:
+        session = owned_session(db, session_id, user_id)
+        _require_status(session, "preparing", "active")
+        if session.study_started_at is None:
+            if not session_view(db, session)["can_start"]:
+                raise HTTPException(409, "The first questions are still preparing.")
+            session.study_started_at = utcnow()
+            session.status = "active"
+        return session_view(db, session)
+
+
 def retry_session(session_id, user_id):
     with _write() as db:
         session = owned_session(db, session_id, user_id)
         _require_status(session, "failed")
-        db.execute(update(MultipleChoiceQuestion).where(
-            MultipleChoiceQuestion.session_id == session.id,
-            MultipleChoiceQuestion.options.is_(None),
-        ).values(failure=None))
+        q = MultipleChoiceQuestion
+        pending = update(q).where(q.session_id == session.id, q.options.is_(None))
+        if session.study_started_at is not None:
+            # Earlier permanent failures may already have been passed in the shuffled sequence.
+            pending = pending.where(q.failure == "interrupted")
+        db.execute(pending.values(failure=None))
         session.attempt += 1
-        session.status = "preparing"
+        session.preparation_finished_at = None
+        session.status = "active" if session.study_started_at is not None else "preparing"
         session.prepare_until = min(
             utcnow() + timedelta(seconds=PREPARATION_TIMEOUT), session.expires_at)
         return session_view(db, session), session.attempt
@@ -152,10 +203,14 @@ def _fail_pending(db, session_id, reason):
 
 def continue_session(db, session):
     _require_status(session, "failed")
-    if _next_question(db, session.id) is None:
-        raise HTTPException(409, "No questions are ready. Retry preparation or use Classic Mode.")
     _fail_pending(db, session.id, "preparation_timeout")
+    if _next_question(db, session.id) is None and session.study_started_at is None:
+        raise HTTPException(409, "No questions are ready. Retry preparation or use Classic Mode.")
+    now = utcnow()
+    session.preparation_finished_at = now
+    session.study_started_at = session.study_started_at or now
     session.status = "active"
+    _complete_if_done(db, session, now)
     return session_view(db, session)
 
 
@@ -166,6 +221,7 @@ def cancel_session(session_id, user_id):
         if session.status != "cancelled":
             session.status = "cancelled"
             session.finished_at = utcnow()
+            session.preparation_finished_at = session.preparation_finished_at or session.finished_at
         return session_view(db, session)
 
 
@@ -179,9 +235,15 @@ def history(db, deck_id, user_id):
 
 def _next_question(db, session_id):
     return db.scalar(_questions(session_id).where(
-        MultipleChoiceQuestion.options.is_not(None), MultipleChoiceQuestion.answered_at.is_(None),
+        MultipleChoiceQuestion.failure.is_(None), MultipleChoiceQuestion.answered_at.is_(None),
         MultipleChoiceQuestion.timed_out_at.is_(None),
     ).order_by(MultipleChoiceQuestion.position).limit(1))
+
+
+def _complete_if_done(db, session, now):
+    if session.preparation_finished_at is not None and _next_question(db, session.id) is None:
+        session.status = "completed"
+        session.finished_at = now
 
 
 def _present(question):
@@ -204,31 +266,42 @@ def question_view(db, session):
     now = utcnow()
     _require_status(session, "active", now=now)
     question = _next_question(db, session.id)
-    if question is None:
-        raise HTTPException(409, "There are no unanswered questions.")
+    if question is None or question.options is None or _deck_time_over(session, now):
+        raise HTTPException(409, "The next question is not ready.")
     _require_open_question(session, question, now)
     return _present(question)
+
+
+def open_owned_question(session_id, user_id, settle_stopped=False):
+    with _write() as db:
+        session = owned_session(db, session_id, user_id)
+        if (settle_stopped and session.status == "active" and session.preparation_finished_at is None
+                and _deck_time_over(session, utcnow())):
+            _settle(db, session, "study_timeout")
+        return open_question(db, session)
 
 
 def open_question(db, session):
     """Open or resume a timed question under the write lock."""
     now = utcnow()
     status = _status(session, now)
-    if status == "completed" and session.status == "active":
+    if status == "completed" and session.status in {"active", "failed"}:
         session.status = "completed"
         session.finished_at = session.deck_deadline
-    if status != "active":
+    if status != "active" or _deck_time_over(session, now):
         return {"session": session_view(db, session), "question": None, "remaining_ms": None}
 
     question = _next_question(db, session.id)
     if question is not None and question.question_deadline is not None and question.question_deadline <= now:
         question.timed_out_at = question.question_deadline
         question = _next_question(db, session.id)
-    if question is None:
-        session.status = "completed"
-        session.finished_at = now
-        return {"session": session_view(db, session), "question": None, "remaining_ms": None}
+    if question is None or question.options is None:
+        _complete_if_done(db, session, now)
+        deadline = session.deck_deadline if session.status == "active" else None
+        return {"session": session_view(db, session), "question": None,
+                "remaining_ms": max(1, (deadline - now) // timedelta(milliseconds=1)) if deadline else None}
 
+    session.study_started_at = session.study_started_at or now
     if session.timing_scope is not None and _current_deadline(session, question) is None:
         deadline = min(now + timedelta(seconds=session.timing_seconds), session.expires_at)
         if session.timing_scope == "deck":
@@ -244,17 +317,17 @@ def submit_answer(db, session, submission):
     now = utcnow()
     _require_status(session, "active", now=now)
     question = _next_question(db, session.id)
-    if question is None or question.id != submission.question_id:
+    if (question is None or question.options is None or question.id != submission.question_id
+            or _deck_time_over(session, now)):
         raise HTTPException(409, "This question has changed or was already answered.")
     _require_open_question(session, question, now)
     if not any(option["id"] == submission.option_id for option in question.options):
         raise HTTPException(422, "Choose an option from the current question.")
     question.selected_option_id = submission.option_id
     question.answered_at = now
+    session.study_started_at = session.study_started_at or now
     mark_study_day(db, session.owner_id)
-    if _next_question(db, session.id) is None:
-        session.status = "completed"
-        session.finished_at = question.answered_at
+    _complete_if_done(db, session, now)
     answer = next(option for option in question.options if option["id"] == question.correct_option_id)
     return {"question_id": question.id, "selected_option_id": question.selected_option_id,
             "is_correct": question.selected_option_id == question.correct_option_id,
@@ -263,16 +336,29 @@ def submit_answer(db, session, submission):
 
 
 def _settle(db, session, failure):
+    now = utcnow()
+    session.preparation_finished_at = now
+    if _deck_time_over(session, now):
+        _fail_pending(db, session.id, "study_timeout")
+        session.status = "completed"
+        session.finished_at = session.deck_deadline
+        return
     _fail_pending(db, session.id, failure)
-    has_failures = db.scalar(_questions(session.id).with_only_columns(MultipleChoiceQuestion.id)
-                             .where(MultipleChoiceQuestion.failure.is_not(None)).limit(1))
-    session.status = "failed" if has_failures else "active"
+    if session.expires_at <= now:
+        return
+    q = MultipleChoiceQuestion
+    blocked = q.failure.is_not(None) if session.study_started_at is None else q.failure == "interrupted"
+    failed = db.scalar(_questions(session.id).with_only_columns(q.id).where(blocked).limit(1))
+    session.status = "failed" if failed else "active"
+    if session.status == "active":
+        _complete_if_done(db, session, now)
 
 
 def recover_interrupted():
     with _write() as db:
         for session in db.scalars(select(MultipleChoiceSession).where(
-            MultipleChoiceSession.status == "preparing",
+            MultipleChoiceSession.status.in_(("preparing", "active")),
+            MultipleChoiceSession.preparation_finished_at.is_(None),
         )):
             _settle(db, session, "interrupted")
 
@@ -280,15 +366,49 @@ def recover_interrupted():
 def _preparing(db, session_id, attempt):
     return db.scalar(select(MultipleChoiceSession).join(Deck).where(
         MultipleChoiceSession.id == session_id, MultipleChoiceSession.attempt == attempt,
-        MultipleChoiceSession.status == "preparing", MultipleChoiceSession.owner_id == Deck.owner_id,
+        MultipleChoiceSession.status.in_(("preparing", "active")), MultipleChoiceSession.owner_id == Deck.owner_id,
+        MultipleChoiceSession.preparation_finished_at.is_(None),
     ))
 
 
-def _pending(session_id):
-    with SessionLocal() as db:
+def _can_prepare(session):
+    now = utcnow()
+    return (session is not None and now < session.prepare_until
+            and now < session.expires_at and not _deck_time_over(session, now))
+
+
+def _prepare_cached(session_id, attempt):
+    # Validate and snapshot cache hits atomically with card edits and cache invalidation.
+    with _write() as db:
+        session = _preparing(db, session_id, attempt)
+        if not _can_prepare(session):
+            return []
         q = MultipleChoiceQuestion
-        return db.execute(_questions(session_id).with_only_columns(q.id, q.source_card_id)
-                          .where(q.options.is_(None), q.failure.is_(None)).order_by(q.position)).all()
+        pending = db.execute(
+            _questions(session_id).add_columns(Flashcard)
+            .outerjoin_from(q, Flashcard, and_(Flashcard.id == q.source_card_id, Flashcard.deck_id == session.deck_id))
+            .options(load_only(Flashcard.id, Flashcard.front, Flashcard.back))
+            .where(q.options.is_(None), q.failure.is_(None)).order_by(q.position)
+        ).all()
+        cards = {card.id: card for _, card in pending if card is not None}
+        cached = cached_choices_for_deck(db, session.deck_id, cards)
+        ready_ids = []
+        misses = []
+        for question, card in pending:
+            if card is None:
+                question.failure = "card_missing"
+            elif card.id in cached:
+                _snapshot(question, card, cached[card.id])
+                ready_ids.append(question.id)
+            else:
+                misses.append((question.id, card.id))
+        if ready_ids:
+            # Copy photo blobs in SQLite instead of loading them all into the worker.
+            db.execute(update(q).where(q.id.in_(ready_ids)).values(
+                front_image=select(Flashcard.front_image).where(Flashcard.id == q.source_card_id).scalar_subquery(),
+                back_image=select(Flashcard.back_image).where(Flashcard.id == q.source_card_id).scalar_subquery(),
+            ).execution_options(synchronize_session=False))
+    return misses
 
 
 def _source_card(session, card_id):
@@ -300,7 +420,7 @@ def _source_card(session, card_id):
 def _read_source(session_id, attempt, card_id):
     with SessionLocal() as db:
         session = _preparing(db, session_id, attempt)
-        if session is None or _status(session) != "preparing":
+        if not _can_prepare(session):
             return None
         content = db.execute(_source_card(session, card_id)
                              .with_only_columns(Flashcard.front, Flashcard.back)).one_or_none()
@@ -310,7 +430,7 @@ def _read_source(session_id, attempt, card_id):
 def _save_prepared(session_id, attempt, question_id, content, choices, failure):
     with _write() as db:
         session = _preparing(db, session_id, attempt)
-        if session is None or _status(session) != "preparing":
+        if not _can_prepare(session):
             return
         question = db.get(MultipleChoiceQuestion, question_id)
         if question is None or question.session_id != session_id:
@@ -324,14 +444,18 @@ def _save_prepared(session_id, attempt, question_id, content, choices, failure):
         elif (card.front, card.back) != content:
             question.failure = "card_changed"
         else:
-            correct = {"id": str(uuid4()), "text": card.back}
-            options = [correct, *({"id": str(uuid4()), "text": choice} for choice in choices)]
-            random.shuffle(options)
-            question.options = options
-            question.correct_option_id = correct["id"]
-            question.front = card.front
+            _snapshot(question, card, choices)
             question.front_image = card.front_image
             question.back_image = card.back_image
+
+
+def _snapshot(question, card, choices):
+    correct = {"id": str(uuid4()), "text": card.back}
+    options = [correct, *({"id": str(uuid4()), "text": choice} for choice in choices)]
+    random.shuffle(options)
+    question.options = options
+    question.correct_option_id = correct["id"]
+    question.front = card.front
 
 
 def _finish(session_id, attempt, failure):
@@ -352,7 +476,7 @@ class PreparationJobs:
 
     def start(self, session_id, attempt):
         old = self.current.get(session_id)
-        if old is not None:
+        if old is not None and not old.cancelling():
             old.cancel()
         task = asyncio.create_task(self._prepare(session_id, attempt))
         self.tasks.add(task)
@@ -370,13 +494,15 @@ class PreparationJobs:
     async def cancel(self, session_id):
         task = self.current.get(session_id)
         if task is not None:
-            task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
+            if not task.cancelling():
+                task.cancel()
+            await asyncio.shield(asyncio.gather(task, return_exceptions=True))
 
     async def stop(self):
         tasks = tuple(self.tasks)
         for task in tasks:
-            task.cancel()
+            if not task.cancelling():
+                task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
         await run_in_threadpool(recover_interrupted)
 
@@ -384,26 +510,25 @@ class PreparationJobs:
         failure = None
         try:
             async with asyncio.timeout(PREPARATION_TIMEOUT):
-                for question_id, card_id in await run_in_threadpool(_pending, session_id):
-                    async with self.model_slot:
-                        source = await run_in_threadpool(_read_source, session_id, attempt, card_id)
-                        if source is None:
-                            break
-                        owner_id, content = source
-                        reason, choices = None, None
-                        if content is None:
-                            reason = "card_missing"
-                        else:
-                            try:
-                                choices = await get_or_generate_distractors(
-                                    card_id, User(id=owner_id), expected_content=content,
-                                )
-                            except InsufficientDistractorsError as error:
-                                reason = error.reason
-                            except HTTPException as error:
-                                if error.status_code not in {404, 409}:
-                                    raise
-                                reason = "card_missing" if error.status_code == 404 else "card_changed"
+                for question_id, card_id in await run_in_threadpool(_prepare_cached, session_id, attempt):
+                    source = await run_in_threadpool(_read_source, session_id, attempt, card_id)
+                    if source is None:
+                        break
+                    owner_id, content = source
+                    reason, choices = None, None
+                    if content is None:
+                        reason = "card_missing"
+                    else:
+                        try:
+                            choices = await get_or_generate_distractors(
+                                card_id, User(id=owner_id), expected_content=content, model_slot=self.model_slot,
+                            )
+                        except InsufficientDistractorsError as error:
+                            reason = error.reason
+                        except HTTPException as error:
+                            if error.status_code not in {404, 409}:
+                                raise
+                            reason = "card_missing" if error.status_code == 404 else "card_changed"
                     await run_in_threadpool(
                         _save_prepared, session_id, attempt, question_id, content, choices, reason,
                     )

@@ -8,6 +8,9 @@ Phase 4A evaluates cold generation against 108 synthetic cards in 13 decks. The 
 - [Findings](FINDINGS.md)
 - [Human-review rubric](REVIEW_RUBRIC.md)
 - [Preliminary rubric review](sample-review.csv)
+- [Phase 4B.1 performance benchmark](PERFORMANCE.md)
+- [Phase 4B.2 cache-first benchmark](CACHE_FIRST.md)
+- [Phase 4B.3 progressive study benchmark](PROGRESSIVE_STUDY.md)
 
 ## Reproduce the benchmark
 
