@@ -79,6 +79,22 @@ def init_database(target=engine):
             BEGIN SELECT RAISE(ABORT, 'Deck limit is 150 flashcards'); END
         """))
 
+        # Clear dependent cache rows before deleting a source and its provenance.
+        for event_name, clause in (
+            ("update", "AFTER UPDATE OF front, back, deck_id ON flashcards "
+             "WHEN NEW.front IS NOT OLD.front OR NEW.back IS NOT OLD.back OR NEW.deck_id IS NOT OLD.deck_id"),
+            ("delete", "BEFORE DELETE ON flashcards"),
+        ):
+            connection.execute(text(f"""
+                CREATE TRIGGER IF NOT EXISTS flashcard_distractor_source_{event_name}
+                {clause}
+                BEGIN
+                    DELETE FROM flashcard_distractor_cache WHERE flashcard_id IN (
+                        SELECT flashcard_id FROM flashcard_distractor_sources WHERE source_card_id = OLD.id
+                    );
+                END
+            """))
+
 
 def get_db():
     with SessionLocal() as db:

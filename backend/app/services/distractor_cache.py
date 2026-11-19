@@ -3,20 +3,25 @@
 import asyncio
 import hashlib
 import json
+import random
 from weakref import WeakValueDictionary
 
 from fastapi import HTTPException
-from sqlalchemy import text
+from sqlalchemy import and_, delete, select, text
 from starlette.concurrency import run_in_threadpool
 
 from app.database import SessionLocal
-from app.models import Flashcard, FlashcardDistractorCache, User
+from app.models import Flashcard, FlashcardDistractorCache, FlashcardDistractorSource, User
 from app.services import distractors
 from app.services.ownership import owned_flashcards
 
 
 # Coalesce requests on the same event loop. SQLite arbitrates across workers.
 _generation_locks = WeakValueDictionary()
+
+
+class InsufficientDistractorsError(distractors.DistractorGenerationError):
+    """The model and the authorized deck together supplied fewer than three distractors."""
 
 
 def _fingerprint(front: str, back: str) -> str:
@@ -27,7 +32,7 @@ def _fingerprint(front: str, back: str) -> str:
 def _owned_card_and_cache(db, card_id: int, user_id: int):
     row = db.execute(
         owned_flashcards(user_id)
-        .with_only_columns(Flashcard.front, Flashcard.back, FlashcardDistractorCache)
+        .with_only_columns(Flashcard.front, Flashcard.back, Flashcard.deck_id, FlashcardDistractorCache)
         .outerjoin_from(Flashcard, FlashcardDistractorCache,
                         FlashcardDistractorCache.flashcard_id == Flashcard.id)
         .where(Flashcard.id == card_id)
@@ -37,8 +42,8 @@ def _owned_card_and_cache(db, card_id: int, user_id: int):
     return row
 
 
-def _valid_choices(choices, back: str) -> bool:
-    if not isinstance(choices, list) or len(choices) != 3:
+def _valid_choices(choices, back: str, count: int = 3) -> bool:
+    if not isinstance(choices, list) or len(choices) != count:
         return False
     seen = {distractors.comparison_key(back)}
     for choice in choices:
@@ -51,47 +56,93 @@ def _valid_choices(choices, back: str) -> bool:
     return True
 
 
-def _cached_choices(row, fingerprint: str, model: str, version: int, back: str):
-    if (row is not None
-            and row.content_fingerprint == fingerprint
-            and row.ollama_model == model
-            and row.generation_version == version
-            and _valid_choices(row.distractors, back)):
-        return row.distractors
-    return None
+def _cached_choices(db, row, fingerprint: str, model: str, version: int, deck_id: int, back: str):
+    if (row is None or row.content_fingerprint != fingerprint or row.ollama_model != model
+            or row.generation_version != version or not _valid_choices(row.distractors, back)):
+        return None
+    sources = db.execute(
+        select(FlashcardDistractorSource, Flashcard.deck_id, Flashcard.front, Flashcard.back)
+        .outerjoin(Flashcard, and_(Flashcard.id == FlashcardDistractorSource.source_card_id,
+                                   Flashcard.deck_id == deck_id))
+        .where(FlashcardDistractorSource.flashcard_id == row.flashcard_id)
+    )
+    for source, source_deck, source_front, source_back in sources:
+        if (source_deck != deck_id
+                or source.content_fingerprint != _fingerprint(source_front, source_back)
+                or row.distractors[source.position] != source_back.strip()):
+            return None
+    return row.distractors
 
 
 def _lookup(card_id: int, user_id: int, model: str, version: int):
     with SessionLocal() as db:
-        front, back, row = _owned_card_and_cache(db, card_id, user_id)
+        # Read the cache and its provenance from the same SQLite snapshot.
+        db.execute(text("BEGIN"))
+        front, back, deck_id, row = _owned_card_and_cache(db, card_id, user_id)
         fingerprint = _fingerprint(front, back)
-        return front, back, fingerprint, _cached_choices(row, fingerprint, model, version, back)
+        return front, back, fingerprint, _cached_choices(db, row, fingerprint, model, version, deck_id, back)
 
 
-def _store(card_id: int, user_id: int, fingerprint: str, model: str, version: int, choices: list[str]):
+def _deck_choices(db, deck_id, card_id, back, ai_choices):
+    seen = {distractors.comparison_key(choice) for choice in [back, *ai_choices]}
+    cards = db.execute(select(Flashcard.id, Flashcard.front, Flashcard.back).where(
+        Flashcard.deck_id == deck_id, Flashcard.id != card_id,
+    )).all()
+    random.shuffle(cards)
+    selected = []
+    needed = 3 - len(ai_choices)
+    for source_id, source_front, source_back in cards:
+        key = distractors.comparison_key(source_back)
+        if key and key not in seen:
+            seen.add(key)
+            selected.append((source_id, _fingerprint(source_front, source_back), source_back.strip()))
+            if len(selected) == needed:
+                return selected
+    return []
+
+
+def _store(card_id, user_id, fingerprint, model, version, choices, failure_reason):
     with SessionLocal.begin() as db:
         # Recheck the authorized card and any winning write under SQLite's write lock.
         db.execute(text("BEGIN IMMEDIATE"))
-        front, back, row = _owned_card_and_cache(db, card_id, user_id)
+        front, back, deck_id, row = _owned_card_and_cache(db, card_id, user_id)
         if _fingerprint(front, back) != fingerprint:
             raise HTTPException(409, "Flashcard changed while generating distractors. Try again.")
-        cached = _cached_choices(row, fingerprint, model, version, back)
+        cached = _cached_choices(db, row, fingerprint, model, version, deck_id, back)
         if cached is not None:
             return cached
+
+        sources = []
+        if len(choices) < 3:
+            sources = _deck_choices(db, deck_id, card_id, back, choices)
+            if not sources:
+                raise InsufficientDistractorsError(
+                    "Ollama and the deck supplied fewer than three distinct distractors.", reason=failure_reason,
+                )
+
         if row is None:
             row = FlashcardDistractorCache(flashcard_id=card_id)
             db.add(row)
+        else:
+            db.execute(delete(FlashcardDistractorSource).where(FlashcardDistractorSource.flashcard_id == card_id))
         row.content_fingerprint = fingerprint
         row.ollama_model = model
         row.generation_version = version
-        row.distractors = choices
-    return choices
+        row.distractors = choices + [answer for _, _, answer in sources]
+        if sources:
+            db.flush()
+            db.add_all([
+                FlashcardDistractorSource(flashcard_id=card_id, position=position, source_card_id=source_id,
+                                          content_fingerprint=source_fingerprint)
+                for position, (source_id, source_fingerprint, _) in enumerate(sources, start=len(choices))
+            ])
+    return row.distractors
 
 
 async def get_or_generate_distractors(
     card_id: int, user: User, *, expected_content: tuple[str, str] | None = None,
 ) -> list[str]:
-    """Load or generate choices for a card owned by the authenticated user.
+    """Load or assemble choices for a card owned by the authenticated user.
 
     Database sessions are short-lived and never held open during inference.
     """
@@ -108,7 +159,18 @@ async def get_or_generate_distractors(
             raise HTTPException(409, "Flashcard changed while preparing distractors. Try again.")
         if cached is not None:
             return cached
-        choices = await distractors.generate_distractors(front, back, model=model)
-        if not _valid_choices(choices, back):
-            raise distractors.DistractorGenerationError("Ollama returned invalid distractors.")
-        return await run_in_threadpool(_store, card_id, user_id, fingerprint, model, version, choices)
+        failure_reason = "insufficient_distractors"
+        try:
+            choices = await distractors.generate_distractors(front, back, model=model)
+            if not _valid_choices(choices, back):
+                raise distractors.DistractorGenerationError(
+                    "Ollama returned invalid distractors.", reason="invalid_ai_response",
+                )
+        except distractors.DistractorGenerationError as error:
+            failure_reason = error.reason
+            choices = list(error.candidates)
+            if len(choices) >= 3 or not _valid_choices(choices, back, len(choices)):
+                choices = []
+        return await run_in_threadpool(
+            _store, card_id, user_id, fingerprint, model, version, choices, failure_reason,
+        )

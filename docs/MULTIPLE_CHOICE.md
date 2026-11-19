@@ -1,8 +1,8 @@
 # Multiple-choice study API
 
-From a deck, choose **Study**, then **Multiple-Choice Mode**. The preparation screen shows progress and recovery options. A question is graded when the student selects **Check answer**, and the results use server-recorded totals. Open **Multiple-Choice history** on the deck to resume a saved session or view a summary. Refreshing resumes at the current unanswered question or summary. Feedback for an answer that was already submitted is shown only when the browser receives the grading response.
+From a deck, choose **Study**, then **Multiple-Choice Mode**. The preparation screen shows progress and recovery options. A question is graded when the student selects **Check answer**, and the results use server-recorded totals. Open **Multiple-Choice history** on the deck to resume a saved session or view a summary. Refreshing resumes at the current unanswered question or summary. The grading response marks the correct answer and the student’s choice directly in the list.
 
-Phase 2B adds owner-only backend sessions. Use the normal session cookie for every route and send the CSRF header on POST requests. Shared decks can be studied once copied into the student's own decks.
+Sessions are owner-only. Use the normal session cookie for every route and send the CSRF header on POST requests. Shared decks can be studied once copied into the student's own decks.
 
 | Method and path | Result |
 | --- | --- |
@@ -24,14 +24,14 @@ The response includes the session and deck IDs, `deck_title`, `mode: "multiple_c
 ```json
 {
   "progress": {"total": 3, "completed": 3, "ready": 2, "failed": 1},
-  "failures": [{"card_id": 42, "reason": "generation_failed"}]
+  "failures": [{"card_id": 42, "reason": "insufficient_distractors"}]
 }
 ```
 
-- A session starts in `preparing`. Completed preparation counts include ready and failed cards. Preparation reuses the [SQLite distractor cache](OLLAMA.md), and the backend permits one card generation at a time across sessions.
-- Once all cards are ready, the state becomes `active`. If any fail, the state becomes `failed`. Reasons include `generation_failed`, `card_changed`, `card_missing`, `preparation_timeout`, `interrupted`, or `preparation_failed`. Retry, continue with the ready subset, or return to Classic. A deleted source card stays in the failure report. Start a fresh session to use current deck membership.
+- A session starts in `preparing`. Completed preparation counts include ready and failed cards. Preparation first checks the [SQLite distractor cache](OLLAMA.md). On a miss it tries Ollama up to three times and fills any unfilled choice slots with distinct answers from the same deck. A successful fallback counts as ready. The backend permits one card generation at a time across sessions.
+- Once all cards are ready, the state becomes `active`. If any fail, the state becomes `failed`. The `insufficient_distractors` reason means Ollama and the same-deck answers together supplied fewer than three distinct distractors for that card. Repeated Back answers count once, and the current Back is excluded. If the fallback still cannot fill the slots, the latest model attempt can also determine the failure reason. The API reports `ollama_unavailable` for connection or service failures, `generation_timeout` when the model request times out, and `invalid_ai_response` for malformed output. Older session snapshots may still show `generation_failed`. Other reasons include `card_changed`, `card_missing`, `preparation_timeout`, `interrupted`, or `preparation_failed`. Retry, continue with the ready subset, or return to Classic. A deleted source card stays in the failure report. Start a fresh session to use current deck membership.
 - Each ready question is a snapshot. Edits or deletions after preparation leave that question and its correct answer intact. Question IDs, option IDs, and option order stay stable across requests. Grading compares the submitted option ID to the stored correct option ID and records one answer per question.
 - After the last answer the session is `completed`. Each accepted answer counts toward study activity. The deck's multiple-choice history is separate from its Classic history. Deleting a deck removes its sessions and their questions.
 - Preparation has a 15-minute deadline per attempt, including time waiting for Ollama. Active, preparing, and retryable sessions expire 24 hours after creation. Cancelled and completed sessions remain in history. On restart, unfinished preparation is marked retryable, and already prepared questions are retained.
 
-The preparation coordinator is scoped to the backend's current single-worker Docker configuration. AI distractors can still be ambiguous even after string validation.
+The preparation coordinator is scoped to the backend's current single-worker Docker configuration. AI and same-deck distractors can both be contextually valid or ambiguous. Grading always uses the original Back.

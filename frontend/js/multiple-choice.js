@@ -1,12 +1,16 @@
 import {api} from './api.js';
 import {authVersion} from './auth-state.js';
-import {renderCardContent} from './card-content.js';
+import {renderCardContent, safeImageUrl} from './card-content.js';
 import {multipleChoiceSession, scoreSummary, SESSION_LABELS} from './multiple-choice-session.js';
 import {chooseStudy} from './study-options.js';
 import {app, backIcon, date, escape, mount, plural} from './ui.js';
 
 const FAILURE_LABELS = {
-  generation_failed:'Could not generate choices. Check that Ollama is running.',
+  generation_failed:'Could not find three distinct choices. Check Ollama or add cards with different answers.',
+  insufficient_distractors:'Too few distinct answers for this card. Add cards with different answers or retry with Ollama.',
+  ollama_unavailable:'Ollama is unavailable. Check that it is running and the model is installed, then retry.',
+  generation_timeout:'Ollama took too long to respond. Retry the failed cards.',
+  invalid_ai_response:'Ollama returned an unreadable response. Retry or add cards with different answers.',
   card_missing:'The card was deleted or is no longer accessible.',
   card_changed:'The card changed during preparation.',
   preparation_timeout:'Preparation ran out of time.',
@@ -56,7 +60,11 @@ function questionView(session, question, grade, pending, selection) {
     if (!grade) return `<label class="mc-option"><input name="answer" type="radio" required value="${escape(option.id)}" ${selection === option.id ? 'checked' : ''}>${text}</label>`;
     const correct = option.id === grade.correct_option.id;
     const chosen = option.id === grade.selected_option_id;
-    return `<li class="mc-option ${correct ? 'mc-correct' : chosen ? 'mc-incorrect' : ''}">${text}${correct || chosen ? `<span class="mc-option-mark">${correct ? 'Correct answer' : 'Your choice'}</span>` : ''}</li>`;
+    const mark = correct && chosen ? 'Correct answer · Your choice' : correct ? 'Correct answer' : chosen ? 'Your choice' : '';
+    const image = correct ? safeImageUrl(grade.back_image) : '';
+    return `<li class="mc-option ${correct ? 'mc-correct' : chosen ? 'mc-incorrect' : ''}">${text}
+      ${mark ? `<span class="mc-option-mark">${mark}</span>` : ''}
+      ${image ? `<div class="mc-option-photo"><img class="card-photo" src="${image}" alt="Answer photo"></div>` : ''}</li>`;
   }).join('');
   return `<div class="progress-text"><strong>Question ${ordinal} of ${ready}</strong><span>${completed} answered</span></div>
     <progress max="${ready}" value="${completed}" aria-label="Questions answered"></progress>
@@ -64,11 +72,7 @@ function questionView(session, question, grade, pending, selection) {
       <h2 class="content-label" data-mc-focus tabindex="-1">Question ${ordinal}</h2>
       ${renderCardContent(question.front, question.front_image, 'Question photo')}
     </section></article>
-    ${grade ? `<ul class="mc-options mc-graded-options" aria-label="Answer choices">${options}</ul>
-      <section class="panel mc-feedback ${grade.is_correct ? 'mc-correct' : 'mc-incorrect'}" aria-labelledby="mc-feedback-title">
-        <h2 id="mc-feedback-title" data-mc-feedback tabindex="-1">${grade.is_correct ? '✓ Correct' : '× Incorrect'}</h2>
-        <p class="content-label">Correct answer</p>${renderCardContent(grade.correct_option.text, grade.back_image, 'Answer photo')}
-      </section>
+    ${grade ? `<ul class="mc-options mc-graded-options" data-mc-feedback tabindex="-1" aria-label="${grade.is_correct ? 'Correct. Answer choices' : 'Incorrect. Answer choices'}">${options}</ul>
       <div class="actions mc-actions">${button('next', pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question', false, pending)}${session.status === 'active' ? button('cancel', 'End session', true, pending) : ''}</div>`
     : `<form id="mc-answer-form"><fieldset class="mc-choices" ${pending ? 'disabled' : ''}>
       <legend>Choose one answer</legend><div class="mc-options">${options}</div></fieldset>

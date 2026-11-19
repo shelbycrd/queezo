@@ -1,4 +1,7 @@
 import asyncio
+import json
+import socket
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from threading import Event
@@ -7,6 +10,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
+import httpx
 import pytest
 from sqlalchemy import select, text
 
@@ -110,6 +114,107 @@ def test_cache_hit_shuffled_options_and_grading_survive_source_edits(mc, monkeyp
     assert mc.get("/api/dashboard/activity").json()["active_today"] is True
 
 
+def test_offline_ollama_prepares_and_preserves_deck_answer_snapshots(mc, monkeypatch):
+    # A bound, non-listening socket guarantees the connection is refused locally.
+    deck_id = deck(mc, count=4)
+    with socket.socket() as offline:
+        offline.bind(("127.0.0.1", 0))
+        monkeypatch.setenv("OLLAMA_BASE_URL", f"http://127.0.0.1:{offline.getsockname()[1]}")
+        path, _ = start(mc, deck_id)
+        active = wait_for_state(mc, path, "active")
+    assert active["progress"] == {"total": 4, "completed": 4, "ready": 4, "failed": 0}
+    assert active["failures"] == []
+
+    question = mc.get(path + "/question").json()
+    with mc.factory() as db:
+        answers = dict(db.execute(select(Flashcard.front, Flashcard.back).where(
+            Flashcard.deck_id == deck_id,
+        )).all())
+        source_id = db.scalar(select(Flashcard.id).where(
+            Flashcard.deck_id == deck_id, Flashcard.front != question["front"],
+        ).limit(1))
+    assert {option["text"] for option in question["options"]} == set(answers.values())
+    assert mc.delete(f"/api/cards/{source_id}").status_code == 204
+    assert mc.get(path + "/question").json() == question
+    correct = next(option for option in question["options"] if option["text"] == answers[question["front"]])
+    response = mc.post(path + "/answer", json={"question_id": question["id"], "option_id": correct["id"]})
+    assert response.status_code == 200 and response.json()["is_correct"] is True
+
+
+@pytest.mark.parametrize("has_distinct_ai_choice", [False, True], ids=["shortage", "hybrid-ready"])
+def test_deck_with_repeated_back_prepares_only_with_an_additional_distinct_choice(
+    mc, monkeypatch, has_distinct_ai_choice,
+):
+    deck_id = deck(mc, count=0)
+    synthetic_cards = {
+        20: ("xpqjzs", "Orbit"),
+        21: ("Another orbital question", " ORBIT "),
+        99: ("What pulls objects toward each other?", "Gravity"),
+        100: ("bzzrk", "Mass"),
+    }
+    with mc.factory.begin() as db:
+        db.add_all([
+            Flashcard(id=card_id, deck_id=deck_id, front=front, back=back)
+            for card_id, (front, back) in synthetic_cards.items()
+        ])
+
+    affected = {synthetic_cards[20][0], synthetic_cards[99][0]}
+    calls = Counter()
+    generate = distractors.generate_distractors
+
+    def respond(request):
+        messages = json.loads(request.content)["messages"]
+        card = json.loads(messages[-1]["content"])
+        front = card["question"]
+        calls[front] += 1
+        candidates = CHOICES
+        if front in affected:
+            # "Mass" is a valid partial AI answer for both cards, but also exists in the deck.
+            partial = "Inertia" if has_distinct_ai_choice else "Mass"
+            if calls[front] == 1:
+                correct = card["correct_answer"]
+                candidates = [correct, correct.upper(), None, partial, partial.upper(), ""]
+            elif calls[front] == 2:
+                assert card["previous_candidates"] == [partial]
+                return httpx.Response(200, json={"message": {"content": "malformed JSON"}})
+            else:
+                assert card["previous_candidates"] == [partial]
+                error_type = httpx.ReadTimeout if front == synthetic_cards[20][0] else httpx.ConnectError
+                raise error_type("Synthetic request failure", request=request)
+        return httpx.Response(200, json={"message": {"content": json.dumps({"distractors": candidates})}})
+
+    async def mocked_generation(front, back, *, model):
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as http:
+            return await generate(front, back, client=http, model=model)
+
+    monkeypatch.setattr(distractors, "generate_distractors", mocked_generation)
+    path, started = start(mc, deck_id)
+    state = wait_for_state(mc, path, "active" if has_distinct_ai_choice else "failed")
+    ready = 4 if has_distinct_ai_choice else 2
+    assert state["progress"] == {"total": 4, "completed": 4, "ready": ready, "failed": 4 - ready}
+    failures = {item["card_id"]: item["reason"] for item in state["failures"]}
+    assert failures == ({} if has_distinct_ai_choice else {20: "generation_timeout", 99: "ollama_unavailable"})
+    assert all(calls[front] == 3 for front in affected)
+
+    with mc.factory() as db:
+        for card_id in (20, 99):
+            cache = db.get(FlashcardDistractorCache, card_id)
+            if not has_distinct_ai_choice:
+                assert cache is None
+                continue
+            assert "Inertia" in cache.distractors
+            snapshot = db.scalar(select(MultipleChoiceQuestion).where(
+                MultipleChoiceQuestion.session_id == started["id"],
+                MultipleChoiceQuestion.source_card_id == card_id,
+            ))
+            assert {distractors.comparison_key(option["text"]) for option in snapshot.options} == {
+                "orbit", "gravity", "mass", "inertia",
+            }
+            correct = next(option["text"] for option in snapshot.options
+                           if option["id"] == snapshot.correct_option_id)
+            assert correct == synthetic_cards[card_id][1]
+
+
 def test_unauthenticated_csrf_and_cross_account_requests(mc, monkeypatch):
     deck_id = deck(mc)
     generate = mock_generation(monkeypatch, return_value=CHOICES)
@@ -184,15 +289,17 @@ def test_generation_progress_and_concurrency_across_decks(mc, monkeypatch):
 
 
 @pytest.mark.parametrize("resolution", ["retry", "continue"])
-def test_partial_generation_failure_can_retry_or_continue(mc, monkeypatch, resolution):
+@pytest.mark.parametrize("reason", ["insufficient_distractors", "invalid_ai_response"])
+def test_partial_generation_failure_can_retry_or_continue(mc, monkeypatch, resolution, reason):
     deck_id = deck(mc, count=2)
     generate = mock_generation(monkeypatch, side_effect=[
-        DistractorGenerationError("Ollama timed out"), CHOICES, CHOICES,
+        DistractorGenerationError("Private model report", reason=reason), CHOICES, CHOICES,
     ])
     path, _ = start(mc, deck_id)
     failed = wait_for_state(mc, path, "failed")
     assert failed["progress"] == {"total": 2, "completed": 2, "ready": 1, "failed": 1}
-    assert len(failed["failures"]) == 1 and failed["failures"][0]["reason"] == "generation_failed"
+    assert len(failed["failures"]) == 1 and failed["failures"][0]["reason"] == reason
+    assert "Private model report" not in json.dumps(failed)
     assert mc.get(path + "/question").status_code == 409
     response = mc.post(path + "/" + resolution)
     assert response.status_code == (202 if resolution == "retry" else 200)

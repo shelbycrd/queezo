@@ -34,7 +34,7 @@
 .mc-back svg { display: block; width: 20px; height: 20px; }
 .mc-shell h1 { overflow-wrap: anywhere; }
 .mc-panel { margin-top: 18px; border-radius: 26px; }
-.mc-panel h2, .mc-feedback h2 { margin: 0 0 10px; }
+.mc-panel h2 { margin: 0 0 10px; }
 .mc-note { margin: 14px 0; color: var(--ink); }
 .mc-preparation-progress .progress-text { flex-wrap: wrap; gap: 5px 16px; }
 .mc-failures { margin-top: 16px; }
@@ -80,12 +80,10 @@ label.mc-option:hover { border-color: #9cb9e8; }
 }
 .mc-graded-options { padding: 0; margin: 0; list-style: none; }
 .mc-option-mark { display: inline-block; border-radius: 999px; background: #fff; padding: 2px 7px; font-size: .7rem; }
-.mc-feedback { margin-top: 15px; border-radius: 22px; overflow-wrap: anywhere; }
+.mc-option-photo { flex-basis: 100%; }
+.mc-option-photo .card-photo { margin: 4px 0 0; }
 .mc-correct { color: #245b36; border-color: #a8d5b6; background: #eff9f2; }
 .mc-incorrect { color: #803e37; border-color: #ebc1bb; background: #fff4f1; }
-.mc-feedback h2 { color: inherit; }
-.mc-feedback .content-label { margin-bottom: 5px; }
-.mc-feedback .formatted-content { margin: 0; }
 .mc-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 @media (max-width: 600px) {

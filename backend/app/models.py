@@ -60,6 +60,20 @@ class FlashcardDistractorCache(Base):
     )
 
 
+class FlashcardDistractorSource(Base):
+    """Provenance for one deck-derived choice. Slots without a row came from Ollama."""
+
+    __tablename__ = "flashcard_distractor_sources"
+
+    flashcard_id: Mapped[int] = mapped_column(
+        ForeignKey("flashcard_distractor_cache.flashcard_id", ondelete="CASCADE"), primary_key=True,
+    )
+    position: Mapped[int] = mapped_column(primary_key=True)
+    source_card_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id", ondelete="CASCADE"), index=True)
+    content_fingerprint: Mapped[str] = mapped_column(String(64))
+    __table_args__ = (CheckConstraint("position BETWEEN 0 AND 2 AND flashcard_id <> source_card_id"),)
+
+
 class MultipleChoiceSession(Base):
     __tablename__ = "multiple_choice_sessions"
 

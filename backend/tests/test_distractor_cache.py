@@ -1,15 +1,17 @@
 import asyncio
+import json
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from unittest.mock import AsyncMock
 
+import httpx
 from fastapi import HTTPException
 import pytest
 from sqlalchemy import delete, select, text
 from sqlalchemy.orm import sessionmaker
 
 from app.database import init_database, make_engine
-from app.models import Deck, FlashcardDistractorCache, User
+from app.models import Deck, Flashcard, FlashcardDistractorCache, FlashcardDistractorSource, User
 from app.services import distractor_cache, distractors
 from app.services.distractors import DistractorGenerationError
 from conftest import deck, review
@@ -28,9 +30,9 @@ def cache(client, monkeypatch):
     return client, owner
 
 
-def make_card(client, deck_id):
+def make_card(client, deck_id, back="Tokyo"):
     response = client.post(f"/api/decks/{deck_id}/cards", json={
-        "front": "What is the capital of Japan?", "back": "Tokyo",
+        "front": "What is the capital of Japan?", "back": back,
     })
     assert response.status_code == 201
     return response.json()["id"]
@@ -227,7 +229,7 @@ def test_failure_leaves_no_cache_and_next_call_can_recover(cache, monkeypatch):
     card_id = make_card(client, deck(client, count=0))
     generate = AsyncMock(side_effect=[DistractorGenerationError("Ollama unavailable"), FIRST_CHOICES])
     monkeypatch.setattr(distractors, "generate_distractors", generate)
-    with pytest.raises(DistractorGenerationError, match="unavailable"):
+    with pytest.raises(distractor_cache.InsufficientDistractorsError):
         lookup(card_id, owner)
     assert cached_rows(client) == []
     assert lookup(card_id, owner) == FIRST_CHOICES
@@ -284,6 +286,9 @@ def test_startup_adds_cache_to_existing_database_and_preserves_study_history(cac
         assert all(before)
         # Simulate a database initialized by the release before this cache existed.
         db.execute(text("DROP TRIGGER flashcard_distractors_invalidate"))
+        db.execute(text("DROP TRIGGER flashcard_distractor_source_update"))
+        db.execute(text("DROP TRIGGER flashcard_distractor_source_delete"))
+        db.execute(text("DROP TABLE flashcard_distractor_sources"))
         db.execute(text("DROP TABLE flashcard_distractor_cache"))
     init_database(engine)
     init_database(engine)
@@ -291,3 +296,185 @@ def test_startup_adds_cache_to_existing_database_and_preserves_study_history(cac
         assert read_history(db) == before
         assert db.execute(text("PRAGMA foreign_key_check")).all() == []
     assert cached_rows(client) == []
+
+
+def source_rows(client, target):
+    with client.factory() as db:
+        return db.scalars(select(FlashcardDistractorSource).where(
+            FlashcardDistractorSource.flashcard_id == target,
+        ).order_by(FlashcardDistractorSource.position)).all()
+
+
+@pytest.mark.parametrize("ai_count", [0, 1, 2, 3])
+def test_ai_and_deck_choices_are_cached_with_source_provenance(cache, monkeypatch, ai_count):
+    client, owner = cache
+    deck_id = deck(client, count=0)
+    target = make_card(client, deck_id)
+    pool = OTHER_CHOICES[:3 - ai_count]
+    source_ids = {answer: make_card(client, deck_id, answer) for answer in pool}
+    ai = FIRST_CHOICES[:ai_count]
+    requests = []
+    generate = distractors.generate_distractors
+
+    def respond(request):
+        requests.append(request)
+        return httpx.Response(200, json={
+            "message": {"content": json.dumps({"distractors": [" TOKYO ", *ai, "", None]})},
+        })
+
+    async def generate_mocked(front, back, *, model):
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as http:
+            return await generate(front, back, client=http, model=model)
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate_mocked)
+    choices = lookup(target, owner)
+    assert len(choices) == len(set(choices)) == 3
+    assert set(choices[:ai_count]) == set(ai)
+    assert set(choices[ai_count:]) <= set(pool)
+
+    sources = source_rows(client, target)
+    assert [source.position for source in sources] == list(range(ai_count, 3))
+    for source in sources:
+        answer = choices[source.position]
+        assert source.source_card_id == source_ids[answer]
+        assert source.content_fingerprint == distractor_cache._fingerprint("What is the capital of Japan?", answer)
+    assert lookup(target, owner) == choices
+    assert len(requests) == (1 if ai_count == 3 else 3)
+
+
+@pytest.mark.parametrize("has_alternatives", [False, True])
+def test_insufficient_unique_same_deck_backs_do_not_borrow_from_other_decks(cache, monkeypatch, has_alternatives):
+    client, owner = cache
+    deck_id = deck(client, count=0)
+    target = make_card(client, deck_id)
+    other_deck = deck(client, count=0)
+    for answer in OTHER_CHOICES:
+        make_card(client, other_deck, answer)
+    with client.factory.begin() as db:
+        outsider = User(email="other@example.com", password_hash="unused")
+        db.add(outsider)
+        db.flush()
+        private = Deck(owner_id=outsider.id, title="Other user's deck")
+        db.add(private)
+        db.flush()
+        db.add_all([Flashcard(deck_id=private.id, front="Question", back=answer) for answer in FIRST_CHOICES])
+        if has_alternatives:
+            db.add_all([Flashcard(deck_id=deck_id, front="Question", back=answer)
+                        for answer in ("ToKyO", " Kyoto Station ", "KYOTO \tstation", "\t")])
+    generate = AsyncMock(side_effect=DistractorGenerationError("Could not reach Ollama"))
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    with pytest.raises(distractor_cache.InsufficientDistractorsError):
+        lookup(target, owner)
+    with pytest.raises(HTTPException) as error:
+        lookup(target, outsider)
+    assert error.value.status_code == 404
+    assert cached_rows(client) == []
+    generate.assert_awaited_once()
+
+
+def test_fallback_skips_equivalent_deck_and_ai_choices(cache, monkeypatch):
+    client, owner = cache
+    deck_id = deck(client, count=0)
+    target = make_card(client, deck_id)
+    for answer in ("tOkYo", "KYOTO\tSTATION", "Kobe", "KOBE", "Nara", "nAra"):
+        make_card(client, deck_id, answer)
+    generate = AsyncMock(side_effect=DistractorGenerationError("Partial", candidates=["Kyoto Station"]))
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    assert {distractors.comparison_key(choice) for choice in lookup(target, owner)} == {
+        "kyoto station", "kobe", "nara",
+    }
+
+
+@pytest.mark.parametrize("change", ["front", "back", "delete", "move"])
+def test_source_changes_invalidate_only_dependent_caches(cache, monkeypatch, change):
+    client, owner = cache
+    deck_id = deck(client, count=0)
+    target = make_card(client, deck_id)
+    other = make_card(client, deck(client, count=0))
+    replacement_deck = deck(client, count=0)
+    sources = [make_card(client, deck_id, answer) for answer in OTHER_CHOICES]
+    source = sources[0]
+
+    async def generate(front, back, *, model):
+        raise DistractorGenerationError("Could not reach Ollama")
+
+    monkeypatch.setattr(
+        distractors, "generate_distractors",
+        AsyncMock(side_effect=[FIRST_CHOICES, DistractorGenerationError("Unavailable")]),
+    )
+    assert lookup(other, owner) == FIRST_CHOICES
+    assert set(lookup(target, owner)) == set(OTHER_CHOICES)
+    assert client.patch(f"/api/cards/{source}", json={"back": OTHER_CHOICES[0]}).status_code == 200
+    assert {row.flashcard_id for row in cached_rows(client)} == {target, other}
+    if change == "delete":
+        assert client.delete(f"/api/cards/{source}").status_code == 204
+    elif change == "move":
+        with client.factory.begin() as db:
+            db.get(Flashcard, source).deck_id = replacement_deck
+    else:
+        assert client.patch(f"/api/cards/{source}", json={change: "New text"}).status_code == 200
+    assert [row.flashcard_id for row in cached_rows(client)] == [other]
+    assert source_rows(client, target) == []
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    assert lookup(other, owner) == FIRST_CHOICES
+    if change in {"delete", "move"}:
+        with pytest.raises(DistractorGenerationError):
+            lookup(target, owner)
+        make_card(client, deck_id, "New text")
+    choices = lookup(target, owner)
+    expected = set(OTHER_CHOICES) if change == "front" else {*OTHER_CHOICES[1:], "New text"}
+    assert set(choices) == expected
+
+
+def test_hybrid_cache_replaced_cleanly_when_generation_version_changes(cache, monkeypatch):
+    client, owner = cache
+    deck_id = deck(client, count=4)
+    target = make_card(client, deck_id)
+    generate = AsyncMock(side_effect=[DistractorGenerationError("Unavailable"), FIRST_CHOICES])
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    assert len(lookup(target, owner)) == 3
+    assert len(source_rows(client, target)) == 3
+    monkeypatch.setattr(distractors, "GENERATION_VERSION", distractors.GENERATION_VERSION + 1)
+    assert lookup(target, owner) == FIRST_CHOICES
+    assert source_rows(client, target) == []
+
+
+def test_hybrid_racing_writers_share_choices_and_provenance(cache, monkeypatch):
+    client, owner = cache
+    target = make_card(client, deck(client, count=4))
+    barrier = Barrier(2)
+
+    async def generate(*args, **kwargs):
+        slot = await asyncio.to_thread(barrier.wait, 10)
+        raise DistractorGenerationError("Partial", candidates=[FIRST_CHOICES[slot]])
+
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = [pool.submit(lookup, target, owner) for _ in range(2)]
+        first, second = [result.result(timeout=15) for result in results]
+    [row] = cached_rows(client)
+    assert first == second == row.distractors
+    assert first[0] in FIRST_CHOICES[:2]
+    assert len(source_rows(client, target)) == 2
+
+
+def test_startup_preserves_a_pre_hybrid_ai_cache(cache, monkeypatch):
+    client, owner = cache
+    target = make_card(client, deck(client, count=0))
+    generate = AsyncMock(return_value=FIRST_CHOICES)
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    lookup(target, owner)
+    engine = client.factory.kw["bind"]
+    with engine.begin() as db:
+        db.execute(text("DROP TRIGGER flashcard_distractor_source_update"))
+        db.execute(text("DROP TRIGGER flashcard_distractor_source_delete"))
+        db.execute(text("DROP TABLE flashcard_distractor_sources"))
+        before = db.execute(text("SELECT * FROM flashcard_distractor_cache")).all()
+    init_database(engine)
+    init_database(engine)
+    with engine.begin() as db:
+        assert db.execute(text("SELECT * FROM flashcard_distractor_cache")).all() == before
+        assert db.execute(text("PRAGMA foreign_key_check")).all() == []
+    assert lookup(target, owner) == FIRST_CHOICES
+    generate.assert_awaited_once()

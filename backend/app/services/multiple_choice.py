@@ -14,8 +14,7 @@ from starlette.concurrency import run_in_threadpool
 from app.database import SessionLocal
 from app.models import Deck, Flashcard, MultipleChoiceQuestion, MultipleChoiceSession, User, utcnow
 from app.services.activity import mark_study_day
-from app.services.distractor_cache import get_or_generate_distractors
-from app.services.distractors import DistractorGenerationError
+from app.services.distractor_cache import InsufficientDistractorsError, get_or_generate_distractors
 from app.services.ownership import owned_flashcards
 from app.services.presenters import iso
 
@@ -335,8 +334,8 @@ class PreparationJobs:
                                 choices = await get_or_generate_distractors(
                                     card_id, User(id=owner_id), expected_content=content,
                                 )
-                            except DistractorGenerationError:
-                                reason = "generation_failed"
+                            except InsufficientDistractorsError as error:
+                                reason = error.reason
                             except HTTPException as error:
                                 if error.status_code not in {404, 409}:
                                     raise
