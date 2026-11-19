@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateTiming, loadTiming, saveTiming} from '../js/study-options.js';
 import {setAuthenticatedUser} from '../js/auth-state.js';
-import {recentChats, validChats} from '../js/chat-data.js';
 
 test('study modes validate bounded durations and convert deck minutes to seconds', () => {
   assert.deepEqual(validateTiming('unlimited','invalid',null),{mode:'unlimited'});
@@ -23,14 +22,4 @@ test('saved study deadlines remain private to the active account and survive rep
   setAuthenticatedUser({id:301,email:'a@example.com'});
   assert.deepEqual(loadTiming('test-session'),timing);
   setAuthenticatedUser(null);
-});
-
-test('chat previews reject malformed records and sort most recent activity first without changing storage order', () => {
-  const chats = validChats([{id:'a',name:'First',updatedAt:1,messages:[{text:'Hello',at:1},null]},null,{id:'b',name:'Second',updatedAt:2,messages:[]},{id:'c',name:'',updatedAt:3,messages:[]}]);
-  assert.equal(chats.length,2);
-  assert.equal(chats[0].messages.length,1);
-  assert.deepEqual(recentChats(chats).map(chat=>chat.id),['b','a']);
-  chats[0].updatedAt=3;
-  assert.deepEqual(recentChats(chats).map(chat=>chat.id),['a','b']);
-  assert.deepEqual(validChats({}),[]);
 });

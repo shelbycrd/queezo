@@ -108,7 +108,9 @@ function updateClock() {
   }
   const nav = document.querySelector('#pomodoro-nav-label') || document.querySelector('[data-nav="pomodoro"]');
   if (nav) nav.textContent = state.running ? `Pomodoro · ${clockText(remaining)}` : 'Pomodoro';
-  document.title = state.running ? `${clockText(remaining)} · ${PHASE_NAMES[state.phase]} · Queezo` : 'Queezo · Study companion';
+  if (display) {
+    document.title = `Queezo • ${state.running ? clockText(remaining) : 'Pomodoro'}`;
+  }
 }
 
 function tick() {

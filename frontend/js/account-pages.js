@@ -9,14 +9,14 @@ import {soundsEnabled, setSoundsEnabled, playTimerPress} from './audio.js';
 export async function accountPage(section, route) {
   if (section === 'profile') {
     const user = authenticatedUser();
-    const [decks, activity] = await Promise.all([api('/decks'), api('/dashboard/activity')]);
+    const [decks, activity, connections] = await Promise.all([api('/decks'), api('/dashboard/activity'), api('/friends')]);
     const publicDecks = decks.filter(deck => deck.visibility === 'public').sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id-a.id);
     const best = highestStreak(activity.active_days);
     if (!mount(`<div class="page-heading"><h1>Profile</h1></div>
       <section class="panel profile-card" aria-label="Your profile">
         <div class="profile-avatar" aria-hidden="true">${escape(Array.from(user.display_name.trim())[0] || 'Q')}</div>
         <div class="profile-identity"><h2>${escape(user.display_name)}</h2><p class="profile-username">@${escape(user.username)}</p>
-          <dl class="profile-stats"><div><dt>Total Decks</dt><dd>${decks.length}</dd></div><div><dt>Friends</dt><dd aria-label="Friends unavailable">—</dd><small>Coming soon</small></div><div><dt>Highest Streak</dt><dd>${best}<span> ${best === 1 ? 'day' : 'days'}</span></dd></div></dl>
+          <dl class="profile-stats"><div><dt>Total Decks</dt><dd>${decks.length}</dd></div><div><dt>Friends</dt><dd data-friend-count>${connections.friends.length}</dd></div><div><dt>Highest Streak</dt><dd>${best}<span> ${best === 1 ? 'day' : 'days'}</span></dd></div></dl>
         </div>
         <div class="profile-actions"><a class="button" href="#decks">Your decks</a><details class="profile-account"><summary>Account details</summary><dl class="profile-details"><dt>UID</dt><dd><span>${escape(user.uid)}</span> <button type="button" class="secondary small flat-button" data-copy="${escape(user.uid)}">Copy UID</button></dd><dt>Email</dt><dd><span>${escape(user.email)}</span> <button type="button" class="secondary small flat-button" data-copy="${escape(user.email)}">Copy email</button></dd></dl></details></div>
       </section>

@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#EEF3FF">
-  <title>Queezo · Study companion</title>
+  <title>Queezo • Home</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/queezo-cloud.svg">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/pomodoro.css">
   <link rel="stylesheet" href="/css/auth.css">
@@ -44,7 +45,7 @@
     </nav>
     <a class="sidebar-settings" href="#settings" data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3z"/><circle cx="12" cy="12" r="3"/></svg>Settings</a>
   </header>
-  <div id="account-controls" class="account-controls" hidden><button id="open-chats" type="button" class="topbar-icon secondary flat-button" aria-label="Open chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v12H9l-5 4z"/></svg></button><button id="open-notifications" type="button" class="topbar-icon secondary flat-button" aria-label="Open notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zM10 20h4"/></svg></button><details id="account-dropdown"><summary class="account-trigger"><span class="account-avatar" id="account-avatar">Q</span><span id="account-email"></span><span aria-hidden="true">⌄</span></summary><div class="account-menu"><a href="#profile">Profile</a><a href="#help">Help</a><button id="logout" type="button">Log out</button></div></details></div>
+  <div id="account-controls" class="account-controls" hidden><button id="open-friends" type="button" class="topbar-icon secondary flat-button" aria-label="Open friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5v2"/></svg></button><button id="open-notifications" type="button" class="topbar-icon secondary flat-button" aria-label="Open notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zM10 20h4"/></svg></button><details id="account-dropdown"><summary class="account-trigger"><span class="account-avatar" id="account-avatar">Q</span><span id="account-email"></span><span aria-hidden="true">⌄</span></summary><div class="account-menu"><a href="#profile">Profile</a><a href="#help">Help</a><button id="logout" type="button">Log out</button></div></details></div>
   <div id="notice" class="notice" role="alert" hidden></div>
   <aside id="pomodoro-alert" class="pomodoro-alert" aria-label="Pomodoro notification" hidden><div role="status" aria-live="polite"><strong></strong><p></p></div><div class="actions"><a href="#pomodoro">Open timer</a><button id="dismiss-pomodoro-alert" type="button" class="secondary small" aria-label="Dismiss timer notification">Dismiss</button></div></aside>
   <main id="app" tabindex="-1"><p class="muted">Loading Queezo…</p></main>

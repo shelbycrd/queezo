@@ -9,7 +9,8 @@ import {authenticatedUser} from './auth-state.js';
 import {initAuth, loginPage, signupPage, restoreSession} from './auth.js';
 import {initButtonFeedback} from './audio.js';
 import {accountPage, initAccountMenu} from './account-pages.js';
-import {initCommunicationPanels, resetCommunicationPanels} from './chat-preview.js';
+import {initNotifications, resetNotifications} from './notifications.js';
+import {friendProfile, initFriends} from './friends.js';
 import {closeStudyOptions} from './study-options.js';
 
 let authReady = false;
@@ -21,14 +22,17 @@ async function navigate() {
   notice('');
   const route = location.hash || '#dashboard';
   const parts = route.slice(1).split('/');
+  const titles = {dashboard:'Home', decks:'Flashcard', deck:'Flashcard', study:'Flashcard', summary:'Flashcard', shared:'Flashcard', gwa:'GWA Calculator', notes:'GWA Calculator', pomodoro:'Pomodoro', profile:'Profile', friend:'Profile', settings:'Settings', help:'Help', login:'Log in', signup:'Sign up'};
   if (!authenticatedUser()) {
     if (!['#login','#signup'].includes(route)) { location.replace('#login'); return; }
+    document.title = `Queezo • ${titles[parts[0]]}`;
     if (route === '#signup') signupPage(route); else loginPage(route);
     window.scrollTo(0,0);
     app.focus({preventScroll:true});
     return;
   }
   if (['login','signup'].includes(parts[0])) { location.replace('#dashboard'); return; }
+  document.title = `Queezo • ${titles[parts[0]] || 'Page not found'}`;
   document.querySelectorAll('[data-nav]').forEach(link => {
     const section = ['deck','study','summary'].includes(parts[0]) ? 'decks' : parts[0];
     if (link.dataset.nav === section) link.setAttribute('aria-current','page');
@@ -41,6 +45,7 @@ async function navigate() {
     else if (parts[0] === 'shared' && /^[A-Za-z0-9_-]{32,64}$/.test(parts[1] || '')) await sharedPage(parts[1],route);
     else if (parts[0] === 'gwa') gwaPage(route);
     else if (parts[0] === 'pomodoro') pomodoroPage(route);
+    else if (parts[0] === 'friend' && /^[A-Za-z0-9_]{3,32}$/.test(parts[1] || '')) await friendProfile(parts[1], route);
     else if (['profile','help','settings'].includes(parts[0])) await accountPage(parts[0], route);
     else if (parts[0] === 'notes') { location.replace('#gwa'); return; }
     else if (parts[0] === 'deck' && /^\d+$/.test(parts[1])) {
@@ -61,10 +66,13 @@ async function navigate() {
 
 initButtonFeedback();
 initAccountMenu();
-initCommunicationPanels();
+initNotifications();
+const friends = initFriends();
 initPomodoro();
 initAuth((previous, user) => {
-  resetCommunicationPanels();
+  resetNotifications();
+  friends.reset();
+  if (user) void friends.pulse();
   closeStudyOptions();
   stopStudyListeners();
   stopPomodoroView();

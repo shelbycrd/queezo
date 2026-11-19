@@ -20,7 +20,7 @@ Decks default to **Private**. **Public** decks appear in Community Decks on Home
 
 Rated flashcards and completed study intervals count toward streaks using Asia/Manila calendar days. Profile shows your total decks and longest streak. Pomodoro settings and tasks stay in the current browser under your account. In-app alerts work while Queezo is open, and desktop alerts require browser permission.
 
-The Friends area is marked **Coming soon**, and chat is a local preview. Email verification and password recovery are unavailable.
+Open **Friends** from the top bar to search your list, send requests by username, and view a friend’s public profile. Friends appear online when Queezo has recently been open in an active tab. Study invitations, email verification, and password recovery are unavailable.
 
 ## Getting started
 

@@ -139,3 +139,22 @@ class ActivityDay(Base):
     __tablename__ = "activity_days"
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     day: Mapped[date] = mapped_column(Date, primary_key=True)
+
+
+class Friendship(Base):
+    __tablename__ = "friendships"
+    first_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    second_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, index=True)
+    requester_id: Mapped[int] = mapped_column(Integer)
+    accepted: Mapped[bool] = mapped_column(Boolean, default=False)
+    __table_args__ = (
+        CheckConstraint("first_id < second_id"),
+        CheckConstraint("requester_id IN (first_id, second_id)"),
+    )
+
+
+class SessionPresence(Base):
+    __tablename__ = "session_presence"
+    session_hash: Mapped[str] = mapped_column(
+        ForeignKey("auth_sessions.token_hash", ondelete="CASCADE"), primary_key=True)
+    seen_at: Mapped[datetime] = mapped_column(DateTime)

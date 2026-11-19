@@ -19,7 +19,7 @@ export async function dashboard(route) {
     <section class="recent-section"><div class="section-heading"><div><h2>Community Decks</h2><p class="muted">Explore public decks.</p></div><div class="carousel-controls"><button type="button" id="recent-prev" class="icon-button secondary" aria-label="Previous decks">←</button><button type="button" id="recent-next" class="icon-button secondary" aria-label="Next decks">→</button></div></div>
     ${recent.length ? `<div class="recent-track" id="recent-track" tabindex="0" aria-label="Community decks, newest first">${recent.slice(0,20).map(communityTile).join('')}</div>` : '<div class="empty"><div class="empty-icon">'+icon('cards')+'</div><h3>No community decks yet.</h3><p class="muted">Create a deck and choose Public to share it here.</p><a class="button secondary" href="#decks">Create a deck</a></div>'}</section>
     <div class="home-lower"><section class="panel streak-panel"><div class="section-heading"><h2>Your study rhythm</h2></div><div class="streak-number">${activity.study_streak}<span> day${activity.study_streak === 1 ? '' : 's'} in a row</span></div><p class="muted">${activity.active_today ? 'You made time to learn today. Keep it going!' : 'A flashcard review or finished pomodoro keeps your streak going.'}</p><div class="study-week">${days}</div><div class="home-counts"><span><strong>${stats.deck_count}</strong> decks</span><span><strong>${stats.card_count}</strong> flashcards</span></div></section>
-      <section class="panel friends-panel"><div class="section-heading"><h2>Your study circle</h2><span class="badge">Coming soon</span></div><div class="friend-tabs" aria-label="Friend presence"><button type="button" id="friends-online" aria-pressed="true">Online <span>0</span></button><button type="button" id="friends-offline" aria-pressed="false">Offline <span>0</span></button></div><div class="friends-empty"><div class="empty-icon">${icon('friends')}</div><h3 id="friends-message">No friends online yet.</h3><p class="muted">A little room for learning together.<br>Your friends will appear here once connected.</p></div></section></div>`, route)) return;
+      <section class="panel friends-panel"><div class="section-heading"><h2>Your study circle</h2></div><button type="button" id="home-friends" class="secondary flat-button">${icon('friends')} Open friends</button></section></div>`, route)) return;
   app.querySelectorAll('[data-study]').forEach(button => button.addEventListener('click', () => busy(button.parentElement, () => startStudy(button.dataset.study))));
   const track = app.querySelector('#recent-track');
   const prev = app.querySelector('#recent-prev'), next = app.querySelector('#recent-next');
@@ -27,10 +27,7 @@ export async function dashboard(route) {
   prev.addEventListener('click', () => track?.scrollBy({left:-300,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}));
   next.addEventListener('click', () => track?.scrollBy({left:300,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}));
   track?.addEventListener('scroll',update); update();
-  for (const mode of ['online','offline']) app.querySelector(`#friends-${mode}`).addEventListener('click', () => {
-    app.querySelector('#friends-message').textContent = mode === 'online' ? 'No friends online yet.' : 'No offline friends yet.';
-    for (const item of ['online','offline']) app.querySelector(`#friends-${item}`).setAttribute('aria-pressed',String(mode === item));
-  });
+  app.querySelector('#home-friends').onclick = () => document.querySelector('#open-friends').click();
 }
 
 export async function decks(route, createImmediately = false) {

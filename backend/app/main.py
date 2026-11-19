@@ -11,7 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.database import get_db, init_database
 from app.errors import validation_error
-from app.routers import activity, decks, study
+from app.routers import activity, decks, friends, study
 from app.routers import community
 from app.auth.router import router as auth_router
 from app.auth.config import get_settings
@@ -31,6 +31,7 @@ app.include_router(study.router)
 app.include_router(activity.router)
 app.include_router(auth_router)
 app.include_router(community.router)
+app.include_router(friends.router)
 app.add_middleware(PrivateResponseHeaders)
 
 
