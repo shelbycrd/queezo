@@ -1,6 +1,6 @@
 import {api} from './api.js';
 import {startStudy} from './decks.js';
-import {app, backIcon, duration, escape, mount, notice, plural} from './ui.js';
+import {app, closeIcon, duration, escape, mount, notice, plural} from './ui.js';
 import {renderCardContent, studyShortcut} from './card-content.js';
 import {loadTiming, saveTiming} from './study-options.js';
 
@@ -30,7 +30,7 @@ export async function studyPage(sessionId, route) {
     const secondsLeft = Math.max(0, Math.ceil(((timing.deadline || 0) - Date.now()) / 1000));
     const timeText = `${String(Math.floor(secondsLeft / 60)).padStart(2,'0')}:${String(secondsLeft % 60).padStart(2,'0')}`;
     const card = state.current_card;
-    return mount(`<div class="study-shell"><div class="study-heading"><button id="exit-study" class="secondary small flat-button" aria-label="Back to deck">${backIcon}</button><div><p class="eyebrow">A little focused recall</p><h1>${escape(state.deck_title)}</h1></div></div>
+    return mount(`<div class="study-shell"><div class="study-heading"><button id="exit-study" type="button" class="study-exit secondary small flat-button" aria-label="Back to deck" title="Back to deck">${closeIcon}</button><div><p class="eyebrow">A little focused recall</p><h1>${escape(state.deck_title)}</h1></div></div>
       ${timing.mode === 'timed' ? `<div class="study-clock"><span>${timing.scope === 'question' ? 'Time for this question' : 'Time for this deck'}</span><strong id="study-time-left" role="timer">${timeText}</strong><span id="study-time-message"></span></div>` : ''}
       <div class="progress-text"><span>${state.completed_cards} of ${state.total_cards} cards complete</span><span>${plural(state.total_reviews,'review')}</span></div><progress max="${state.total_cards}" value="${state.completed_cards}" aria-label="Completed flashcards"></progress>
       <article class="study-sheet ${state.revealed ? 'answer-revealed' : ''}" aria-label="Flashcard"><section class="study-question" tabindex="-1"><span class="content-label">Question</span>${renderCardContent(card.front, card.front_image, 'Question photo')}</section>

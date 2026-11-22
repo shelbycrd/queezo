@@ -3,7 +3,8 @@ import {authVersion} from './auth-state.js';
 import {renderCardContent, safeImageUrl} from './card-content.js';
 import {multipleChoiceSession, scoreSummary, SESSION_LABELS} from './multiple-choice-session.js';
 import {chooseStudy} from './study-options.js';
-import {app, backIcon, date, escape, mount, plural} from './ui.js';
+import {app, closeIcon, date, escape, mount, plural} from './ui.js';
+import {playAnswerSound, preparePageSound} from './audio.js';
 
 const FAILURE_LABELS = {
   generation_failed:'Could not find three distinct choices. Check Ollama or add cards with different answers.',
@@ -64,14 +65,15 @@ function questionView(session, question, grade, pending, selection) {
   const options = question.options.map((option, index) => {
     const correct = option.id === grade?.correct_option.id;
     const chosen = option.id === grade?.selected_option_id;
-    return `<label class="mc-option ${correct ? 'mc-correct' : chosen ? 'mc-incorrect' : ''}">
-      <input name="answer" type="radio" required value="${escape(option.id)}"
-        ${(!grade && selection === option.id) || chosen ? 'checked' : ''}>
+    const eliminated = option.id === question.eliminated_option_id;
+    return `<label class="mc-option ${correct ? 'mc-correct' : chosen || eliminated ? 'mc-incorrect' : ''}">
+      <input name="answer" type="radio" value="${escape(option.id)}"
+        ${eliminated ? 'disabled' : ''} ${(!grade && !eliminated && selection === option.id) || chosen ? 'checked' : ''}>
       <span class="mc-letter" aria-hidden="true">${String.fromCharCode(65 + index)}</span>
       <span class="mc-option-text">${escape(option.text)}</span>
       <small class="mc-option-mark">
         <span class="${correct ? 'is-visible' : ''}">Correct answer</span>
-        <span class="${chosen ? 'is-visible' : ''}">Your choice</span>
+        <span class="${chosen || eliminated ? 'is-visible' : ''}">${eliminated ? 'First guess' : 'Your choice'}</span>
       </small>
     </label>`;
   }).join('');
@@ -82,21 +84,20 @@ function questionView(session, question, grade, pending, selection) {
       <h2 class="content-label" data-mc-focus tabindex="-1">Question ${ordinal}</h2>
       ${renderCardContent(question.front, question.front_image, 'Question photo')}
     </section></article>
-    <form id="mc-answer-form"><fieldset class="mc-choices ${grade ? 'mc-graded' : ''}" ${grade || pending ? 'disabled' : ''}>
+    <fieldset id="mc-answer-choices" class="mc-choices ${grade ? 'mc-graded' : ''}" ${grade || pending ? 'disabled' : ''}>
       <legend>Answer choices</legend><div class="mc-options" ${grade ? `data-mc-feedback tabindex="-1" role="group" aria-label="${grade.is_correct ? 'Correct' : 'Incorrect'}. Answer choices"` : ''}>${options}</div></fieldset>
-      <div class="actions mc-actions">${grade
-        ? button('next', pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question', false, pending)
-        : `<button type="submit" ${pending ? 'disabled' : ''}>${pending === 'answer' ? 'Checking…' : 'Check answer'}</button>`}
-      ${session.status === 'active' ? button('cancel', pending === 'cancel' ? 'Ending…' : 'End session', true, pending) : ''}</div>
-      ${image ? `<img class="card-photo" src="${image}" alt="Correct answer photo">` : ''}
-    </form>`;
+    <div class="actions mc-actions">${grade
+      ? button('next', pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question', false, pending)
+      : question.eliminated_option_id
+        ? '<span class="mc-try-again" data-mc-retry tabindex="-1" role="status">Try again. One attempt left.</span>'
+        : `<span class="muted">${question.attempts_remaining === 2 ? 'Two attempts' : 'One attempt'}</span>`}</div>
+    ${image ? `<img class="card-photo" src="${image}" alt="Correct answer photo">` : ''}`;
 }
 
-function waitingView(session, pending) {
+function waitingView(session) {
   return `<section class="panel mc-panel">
     <h2 data-mc-focus tabindex="-1">${session.deck_time_over ? 'Finishing your session' : 'Preparing the next question'}</h2>
     <p class="muted">${session.deck_time_over ? 'The deck timer has ended.' : 'Your place is saved. The next question will open when it’s ready.'}</p>
-    <div class="actions mc-actions">${button('cancel', 'End session', true, pending)}</div>
   </section>`;
 }
 
@@ -136,7 +137,6 @@ export async function multipleChoicePage(sessionId, route) {
   const accountVersion = authVersion();
   let alive = true;
   let lastPhase;
-  let lastQuestionId;
   let selection;
   let choosing = false;
   let previousView;
@@ -160,19 +160,16 @@ export async function multipleChoicePage(sessionId, route) {
     const {session, question, grade, problem, pending, message, clock} = view;
     clearInterval(clockInterval);
     const showClock = clock && !problem && (grade || session?.status === 'active');
-    const questionId = problem ? lastQuestionId : question?.id;
-    if (lastQuestionId !== questionId) selection = undefined;
-    lastQuestionId = questionId;
     const focusedAction = document.activeElement?.dataset.mcAction;
     const focusedOption = document.activeElement?.name === 'answer' ? document.activeElement.value : null;
     let content;
     let phase;
     if (problem) { phase = 'problem'; content = problemView(view); }
     else if (grade || (session?.status === 'active' && question)) {
-      phase = grade ? `feedback:${question.id}` : `question:${question.id}`;
-      content = questionView(session, question, grade, pending, selection);
+      phase = `${grade ? 'feedback' : question.eliminated_option_id ? 'retry' : 'question'}:${question.id}`;
+      content = questionView(session, question, grade, pending, pending === 'answer' ? selection : undefined);
     } else if (session?.status === 'active' && session.study_started !== false) {
-      phase = 'waiting'; content = waitingView(session, pending);
+      phase = 'waiting'; content = waitingView(session);
     } else if (session?.status === 'completed') {
       phase = 'completed'; content = summaryView(session, choosing);
     } else if (session && ['expired','cancelled'].includes(session.status)) {
@@ -184,7 +181,7 @@ export async function multipleChoicePage(sessionId, route) {
     }
     const failuresOpen = app.querySelector('.mc-failures')?.open;
     if (!mount(`<div class="study-shell mc-shell">
-      <div class="study-heading"><a class="button secondary small flat-button mc-back" href="${session ? `#deck/${escape(session.deck_id)}` : '#decks'}" aria-label="Back to deck">${backIcon}</a>
+      <div class="study-heading"><a class="button secondary small flat-button study-exit" href="${session ? `#deck/${escape(session.deck_id)}` : '#decks'}" aria-label="Back to deck" title="Back to deck">${closeIcon}</a>
       <div><p class="eyebrow">Multiple-Choice Mode</p><h1>${escape(session?.deck_title || 'Multiple-Choice Study')}</h1></div></div>
       ${message ? `<p role="status" class="mc-note">${escape(message)}</p>` : ''}
       ${showClock ? `<div class="study-clock" role="timer" aria-label="${session.timing.scope === 'deck' ? 'Deck time remaining' : 'Question time remaining'}"><span>${session.timing.scope === 'deck' ? 'Deck time left' : 'Question time left'}</span><strong data-mc-clock></strong></div>` : ''}
@@ -210,15 +207,16 @@ export async function multipleChoicePage(sessionId, route) {
       else if (action === 'again') void newSession();
       else if (action) void controller.transition(action);
     });
-    const form = shell.querySelector('#mc-answer-form');
-    form?.addEventListener('change', event => { selection = event.target.value; });
-    form?.addEventListener('submit', event => {
-      event.preventDefault();
-      const option = form.querySelector('input:checked');
-      if (!grade && option) void controller.answer(option.value);
+    shell.querySelector('#mc-answer-choices')?.addEventListener('change', event => {
+      const option = event.target;
+      if (grade || pending || !option.matches('input[name="answer"]:checked:enabled')) return;
+      selection = option.value;
+      preparePageSound();
+      void controller.answer(selection);
     });
     if (phase !== lastPhase) {
-      shell.querySelector(grade && !problem ? '[data-mc-feedback]' : '[data-mc-focus]')?.focus({preventScroll:Boolean(grade)});
+      const feedback = shell.querySelector('[data-mc-feedback], [data-mc-retry]');
+      (feedback || shell.querySelector('[data-mc-focus]'))?.focus({preventScroll:Boolean(feedback)});
     } else if (focusedOption && !pending) {
       [...shell.querySelectorAll('input[name=answer]')].find(input =>
         input.value === focusedOption)?.focus({preventScroll:true});
@@ -229,7 +227,7 @@ export async function multipleChoicePage(sessionId, route) {
     lastPhase = phase;
   }
 
-  const controller = multipleChoiceSession(sessionId, {update:render, active});
+  const controller = multipleChoiceSession(sessionId, {update:render, active, answerFeedback:playAnswerSound});
   stop = () => { alive = false; clearInterval(clockInterval); controller.stop(); };
   await controller.refresh();
 }

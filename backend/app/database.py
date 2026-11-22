@@ -51,7 +51,10 @@ def init_database(target=engine):
                 "timing_scope": "VARCHAR(8)", "timing_seconds": "INTEGER", "deck_deadline": "DATETIME",
                 "study_started_at": "DATETIME", "preparation_finished_at": "DATETIME",
             }),
-            ("multiple_choice_questions", {"question_deadline": "DATETIME", "timed_out_at": "DATETIME"}),
+            ("multiple_choice_questions", {
+                "question_deadline": "DATETIME", "timed_out_at": "DATETIME",
+                "allows_retry": "BOOLEAN", "eliminated_option_id": "VARCHAR(36)",
+            }),
         ):
             columns = {row[1] for row in connection.execute(text(f"PRAGMA table_info({table})"))}
             for name, kind in fields.items():
@@ -64,6 +67,7 @@ def init_database(target=engine):
                         study_started_at = CASE WHEN status IN ('active', 'completed') THEN created_at END
                     WHERE status <> 'preparing'
                 """))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_mc_questions_source_card ON multiple_choice_questions (source_card_id)"))
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_login_throttles_window_started ON login_throttles (window_started)"))
         legacy = {table: [row["id"] for row in rows] for table, rows in legacy_cards(connection).items() if rows}
         if legacy:

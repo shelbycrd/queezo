@@ -12,11 +12,12 @@ function session(status, {ready = 0, failed = 0, answered = 0, correct = 0} = {}
   return {status, answered, correct, progress:{ready, failed, completed:ready+failed, total:2}};
 }
 
-function fixture(request, {expectedDelay = 1500, now = Date.now} = {}) {
+function fixture(request, {expectedDelay = 1500, now = Date.now, answerFeedback} = {}) {
   const updates = [], calls = [], timers = new Map();
   let id = 0;
   const controller = multipleChoiceSession('test', {
     update: value => updates.push(value),
+    answerFeedback,
     request: (url, options) => { calls.push([url,options]); return request(url,options); },
     setTimer: (fn, delay) => { assert.equal(delay, expectedDelay); timers.set(++id,fn); return id; },
     now,
@@ -36,7 +37,7 @@ function fixture(request, {expectedDelay = 1500, now = Date.now} = {}) {
 
 test('preparation polls actual progress, fetches the question only once active, and stops polling', async () => {
   const states = [session('preparing'), session('preparing',{ready:1}), session('active',{ready:2})];
-  const f = fixture(async url => url.endsWith('/question') ? question : states.shift());
+  const f = fixture(async url => url.endsWith('/question') ? {session:session('active',{ready:2}), question} : states.shift());
   await f.controller.refresh();
   assert.equal(f.latest().session.progress.completed, 0);
   assert.equal(f.latest().question, null);
@@ -51,8 +52,8 @@ test('preparation polls actual progress, fetches the question only once active, 
 test('duplicate answer clicks are blocked and only the server result supplies the grade', async () => {
   let resolveGrade;
   const answer = new Promise(resolve => { resolveGrade = resolve; });
-  const f = fixture(async url => url === path ? session('active',{ready:1,failed:1}) :
-    url.endsWith('/question') ? question : answer);
+  const state = session('active',{ready:1,failed:1});
+  const f = fixture(async url => url === path ? state : url.endsWith('/question') ? {session:state, question} : answer);
   await f.controller.refresh();
   await f.controller.answer('foreign-option');
   const pending = f.controller.answer('d');
@@ -77,8 +78,8 @@ test('conflict reloads the latest question instead of showing a fabricated grade
   let answered = 0;
   const f = fixture(async url => {
     if (url.endsWith('/answer')) { answered = 1; throw new ApiError('Already answered',409); }
-    return url === path ? session('active',{ready:2,answered}) :
-      answered ? {...question,id:'second'} : question;
+    const state = session('active',{ready:2,answered});
+    return url === path ? state : {session:state, question:answered ? {...question,id:'second'} : question};
   });
   await f.controller.refresh();
   await f.controller.answer('a');
@@ -109,7 +110,7 @@ test('failure can retry, continue with ready questions, or cancel through the ex
     if (url.endsWith('/retry')) return session('preparing',{ready:1});
     if (url.endsWith('/continue')) return session('active',{ready:1,failed:1});
     if (url.endsWith('/cancel')) return session('cancelled',{ready:1,failed:1});
-    if (url.endsWith('/question')) return question;
+    if (url.endsWith('/question')) return {session:session('active',{ready:1,failed:1}), question};
     return partial;
   });
   await f.controller.refresh();
@@ -124,7 +125,7 @@ test('failure can retry, continue with ready questions, or cancel through the ex
   assert.equal(f.latest().question,null);
   assert.equal(f.timers.size,0);
   assert.deepEqual(f.calls.filter(([, options]) => options.method === 'POST').map(([url]) => url),
-    [path+'/retry',path+'/continue',path+'/cancel']);
+    [path+'/retry',path+'/continue',path+'/question',path+'/cancel']);
 });
 
 test('a per-question timeout opens the next question and reports the missed answer', async () => {
@@ -176,7 +177,7 @@ test('progressive study keeps feedback, waits for the next slot, and resumes wit
   let nextQuestion = question;
   const f = fixture(async url => {
     if (url.endsWith('/start')) return state = started;
-    if (url.endsWith('/question')) return nextQuestion;
+    if (url.endsWith('/question')) return {session:state, question:nextQuestion};
     if (url.endsWith('/answer')) return {session:state = waiting, is_correct:true};
     return state;
   });
@@ -202,12 +203,38 @@ test('progressive study keeps feedback, waits for the next slot, and resumes wit
 
 test('refresh resumes a progressive session with its saved question and preparation polling', async () => {
   const state = {...session('active',{ready:1,answered:0}), study_started:true, preparing:true, question_ready:true};
-  const f = fixture(async url => url.endsWith('/question') ? question : state);
+  const f = fixture(async url => url.endsWith('/question') ? {session:state, question} : state);
   await f.controller.refresh();
   assert.equal(f.latest().question,question);
   assert.equal(f.timers.size,1);
   f.controller.stop();
   assert.equal(f.timers.size,0);
+});
+
+test('first miss disables only that choice and feedback plays once per accepted submission', async () => {
+  const sounds = [];
+  const state = session('active',{ready:2});
+  let current = question;
+  const f = fixture(async (url, options) => {
+    if (url === path) return state;
+    if (url.endsWith('/question')) return {session:state, question:current};
+    if (options.body.option_id === 'a') {
+      current = {...question, eliminated_option_id:'a'};
+      return {session:state, question:current, retry:true, is_correct:false};
+    }
+    return {session:{...state, answered:1, correct:1}, is_correct:true, correct_option:question.options[1]};
+  }, {answerFeedback:correct => sounds.push(correct)});
+  await f.controller.refresh();
+  await f.controller.answer('a');
+  assert.equal(f.latest().grade,null);
+  assert.equal(f.latest().session.answered,0);
+  await f.controller.refresh();
+  assert.equal(f.latest().question.eliminated_option_id,'a');
+  await f.controller.answer('a');
+  assert.equal(f.calls.filter(([url]) => url.endsWith('/answer')).length,1);
+  await f.controller.answer('b');
+  assert.equal(f.latest().grade.is_correct,true);
+  assert.deepEqual(sounds,[false,true]);
 });
 
 test('leaving stops polling, aborts reads, and discards a late response', async () => {

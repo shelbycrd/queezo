@@ -1,6 +1,6 @@
 # Multiple-choice study API
 
-From a deck, choose **Study**, then **Multiple-Choice Mode**. The preparation screen tracks the opening questions and starts study automatically when the ordered threshold is reached. The rest of the deck can continue preparing while you study. A question is graded when the student selects **Check answer**, and the results use server-recorded totals. Open **Multiple-Choice history** on the deck to resume a saved session or view a summary. Refreshing resumes at the current unanswered question or summary. The grading response marks the correct answer and the student’s choice directly in the list.
+From a deck, choose **Study**, then **Multiple-Choice Mode**. The preparation screen tracks the opening questions and starts study automatically when the ordered threshold is reached. The rest of the deck can continue preparing while you study. Selecting a choice submits it immediately, and the results use server-recorded totals. Open **Multiple-Choice history** on the deck to resume a saved session or view a summary. Refreshing resumes at the current unanswered question or summary. The grading response marks the correct answer and the student’s choice directly in the list.
 
 Sessions are owner-only. Use the normal session cookie for every route and send the CSRF header on POST requests. Shared decks can be studied once copied into the student's own decks.
 
@@ -12,16 +12,18 @@ Sessions are owner-only. Use the normal session cookie for every route and send 
 | `POST /api/multiple-choice/{session_id}/retry` | **202** while a failed session prepares its unfinished cards again. A previously started session retries interrupted slots and resumes study from the saved position. |
 | `POST /api/multiple-choice/{session_id}/continue` | **200** to resume a failed session with ready questions or finish a previously started session with no questions left. Skips the reported failures. |
 | `POST /api/multiple-choice/{session_id}/cancel` | **200** with the cancelled state. Stops its preparation job and preserves any already saved cache entries and study results. |
-| `GET /api/multiple-choice/{session_id}/question` | Current unanswered question with `id`, `front`, nullable `front_image`, and four shuffled `options` containing only `id` and `text`. Returns **409** while the next position is still preparing. |
-| `POST /api/multiple-choice/{session_id}/question` | Opens or resumes the current timed question. Returns `session`, `question`, and `remaining_ms`. A waiting or completed session returns a null question. An existing deck countdown can continue while waiting. |
-| `POST /api/multiple-choice/{session_id}/answer` | Takes `{"question_id":"…","option_id":"…"}`. Returns `question_id`, `selected_option_id`, `is_correct`, `correct_option` with its ID and original Back text, nullable `back_image`, and the updated `session` state. |
+| `GET /api/multiple-choice/{session_id}/question` | Reads the current unanswered question with `id`, `front`, nullable `front_image`, four shuffled `options` containing `id` and `text`, a nullable `eliminated_option_id`, and `attempts_remaining`. Returns **409** while the next position is still preparing. |
+| `POST /api/multiple-choice/{session_id}/question` | Opens or resumes the current question, records its presentation, assigns the attempt allowance, and starts any applicable timer. Returns `session`, `question`, and `remaining_ms`. A waiting or completed session returns a null question. An existing deck countdown can continue while waiting. |
+| `POST /api/multiple-choice/{session_id}/answer` | Takes `{"question_id":"…","option_id":"…"}`. On a first miss with a retry available, returns `retry: true`, the updated `question`, and `session` without revealing the solution. Final grading returns `question_id`, `selected_option_id`, `is_correct`, `correct_option` with its ID and original Back text, nullable `back_image`, and the updated `session` state. |
 | `GET /api/decks/{deck_id}/multiple-choice/sessions` | Up to 50 recent multiple-choice sessions for the deck, newest first. |
 
 Missing or inaccessible decks and sessions return **404**. An illegal transition, repeated answer, or question ID that is no longer current returns **409**. An option ID outside the current question or unexpected answer fields return **422**. Actions on an expired session return **410**.
 
+Each account gets two tries the first time it opens a card in Multiple-Choice and one try in later sessions. A first miss eliminates that option across refreshes without advancing the question, affecting the score, or resetting the clock. The final submission determines the score. Earlier sessions with recorded answers or per-question deadlines count as prior presentations.
+
 ## Timed sessions
 
-The server starts the clock when the first ready question is opened. A question limit resets for each new question. A deck limit keeps running between questions and during feedback. Both limits continue while the page is closed or refreshed. The server rejects late answers. A per-question countdown begins when that question opens. A deck timeout stops pending preparation before completing and counts remaining ready questions as missed. Timed session responses include the timing settings and a `timed_out` count. Existing unlimited sessions continue using the question GET route.
+The server starts the clock when the first ready question is opened. A question limit resets for each new question. A deck limit keeps running between questions and during feedback. Both limits continue while the page is closed or refreshed. The server rejects late answers. A per-question countdown begins when that question opens. A deck timeout stops pending preparation before completing and counts remaining ready questions as missed. Timed session responses include the timing settings and a `timed_out` count.
 
 ## Preparation and session lifecycle
 

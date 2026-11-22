@@ -111,6 +111,8 @@ class MultipleChoiceQuestion(Base):
     back_image: Mapped[str | None] = mapped_column(Text)
     options: Mapped[list[dict[str, str]] | None] = mapped_column(JSON(none_as_null=True))
     correct_option_id: Mapped[str | None] = mapped_column(String(36))
+    allows_retry: Mapped[bool | None] = mapped_column(Boolean)
+    eliminated_option_id: Mapped[str | None] = mapped_column(String(36))
     selected_option_id: Mapped[str | None] = mapped_column(String(36))
     answered_at: Mapped[datetime | None] = mapped_column(DateTime)
     failure: Mapped[str | None] = mapped_column(String(32))

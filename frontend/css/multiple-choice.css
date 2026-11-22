@@ -30,8 +30,6 @@
 .study-type-grid small { color: var(--muted); font-weight: 500; }
 
 .mc-shell .study-heading { justify-content: flex-start; gap: 12px; }
-.mc-shell .mc-back { flex-shrink: 0; padding: 10px; }
-.mc-back svg { display: block; width: 20px; height: 20px; }
 .mc-shell h1 { overflow-wrap: anywhere; }
 .mc-panel { margin-top: 18px; border-radius: 26px; }
 .mc-panel h2 { margin: 0 0 10px; }
@@ -63,7 +61,7 @@
   font-weight: 600;
 }
 label.mc-option { cursor: pointer; }
-.mc-choices:not(.mc-graded) label.mc-option:hover { border-color: #9cb9e8; }
+.mc-choices:not(.mc-graded) label.mc-option:has(input:enabled):hover { border-color: #9cb9e8; }
 .mc-option:has(input:focus-visible), .study-type-grid label:has(input:focus-visible) {
   outline: 2px solid #d19942;
   outline-offset: 2px;
@@ -71,6 +69,8 @@ label.mc-option { cursor: pointer; }
 .mc-option-text { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
 .mc-graded .mc-option input { visibility: hidden; }
 .mc-graded label.mc-option { cursor: default; }
+.mc-option:has(input[disabled]) { cursor: not-allowed; }
+.mc-try-again { color: #803e37; font-size: .85rem; }
 .mc-letter {
   display: inline-grid;
   place-items: center;

@@ -279,6 +279,19 @@ form label { color: #53647f; font-weight: 700; font-size: .83rem; }
 #saved-card-search { border-radius: 23px; background: #fff; }
 .session-history summary { color: #526f9b; }
 .study-shell { max-width: 980px; }
+.signed-in.study-focus .site-header,
+.signed-in.study-focus .account-controls,
+.study-focus #pomodoro-alert { display: none; }
+.signed-in.study-focus .ambient-shapes { left: 0; }
+.signed-in.study-focus main {
+  width: 100%; margin: 0; min-height: 100dvh; padding: 24px clamp(17px, 4vw, 58px) 42px;
+}
+.study-focus .study-shell .study-heading { padding-left: 0; }
+.study-focus .study-heading :is(#exit-study, .study-exit) {
+  position: static; display: inline-grid; place-items: center; flex-shrink: 0;
+  width: 44px; height: 44px; padding: 0; border-radius: 50%;
+}
+.study-heading .study-exit svg { width: 20px; height: 20px; }
 .study-heading h1 { font-size: 1.65rem; }
 .study-sheet { border: 2px solid #abc5ef; border-radius: 32px; box-shadow: var(--cloud-shadow); }
 .study-question, .study-answer { padding: 30px 34px; }

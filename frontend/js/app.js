@@ -25,6 +25,9 @@ async function navigate() {
   notice('');
   const route = location.hash || '#dashboard';
   const parts = route.slice(1).split('/');
+  const focusStudy = Boolean(authenticatedUser() && parts[1] && ['study','multiple-choice'].includes(parts[0]));
+  document.body.classList.toggle('study-focus', focusStudy);
+  if (focusStudy) document.querySelector('#notifications-panel')?.close();
   const titles = {dashboard:'Home', decks:'Flashcard', deck:'Flashcard', study:'Flashcard', summary:'Flashcard', shared:'Flashcard', gwa:'GWA Calculator', notes:'GWA Calculator', pomodoro:'Pomodoro', profile:'Profile', friend:'Profile', settings:'Settings', help:'Help', login:'Log in', signup:'Sign up'};
   titles['multiple-choice'] = 'Flashcard';
   if (!authenticatedUser()) {

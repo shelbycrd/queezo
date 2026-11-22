@@ -17,7 +17,7 @@ export function scoreSummary(session) {
 }
 
 export function multipleChoiceSession(sessionId, {
-  update, active = () => true, request = api,
+  update, active = () => true, request = api, answerFeedback = () => {},
   setTimer = setTimeout, clearTimer = clearTimeout, now = Date.now,
 }) {
   const path = `/multiple-choice/${encodeURIComponent(sessionId)}`;
@@ -59,22 +59,11 @@ export function multipleChoiceSession(sessionId, {
     }
     let question = null;
     let clock = null;
-    if (studying(session) && session.timing) {
+    if (studying(session) && (session.timing || session.question_ready !== false)) {
       const opened = await request(path + '/question', {method:'POST'});
       session = opened.session;
       question = opened.question;
       if (Number.isFinite(opened.remaining_ms)) clock = now() + opened.remaining_ms;
-    } else if (studying(session) && session.question_ready !== false) {
-      try {
-        question = await request(path + '/question', {signal:reads.signal});
-      } catch (error) {
-        if (!current(token) || ![409,410].includes(error.status)) throw error;
-        // Another tab may finish or cancel between the status and question requests.
-        session = await request(path, {signal:reads.signal});
-        if (current(token) && studying(session) && session.question_ready !== false) {
-          question = await request(path + '/question', {signal:reads.signal});
-        }
-      }
     }
     if (current(token)) {
       if (session.status === 'active' && session.timed_out > (view.session?.timed_out ?? 0)) {
@@ -149,11 +138,16 @@ export function multipleChoiceSession(sessionId, {
     refresh: () => run('refresh', readState),
     answer(optionId) {
       if (view.session?.status !== 'active' || view.grade || view.problem ||
+          view.question?.eliminated_option_id === optionId ||
           !view.question?.options.some(option => option.id === optionId)) return;
       const body = {question_id:view.question.id, option_id:optionId};
       return run('answer', async token => {
-        const grade = await request(path + '/answer', {method:'POST', body});
-        if (current(token)) Object.assign(view, {grade, session:grade.session});
+        const result = await request(path + '/answer', {method:'POST', body});
+        if (!current(token)) return;
+        view.session = result.session;
+        if (result.retry) view.question = result.question;
+        else view.grade = result;
+        answerFeedback(result.is_correct);
       });
     },
     next() {
