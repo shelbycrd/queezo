@@ -5,6 +5,13 @@ export function chooseStudy(deckId, {mode = 'classic'} = {}) {
   if (studyRequest.value) return Promise.resolve();
   return new Promise(resolve => { studyRequest.value = {deckId, mode, resolve}; });
 }
+export function chooseSharedStudy(token, multipleAvailable) {
+  if (studyRequest.value) return Promise.resolve();
+  return new Promise(resolve => {
+    studyRequest.value = {token, multipleAvailable, mode:'classic', resolve};
+  });
+}
+
 export function closeStudyOptions(started = false) {
   const request = studyRequest.value;
   studyRequest.value = null;

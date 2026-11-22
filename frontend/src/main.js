@@ -29,6 +29,7 @@ const router = createRouter({history:cleanProfileEntry ? createWebHistory() : cr
   page('/deck/:deckId(\\d+)/edit/:cardId(\\d+)','edit',deck,'Flashcard',{props:true,meta:{nav:'decks',back:r => '#/deck/' + r.params.deckId}}),
   page('/deck/:deckId(\\d+)/page/:pageNumber(\\d+)','deck-page',deck,'Flashcard',{props:true,meta:{nav:'decks',back:r => '#/deck/' + r.params.deckId}}),
   page('/shared/:token([A-Za-z0-9_-]{32,64})','shared',() => import('./views/SharedView.vue'),'Flashcard',{props:true,meta:{back:() => '#/dashboard'}}),
+  page('/shared/:token([A-Za-z0-9_-]{32,64})/study','shared-study',() => import('./views/SharedStudyView.vue'),'Flashcard',{props:true,meta:{studyFocus:true}}),
   page('/study/:sessionId','study',() => import('./views/StudyView.vue'),'Flashcard',{props:true,meta:{nav:'decks',studyFocus:true}}),
   page('/summary/:sessionId','summary',() => import('./views/StudySummary.vue'),'Flashcard',{props:true,meta:{nav:'decks'}}),
   page('/multiple-choice/:sessionId([a-fA-F0-9-]{36})','multiple-choice',() => import('./views/MultipleChoiceView.vue'),'Flashcard',{props:true,meta:{nav:'decks',studyFocus:true}}),
@@ -52,8 +53,8 @@ router.beforeEach(to => {
   }
   if (to.meta.guest) return true;
   const publicPage = ['login','signup'].includes(to.name);
-  if (!account.value && !publicPage) return to.name === 'shared'
-    ? {name:'login',query:{returnTo:to.path}} : '/login';
+  if (!account.value && !publicPage) return ['shared','shared-study'].includes(to.name)
+    ? {name:'login',query:{returnTo:'/shared/' + to.params.token}} : '/login';
   if (account.value && publicPage) return '/dashboard';
 });
 

@@ -51,7 +51,7 @@ def list_friends(user: User = Depends(require_user), db: Session = Depends(get_d
     result = {'friends': [], 'incoming': [], 'outgoing': []}
     for connection, other, is_online in rows:
         if connection.accepted:
-            result['friends'].append({**identity(other), 'online': is_online})
+            result['friends'].append({**identity(other), 'online': is_online, 'avatar': other.avatar})
         else:
             key = 'outgoing' if connection.requester_id == user.id else 'incoming'
             result[key].append(identity(other))
@@ -110,6 +110,16 @@ def respond(username: str, body: FriendResponse, user: User = Depends(require_us
         connection.accepted = True
     else:
         db.delete(connection)
+
+
+@router.delete('/{username}', status_code=204)
+def unfriend(username: str, user: User = Depends(require_user),
+             db: Session = Depends(get_write_db, scope="function")):
+    other = db.scalar(select(User).where(User.username == username))
+    connection = db.get(Friendship, tuple(sorted((user.id, other.id)))) if other else None
+    if not connection or not connection.accepted:
+        raise HTTPException(404, 'Friendship not found.')
+    db.delete(connection)
 
 
 @router.get('/{username}/profile')

@@ -5,6 +5,8 @@
 }
 .profile-header .profile-username { margin-bottom: 8px; }
 .profile-joined { margin: 0; }
+.profile-friendship summary { width: 100%; padding: 11px 16px; }
+.profile-actions .profile-request-sent:disabled { background: #fff; color: #526c96; border-color: #dbe6f8; opacity: 1; }
 .profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr); gap: 24px; margin-top: 24px; }
 .profile-main, .profile-sidebar { min-width: 0; }
 .profile-sidebar { display: grid; gap: 18px; align-content: start; }

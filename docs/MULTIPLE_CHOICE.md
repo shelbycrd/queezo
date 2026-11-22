@@ -2,7 +2,7 @@
 
 From a deck, choose **Study**, then **Multiple-Choice Mode**. The preparation screen tracks the opening questions and starts study automatically when the ordered threshold is reached. The rest of the deck can continue preparing while you study. Selecting a choice submits it immediately, and the results use server-recorded totals. Open **Previous Session** on the deck to resume or review the newest session in each mode. Refreshing resumes at the current unanswered question or summary. The grading response marks the correct answer and the student’s choice directly in the list.
 
-Sessions are owner-only. Use the normal session cookie for every route and send the CSRF header on POST requests. Shared decks can be studied once copied into the student's own decks.
+Sessions are owner-only. Use the normal session cookie for every route and send the CSRF header on POST requests. Study on a shared deck opens a temporary browser session without creating a copy or saving history. Classic practice is available for any nonempty deck. Temporary Multiple-Choice practice uses the deck's existing answers and requires at least four distinct answers. Save a private copy to use the usual server-backed study sessions and history.
 
 | Method and path | Result |
 | --- | --- |

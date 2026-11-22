@@ -421,8 +421,9 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
 .friends-content .drawer-heading { margin-bottom: 14px; }
 .friends-content .drawer-heading h2 { font-size: 1.4rem; }
 #friend-search { border-radius: 999px; background: #fff; padding: 12px 17px; }
+.friends-content .friend-tabs { margin-top: 12px; }
 #friend-list { display: grid; gap: 12px; margin-top: 18px; }
-.friend-row, .friend-requests { background: #f9fcff; border: 1px solid #deeaf8; border-radius: 23px; }
+.friend-row, .friend-request-panel { background: #f9fcff; border: 1px solid #deeaf8; border-radius: 23px; }
 .friend-row summary {
   display: flex; align-items: center; gap: 13px; padding: 12px 14px;
   list-style: none; cursor: pointer; border-radius: inherit;
@@ -433,6 +434,7 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
   position: relative; display: grid; place-items: center; flex: 0 0 48px; height: 48px;
   border-radius: 50%; background: #deebff; color: #4a70ab; font-weight: 700;
 }
+.friend-avatar img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 .friend-row:nth-child(3n + 2) .friend-avatar { background: #f2e8fb; color: #785b9d; }
 .friend-row:nth-child(3n) .friend-avatar { background: #fce9e4; color: #965f66; }
 .presence-dot { position: absolute; bottom: 0; right: 0; width: 13px; height: 13px; border: 2px solid #fff; border-radius: 50%; }
@@ -445,8 +447,10 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
 .friend-actions { display: grid; gap: 7px; padding: 0 14px 14px; }
 .friend-actions a { text-align: center; }
 .friend-actions button:disabled { cursor: not-allowed; }
-.friend-requests { margin-top: 16px; padding: 12px 14px; }
-.friend-requests summary { cursor: pointer; font-weight: 700; }
+.friend-requests { display: grid; gap: 12px; margin-top: 16px; }
+.friend-request-panel { padding: 12px 14px; }
+.friend-request-panel h3 { margin: 0; }
+#add-friend label { margin-top: 0; }
 .friend-request-form { display: flex; gap: 8px; flex-wrap: wrap; }
 .friend-request-form input { flex: 1 1 120px; min-width: 0; }
 .friend-request { margin: 12px 0 0; overflow-wrap: anywhere; }

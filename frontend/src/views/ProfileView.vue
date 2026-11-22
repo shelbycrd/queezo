@@ -1,8 +1,9 @@
 <script setup>
 import {computed, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
-import {useResource} from '../composables/lifecycle.js';
+import {useEvent, useResource} from '../composables/lifecycle.js';
 import {account, updateAccountProfileName} from '../services/session.js';
+import {showNotice} from '../services/notice.js';
 import {avatarUrl, deckPagePath, profileApi, profilePath} from '../services/profiles.js';
 import {buttonFeedback as vButtonFeedback} from '../components/ButtonFeedback.js';
 import CopyButton from '../components/CopyButton.vue';
@@ -12,8 +13,46 @@ import ReportProfileDialog from '../components/ReportProfileDialog.vue';
 
 const props = defineProps({username:String});
 const path = props.username ? profileApi(props.username) : '/profiles/me';
-const {data:profile, error} = useResource(signal => api(path,{signal}));
+const {data:profile, error, active, signal} = useResource(signal => api(path,{signal}));
 const editing = ref(false), reporting = ref(false), shareDialog = ref();
+const friendshipPending = ref(false), friendshipMenu = ref();
+useEvent(document,'click', event => {
+  const menu = friendshipMenu.value;
+  if (menu?.open && !menu.contains(event.target)) menu.open = false;
+});
+function closeFriendshipMenu() {
+  friendshipMenu.value.open = false;
+  friendshipMenu.value.querySelector('summary').focus();
+}
+async function changeFriendship() {
+  const {username, friendship} = profile.value;
+  if (friendshipPending.value || !['none','incoming','friends'].includes(friendship)) return;
+  const target = '/friends/' + encodeURIComponent(username);
+  friendshipPending.value = true;
+  try {
+    if (friendship === 'friends') {
+      await api(target,{method:'DELETE'});
+    } else if (friendship === 'incoming') {
+      await api('/friends/requests/' + encodeURIComponent(username) + '/respond',{method:'POST',body:{decision:'accept'}});
+    } else {
+      await api('/friends/requests',{method:'POST',body:{username}});
+    }
+    if (active()) profile.value = {...profile.value,friendship:friendship === 'friends' ? 'none' : friendship === 'incoming' ? 'friends' : 'outgoing'};
+  } catch (failure) {
+    if (!active()) return;
+    if ([0,404,409].includes(failure.status)) {
+      try {
+        const latest = await api(path,{signal});
+        if (!active()) return;
+        profile.value = latest;
+        if (failure.status === 409 && latest.friendship && latest.friendship !== friendship) return;
+      } catch { /* Preserve the original error. */ }
+    }
+    if (active()) showNotice(failure.message);
+  } finally {
+    friendshipPending.value = false;
+  }
+}
 const input = ref(''), q = ref(''), sort = ref('newest'), page = ref(1), reload = ref(0);
 const decks = ref(null), deckError = ref(''), loading = ref(false);
 const shareLink = computed(() => new URL(profilePath(profile.value.username),location.origin).href);
@@ -56,7 +95,15 @@ function saved(data) {
           <button v-if="profile.is_owner" type="button" @click="editing = true">Edit Profile</button>
           <button type="button" class="secondary flat-button" @click="shareDialog.showModal()">Share Profile</button>
           <button v-if="account && !profile.is_owner" type="button" class="secondary flat-button" @click="reporting = true">Report Profile</button>
-          <a href="/#/people" class="button secondary flat-button">Find profiles</a>
+          <a v-if="profile.is_owner" href="/#/people" class="button secondary flat-button">Find profiles</a>
+          <a v-else-if="!account" href="/#/login" class="button">Add Friend</a>
+          <details v-else-if="profile.friendship === 'friends'" ref="friendshipMenu" class="deck-actions profile-friendship" @keydown.esc.stop="closeFriendshipMenu">
+            <summary class="button secondary flat-button">Friends ✔</summary>
+            <div class="deck-actions-list"><button type="button" class="danger small flat-button" :disabled="friendshipPending" @click="changeFriendship">Unfriend</button></div>
+          </details>
+          <button v-else-if="profile.friendship === 'outgoing'" type="button" class="secondary flat-button profile-request-sent" disabled>Request Sent</button>
+          <button v-else-if="profile.friendship === 'none' || profile.friendship === 'incoming'" type="button" :disabled="friendshipPending" @click="changeFriendship">{{ profile.friendship === 'incoming' ? 'Accept Request' : 'Add Friend' }}</button>
+          <span v-else class="muted" role="status">Friendship status unavailable</span>
         </div>
       </section>
       <div class="profile-layout">

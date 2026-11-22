@@ -68,3 +68,48 @@ def test_friends_consent_presence_and_profile_privacy(anonymous_client):
     login(client, 'carol')
     response = client.post('/api/friends/requests', json={'username': 'bob'})
     assert response.status_code == 429 and response.headers['retry-after']
+
+
+def test_profile_friendship_transitions_and_avatar(anonymous_client):
+    client = anonymous_client
+    with client.factory.begin() as db:
+        for username in ('alice', 'bob', 'carol'):
+            user = create_user(db, f'{username}@example.com', PASSWORD, username=username)
+            if username == 'bob':
+                user.avatar = 'octopus'
+
+    alice_profile = '/api/profiles/users/alice'
+    bob_profile = '/api/profiles/users/bob'
+    remove_bob = '/api/friends/bob'
+    assert 'friendship' not in client.get(bob_profile).json()
+    assert client.delete(remove_bob).status_code == 401
+
+    login(client, 'alice')
+    assert 'friendship' not in client.get(alice_profile).json()
+    assert client.get(bob_profile).json()['friendship'] == 'none'
+    assert client.post('/api/friends/requests', json={'username': 'bob'}).status_code == 204
+    assert client.get(bob_profile).json()['friendship'] == 'outgoing'
+    assert client.delete(remove_bob).status_code == 404
+
+    login(client, 'bob')
+    assert client.get(alice_profile).json()['friendship'] == 'incoming'
+    assert client.post('/api/friends/requests/alice/respond', json={'decision': 'accept'}).status_code == 204
+    assert client.get(alice_profile).json()['friendship'] == 'friends'
+
+    login(client, 'carol')
+    assert client.get(bob_profile).json()['friendship'] == 'none'
+    assert client.delete(remove_bob).status_code == 404
+
+    login(client, 'alice')
+    assert client.get(bob_profile).json()['friendship'] == 'friends'
+    assert client.get('/api/friends').json()['friends'][0]['avatar'] == 'octopus'
+    token = client.headers.pop('X-CSRF-Token')
+    assert client.delete(remove_bob).status_code == 403
+    client.headers['X-CSRF-Token'] = token
+    assert client.delete(remove_bob).status_code == 204
+    assert client.get(bob_profile).json()['friendship'] == 'none'
+    assert client.get('/api/friends').json()['friends'] == []
+
+    login(client, 'bob')
+    assert client.get(alice_profile).json()['friendship'] == 'none'
+    assert client.get('/api/friends').json()['friends'] == []

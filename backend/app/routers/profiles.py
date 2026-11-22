@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import optional_user, require_user
 from app.auth.service import normalize_display_name
 from app.database import get_db, get_write_db
-from app.models import Deck, Flashcard, ProfileAvatarChange, ProfileReport, User, utcnow
+from app.models import Deck, Flashcard, Friendship, ProfileAvatarChange, ProfileReport, User, utcnow
 from app.services.presenters import iso
 
 router = APIRouter(prefix='/api/profiles', tags=['Profiles'])
@@ -174,7 +174,16 @@ def discover(q: str = Query('', max_length=80), db: Session = Depends(get_db)):
 def read_profile(username: str, viewer: User | None = Depends(optional_user), db: Session = Depends(get_db)):
     viewer_id = viewer.id if viewer else None
     profile = profile_for(db, username, viewer_id)
-    return profile_view(db, profile, profile.id == viewer_id)
+    view = profile_view(db, profile, profile.id == viewer_id)
+    if viewer_id is not None and viewer_id != profile.id:
+        connection = db.get(Friendship, tuple(sorted((viewer_id, profile.id))))
+        if not connection:
+            view['friendship'] = 'none'
+        elif connection.accepted:
+            view['friendship'] = 'friends'
+        else:
+            view['friendship'] = 'outgoing' if connection.requester_id == viewer_id else 'incoming'
+    return view
 
 
 @router.get('/users/{username}/decks')
