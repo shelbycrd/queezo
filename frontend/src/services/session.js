@@ -12,8 +12,10 @@ function adopt(user) {
   account.value = authenticatedUser();
 }
 
-export function updateAccountProfileName(display_name) {
-  if (account.value) adopt({...account.value,display_name});
+export function updateAccountProfile({display_name,avatar}) {
+  if (!account.value) return;
+  sequence++;
+  adopt({...account.value,display_name,avatar});
 }
 
 export function initAuthentication(router) {

@@ -129,7 +129,7 @@ a { color: #476fb9; }
   border: 1px solid #e5edfa; border-radius: 28px; box-shadow: none;
   padding: 7px 13px 7px 7px; min-height: 46px; font-weight: 700;
 }
-.account-trigger .account-avatar { width: 32px; height: 32px; background: #648fe0; color: white; }
+.account-trigger .account-avatar { width: 32px; height: 32px; flex: none; object-fit: cover; background: #eff5ff; }
 .account-trigger #account-email { color: #52617c; font-size: .84rem; max-width: 165px; }
 .account-menu { border: 1px solid #e2ebf9; border-radius: 23px; padding: 9px; box-shadow: 0 14px 35px #3b5a8d16; }
 .account-menu a, .account-menu button { border-radius: 14px; color: #536580; }
@@ -193,7 +193,6 @@ form label { color: #53647f; font-weight: 700; font-size: .83rem; }
 .home-welcome > div:first-child { position: relative; z-index: 1; }
 .home-welcome h2 { color: white; font-size: clamp(2rem, 3.3vw, 3.15rem); line-height: 1.16; font-weight: 600; letter-spacing: -.04em; margin-bottom: 17px; }
 .home-welcome p { color: #fff; font-size: .98rem; line-height: 1.6; max-width: 420px; }
-.home-welcome p br { display: none; }
 .home-welcome .button { background: #fff; color: #4168b1; border-color: #fff; border-radius: 28px; padding: 13px 22px; box-shadow: 0 4px 0 #32569e; font-size: .87rem; }
 .home-welcome .button:hover { background: #edf5ff; }
 .welcome-cloud { width: 204px; height: 204px; flex-shrink: 0; padding: 17px; background: #ffffffed; border: 6px solid #ffffff5e; border-radius: 44% 42% 39% 43%; transform: rotate(5deg); box-shadow: 0 14px 0 #345ca72b; z-index: 1; }
@@ -208,10 +207,32 @@ form label { color: #53647f; font-weight: 700; font-size: .83rem; }
   50% { transform: translateY(-6px) rotate(5deg); }
 }
 .recent-track { gap: 20px; padding-bottom: 17px; }
+.deck-tile { display: grid; min-width: 0; position: relative; isolation: isolate; }
 .deck-grid { gap: 22px; }
 .deck-card.portrait-deck { border: 1px solid #e4ebf8; border-radius: 30px; box-shadow: var(--cloud-shadow); }
 .deck-cover { border-radius: 0; min-height: 145px; }
 .deck-cover-icon { border-radius: 24px; background: #ffffff9c; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .recent-track { padding-top: 7px; }
+  .deck-tile::before,
+  .deck-tile::after {
+    content: '';
+    position: absolute;
+    inset: 4px 7px 2px;
+    z-index: -1;
+    border: 1px solid #cfdcf1;
+    border-radius: 27px;
+    background: #edf4ff;
+    pointer-events: none;
+    transition: transform .24s ease-out;
+  }
+  .deck-tile::before { z-index: -2; inset-inline: 13px; background: #e0eafa; }
+  .deck-tile .portrait-deck { transition: transform .24s ease-out; }
+  .deck-tile:hover { z-index: 1; }
+  .deck-tile:hover .portrait-deck { transform: translateY(-5px); }
+  .deck-tile:hover::before { transform: translateY(9px) rotate(-.6deg); }
+  .deck-tile:hover::after { transform: translateY(4px) rotate(.4deg); }
+}
 .deck-card-body { padding: 20px; }
 .deck-card-body h2 { font-size: 1.06rem; line-height: 1.4; }
 .deck-card-body .actions { gap: 8px; }
@@ -502,8 +523,8 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
   .signed-in .account-controls { position: absolute; right: 14px; top: 16px; gap: 5px; max-width: 222px; }
   .signed-in .account-controls > .topbar-icon { width: 33px; height: 33px; padding: 7px; }
   .account-trigger { min-height: 34px; padding: 6px 9px; max-width: 132px; gap: 4px; }
-  .account-trigger .account-avatar { display: none; }
-  .account-trigger #account-email { max-width: 86px; font-size: .7rem; }
+  .account-trigger .account-avatar { display: block; width: 22px; height: 22px; }
+  .account-trigger #account-email { max-width: 62px; font-size: .7rem; }
   .signed-in .sidebar-settings { position: fixed; right: 17px; bottom: 17px; z-index: 35; margin: 0; padding: 11px 16px; border: 1px solid #d5e3f9; border-radius: 24px; background: white; box-shadow: 0 4px 16px #5476aa15; font-size: .76rem; }
   .signed-in .sidebar-settings svg { width: 17px; height: 17px; }
   h1 { font-size: 1.7rem; }
@@ -512,13 +533,13 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
   .panel { padding: 21px; border-radius: 26px; }
   .subpage-back, .study-heading #exit-study { position: absolute; top: 22px; left: 17px; width: 40px; height: 40px; }
   .has-subpage-back .page-heading, .has-subpage-back .study-heading, .has-subpage-back .summary-heading { padding-left: 51px; }
-  .home-welcome { flex-direction: row; align-items: center; gap: 15px; min-height: 0; padding: 28px 24px; border-radius: 31px; }
-  .home-welcome h2 { font-size: 2rem; }
-  .home-welcome p { font-size: .85rem; }
+  .home-welcome { display: block; min-height: 0; padding: 28px 24px; border-radius: 31px; }
+  .home-welcome h2 { max-width: 20ch; font-size: clamp(1.65rem, 6.5vw, 2.25rem); text-wrap: balance; }
+  .home-welcome p { max-width: 37ch; font-size: .9rem; text-wrap: pretty; }
   .home-welcome h2 br { display: none; }
   .home-welcome .button { padding: 11px 16px; font-size: .79rem; }
   .welcome-cloud { display: none; }
-  .recent-track .portrait-deck { width: 220px; flex-basis: 220px; }
+  .recent-track .deck-tile { width: 220px; flex-basis: 220px; }
   .deck-grid { gap: 15px; }
   .deck-card.portrait-deck { border-radius: 25px; }
   .deck-card-body { padding: 16px; }

@@ -29,13 +29,16 @@ REPORT_WINDOW = timedelta(days=1)
 REPORT_LIMIT = 5
 
 
-class ProfileUpdate(BaseModel):
+class AvatarUpdate(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
+    avatar: Avatar
+
+
+class ProfileUpdate(AvatarUpdate):
     display_name: str = Field(max_length=80)
     bio: str = Field(max_length=200)
     interest_tags: list[str] = Field(max_length=5)
-    avatar: Avatar
     visibility: Visibility
     featured_deck_id: int | None = Field(ge=1)
 
@@ -130,32 +133,31 @@ def featured_options(user: User = Depends(require_user), db: Session = Depends(g
 
 
 @router.patch('/me')
-def update_profile(body: ProfileUpdate, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
+def update_profile(body: ProfileUpdate | AvatarUpdate, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     profile = db.get(User, user.id)
     now = utcnow()
-    name_changed = body.display_name != profile.display_name
-    avatar_changed = body.avatar != profile.avatar
-    next_name = name_date(profile)
-    if name_changed and next_name and next_name > now:
-        raise HTTPException(429, 'Your display name can change once every 14 days.')
-    if avatar_changed:
+    if isinstance(body, ProfileUpdate):
+        name_changed = body.display_name != profile.display_name
+        next_name = name_date(profile)
+        if name_changed and next_name and next_name > now:
+            raise HTTPException(429, 'Your display name can change once every 14 days.')
+        if body.featured_deck_id is not None and db.scalar(public_decks(profile.id).with_only_columns(
+                Deck.id).where(Deck.id == body.featured_deck_id)) is None:
+            raise HTTPException(422, 'Choose one of your public decks to feature.')
+        if name_changed:
+            profile.display_name = body.display_name
+            profile.display_name_changed_at = now
+        profile.bio = body.bio
+        profile.interest_tags = body.interest_tags
+        profile.profile_visibility = body.visibility
+        profile.featured_deck_id = body.featured_deck_id
+    if body.avatar != profile.avatar:
         if len(avatar_times(db, profile.id, now)) >= AVATAR_LIMIT:
             raise HTTPException(429, 'You can change your avatar 10 times per hour.')
-    if body.featured_deck_id is not None and db.scalar(public_decks(profile.id).with_only_columns(
-            Deck.id).where(Deck.id == body.featured_deck_id)) is None:
-        raise HTTPException(422, 'Choose one of your public decks to feature.')
-    if name_changed:
-        profile.display_name = body.display_name
-        profile.display_name_changed_at = now
-    if avatar_changed:
         db.execute(delete(ProfileAvatarChange).where(ProfileAvatarChange.user_id == profile.id,
                                                     ProfileAvatarChange.changed_at <= now - AVATAR_WINDOW))
         db.add(ProfileAvatarChange(user_id=profile.id, changed_at=now))
         profile.avatar = body.avatar
-    profile.bio = body.bio
-    profile.interest_tags = body.interest_tags
-    profile.profile_visibility = body.visibility
-    profile.featured_deck_id = body.featured_deck_id
     db.flush()
     return profile_view(db, profile, True)
 

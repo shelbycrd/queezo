@@ -95,6 +95,20 @@ def test_display_name_cooldown_immutable_username_and_validation(client, monkeyp
     assert patch(client, display_name='Another').json()['display_name'] == 'Another'
 
 
+def test_avatar_only_update_keeps_other_settings_and_updates_account(client):
+    deck = make_deck(client, 'Featured deck', 'public')
+    before = patch(client, bio='My bio', interest_tags=['Science'], visibility='private',
+                   featured_deck_id=deck['id']).json()
+    assert client.patch('/api/profiles/me', json={'avatar': 'unknown'}).status_code == 422
+    result = client.patch('/api/profiles/me', json={'avatar': 'fox'})
+    assert result.status_code == 200
+    after = result.json()
+    for field in ('display_name', 'bio', 'interest_tags', 'visibility', 'featured_deck_id'):
+        assert after[field] == before[field]
+    assert after['avatar'] == client.get('/api/auth/me').json()['avatar'] == 'fox'
+    assert after['avatar_changes_remaining'] == 9
+
+
 def test_avatar_rolling_limits_and_unchanged_values(client, monkeypatch):
     now = datetime(2026, 10, 1, 12)
     monkeypatch.setattr(profiles, 'utcnow', lambda: now)
@@ -107,6 +121,7 @@ def test_avatar_rolling_limits_and_unchanged_values(client, monkeypatch):
         now += timedelta(minutes=1)
     assert saved['avatar_next_change_at'] == '2026-10-01T13:00:00+00:00'
     assert patch(client, avatar='dog').status_code == 429
+    assert client.patch('/api/profiles/me', json={'avatar': 'dog'}).status_code == 429
     assert patch(client, avatar='chicken', bio='Other edits still work').status_code == 200
     with client.factory() as db:
         assert len(list(db.scalars(select(ProfileAvatarChange)))) == 10

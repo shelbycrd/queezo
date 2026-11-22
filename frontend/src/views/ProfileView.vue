@@ -2,7 +2,7 @@
 import {computed, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
 import {useEvent, useResource} from '../composables/lifecycle.js';
-import {account, updateAccountProfileName} from '../services/session.js';
+import {account, updateAccountProfile} from '../services/session.js';
 import {showNotice} from '../services/notice.js';
 import {avatarUrl, deckPagePath, profileApi, profilePath} from '../services/profiles.js';
 import {buttonFeedback as vButtonFeedback} from '../components/ButtonFeedback.js';
@@ -14,7 +14,7 @@ import ReportProfileDialog from '../components/ReportProfileDialog.vue';
 const props = defineProps({username:String});
 const path = props.username ? profileApi(props.username) : '/profiles/me';
 const {data:profile, error, active, signal} = useResource(signal => api(path,{signal}));
-const editing = ref(false), reporting = ref(false), shareDialog = ref();
+const editing = ref(''), reporting = ref(false), shareDialog = ref();
 const friendshipPending = ref(false), friendshipMenu = ref();
 useEvent(document,'click', event => {
   const menu = friendshipMenu.value;
@@ -74,7 +74,8 @@ watch([() => profile.value?.username,q,sort,page,reload], async ([username],_,on
 function search() { page.value = 1; q.value = input.value.trim(); }
 function saved(data) {
   profile.value = data;
-  updateAccountProfileName(data.display_name);
+  updateAccountProfile(data);
+  if (editing.value === 'avatar') return;
   page.value = 1;
   reload.value++;
 }
@@ -89,10 +90,15 @@ function saved(data) {
     <p v-else-if="!profile" class="muted" role="status">Loading profile…</p>
     <template v-else>
       <section class="panel profile-card profile-header" aria-label="Profile">
-        <img class="profile-avatar profile-picture" :src="avatarUrl(profile.avatar)" alt="" width="138" height="138">
+        <div class="profile-picture-wrap">
+          <img class="profile-avatar profile-picture" :src="avatarUrl(profile.avatar)" alt="" width="138" height="138">
+          <button v-if="profile.is_owner" type="button" class="secondary flat-button profile-picture-edit" aria-label="Change profile picture" title="Change profile picture" @click="editing = 'avatar'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/></svg>
+          </button>
+        </div>
         <div class="profile-identity"><h1>{{ profile.display_name }}</h1><p class="profile-username">@{{ profile.username }}</p><p class="muted profile-joined">Joined {{ joined }}</p></div>
         <div class="profile-actions">
-          <button v-if="profile.is_owner" type="button" @click="editing = true">Edit Profile</button>
+          <button v-if="profile.is_owner" type="button" @click="editing = 'profile'">Edit Profile</button>
           <button type="button" class="secondary flat-button" @click="shareDialog.showModal()">Share Profile</button>
           <button v-if="account && !profile.is_owner" type="button" class="secondary flat-button" @click="reporting = true">Report Profile</button>
           <a v-if="profile.is_owner" href="/#/people" class="button secondary flat-button">Find profiles</a>
@@ -132,7 +138,7 @@ function saved(data) {
           </section>
         </div>
       </div>
-      <ProfileEditor v-if="editing" :profile="profile" @saved="saved" @close="editing = false"/>
+      <ProfileEditor v-if="editing" :profile="profile" :avatar-only="editing === 'avatar'" @saved="saved" @close="editing = ''"/>
       <ReportProfileDialog v-if="reporting" :username="profile.username" @close="reporting = false"/>
       <Teleport to="body">
         <dialog ref="shareDialog" v-button-feedback class="profile-dialog" aria-labelledby="share-profile-title">

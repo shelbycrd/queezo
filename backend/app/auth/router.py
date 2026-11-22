@@ -21,7 +21,7 @@ router = APIRouter(prefix='/api/auth', tags=['Authentication'])
 
 def user_view(user, token):
     return {'id':user.id, 'uid':user.uid, 'username':user.username, 'display_name':user.display_name,
-            'email':user.email, 'csrf_token':csrf_token(token)}
+            'email':user.email, 'avatar':user.avatar, 'csrf_token':csrf_token(token)}
 
 
 def error(message, status, retry=None):
