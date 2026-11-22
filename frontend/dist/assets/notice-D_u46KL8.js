@@ -1,0 +1,1 @@
+import{P as e}from"./runtime-core.esm-bundler-BANtA0FN.js";var t=e(null);function n(e,n=!1){t.value=e?{message:e,success:n}:null}async function r(e){try{await navigator.clipboard.writeText(e),n(`Copied ✓`,!0)}catch{n(`Copy unavailable. Select the value and copy it manually.`)}}export{t as n,n as r,r as t};

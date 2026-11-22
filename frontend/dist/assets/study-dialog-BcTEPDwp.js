@@ -1,0 +1,1 @@
+import{P as e}from"./runtime-core.esm-bundler-BANtA0FN.js";var t=e(null);function n(e,{mode:n=`classic`}={}){return t.value?Promise.resolve():new Promise(r=>{t.value={deckId:e,mode:n,resolve:r}})}function r(e=!1){let n=t.value;t.value=null,n?.resolve(e===!0)}export{r as n,t as r,n as t};
