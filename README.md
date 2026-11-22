@@ -24,7 +24,7 @@ Open **Friends** from the top bar to search your list, send requests by username
 
 ## Getting started
 
-Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin. The first build fetches container images, Python dependencies, and the locked frontend packages.
+Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin.
 
 From the repository root, run:
 
@@ -32,28 +32,20 @@ From the repository root, run:
 docker compose up -d --build --wait
 ```
 
-Open [Queezo on localhost](http://localhost:8080) and choose **Create an account**.
-
-For custom settings, copy [`.env.example`](.env.example) to `.env`. Set `AUTH_TRUSTED_ORIGINS` to the exact browser origins, including the port, if you change `APP_PORT` or the hostname. See the [account setup guide](AUTH_SETUP.md#environment-configuration) for HTTPS settings.
-
-### Frontend development
-
-With Docker Desktop running, start the development services from the repository root:
-
-```powershell
+Or to enter dev mode, run:
+```sh
 docker compose -f compose.yaml -f compose.dev.yaml up --build
 ```
 
-Open [localhost:5173](http://localhost:5173) to develop. Vite watches `frontend/` and updates the browser when Vue components, styles, or JavaScript change. The first startup installs the locked frontend dependencies in a Docker volume. Restart the development service after changing `package.json` or `package-lock.json`.
+Open [Queezo on localhost](http://localhost:8080) and choose **Create an account**.
+If you are in dev mode, click this: [Open Queezo on Developer mode](http://localhost:5173)
 
-The development server forwards API requests to the Compose gateway. Sign-in cookies and API requests use the same browser origin. The development configuration adds the localhost and 127.0.0.1 port 5173 origins to the configured trusted origins. For another hostname or port, add the exact browser origin to `AUTH_TRUSTED_ORIGINS` and recreate the services.
+For custom settings, copy [`.env.example`](.env.example) to `.env`. Set `AUTH_TRUSTED_ORIGINS` to the exact browser origins, including the port, if you change `APP_PORT` or the hostname. See the [account setup guide](AUTH_SETUP.md#environment-configuration) for HTTPS settings.
 
-Press Ctrl+C to stop the foreground command, then use `docker compose -f compose.yaml -f compose.dev.yaml stop` to stop the services. The database remains in the existing Compose volume. The production setup uses `docker compose up -d --build --wait` and serves the built frontend on port 8080.
 
 You can also create an account from an interactive terminal:
-
 ```powershell
-docker compose exec backend python -m app.cli create-user
+docker compose exec backend python -m app.cli create-user <name>
 ```
 
 The CLI also supports listing and inspecting users, revoking sessions, deleting accounts, and assigning legacy decks. See the [CLI and legacy ownership instructions](AUTH_SETUP.md).
