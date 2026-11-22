@@ -77,7 +77,7 @@ def test_cache_hit_shuffled_options_and_grading_survive_source_edits(mc, monkeyp
 
     question = mc.get(path + "/question").json()
     assert question == mc.get(path + "/question").json()
-    assert set(question) == {"id", "front", "front_image", "options"}
+    assert set(question) == {"id", "front", "front_image", "options", "eliminated_option_id", "attempts_remaining"}
     assert {option["text"] for option in question["options"]} == {*CHOICES, "Answer 1"}
     assert all(set(option) == {"id", "text"} for option in question["options"])
     assert len({option["id"] for option in question["options"]}) == 4
@@ -95,6 +95,10 @@ def test_cache_hit_shuffled_options_and_grading_survive_source_edits(mc, monkeyp
     assert mc.post(path + "/answer", json={**wrong, "is_correct": True}).status_code == 422
     assert mc.post(path + "/answer", json={**wrong, "option_id": str(uuid4())}).status_code == 422
     assert mc.post(path + "/answer", json={**wrong, "question_id": str(uuid4())}).status_code == 409
+    retry = mc.post(path + "/answer", json=wrong).json()
+    assert retry["retry"] and "correct_option" not in retry and retry["session"]["answered"] == 0
+    assert mc.post(path + "/answer", json=wrong).status_code == 409
+    wrong["option_id"] = question["options"][1]["id"]
     graded = mc.post(path + "/answer", json=wrong).json()
     assert graded["is_correct"] is False and graded["correct_option"] == original
     assert graded["session"]["answered"] == 1
@@ -378,13 +382,13 @@ def test_cached_card_commits_first_without_changing_study_order(mc, monkeypatch)
     question = mc.get(path + "/question").json()
     assert question["front"] == first.front
     assert mc.post(path + "/answer", json={
-        "question_id": question["id"], "option_id": question["options"][0]["id"],
+        "question_id": question["id"], "option_id": next(o["id"] for o in question["options"] if o["text"] == first.back),
     }).status_code == 200
     next_question = mc.get(path + "/question").json()
     assert next_question["front"] == cached.front and next_question["options"] == cached_options
     assert next_question["front_image"] == photo
     grade = mc.post(path + "/answer", json={
-        "question_id": next_question["id"], "option_id": next_question["options"][0]["id"],
+        "question_id": next_question["id"], "option_id": next(o["id"] for o in next_question["options"] if o["text"] == cached.back),
     })
     assert grade.status_code == 200 and grade.json()["back_image"] == photo
 
@@ -476,7 +480,7 @@ def test_partial_generation_failure_can_retry_or_continue(mc, monkeypatch, resol
     if resolution == "continue":
         question = mc.get(path + "/question").json()
         graded = mc.post(path + "/answer", json={
-            "question_id": question["id"], "option_id": question["options"][0]["id"],
+            "question_id": question["id"], "option_id": next(o["id"] for o in question["options"] if o["text"] not in CHOICES),
         }).json()
         assert graded["session"]["status"] == "completed"
         assert graded["session"]["failures"] == failed["failures"]
@@ -580,16 +584,44 @@ def test_boot_recovery_marks_unfinished_preparations_retryable(mc, monkeypatch):
     wait_for_state(mc, path, "active")
 
 
-def test_only_one_concurrent_submission_is_graded(mc, monkeypatch):
+@pytest.mark.parametrize("correct", [True, False])
+def test_duplicate_concurrent_submission_does_not_consume_an_extra_try(mc, monkeypatch, correct):
     mock_generation(monkeypatch, return_value=CHOICES)
     path, _ = start(mc, deck(mc))
     wait_for_state(mc, path, "active")
     question = mc.get(path + "/question").json()
-    body = {"question_id": question["id"], "option_id": question["options"][0]["id"]}
+    option = next(option for option in question["options"] if (option["text"] not in CHOICES) == correct)
+    body = {"question_id": question["id"], "option_id": option["id"]}
     with ThreadPoolExecutor(max_workers=2) as pool:
         calls = [pool.submit(mc.post, path + "/answer", json=body) for _ in range(2)]
         assert sorted(call.result(timeout=6).status_code for call in calls) == [200, 409]
-    assert mc.get(path).json()["answered"] == 1
+    assert mc.get(path).json()["answered"] == int(correct)
+
+
+def test_first_presentation_allows_retry_and_repeat_session_only_one_try(mc, monkeypatch):
+    mock_generation(monkeypatch, return_value=CHOICES)
+    deck_id = deck(mc)
+    first, _ = start(mc, deck_id)
+    wait_for_state(mc, first, "active")
+    question = mc.post(first + "/question").json()["question"]
+    assert question["attempts_remaining"] == 2
+    # A second session also sees the card, even before the first session answers it.
+    repeat, _ = start(mc, deck_id)
+    wait_for_state(mc, repeat, "active")
+    for path, current in ((repeat, mc.post(repeat + "/question").json()["question"]), (first, question)):
+        wrong = next(o["id"] for o in current["options"] if o["text"] in CHOICES)
+        result = mc.post(path + "/answer", json={"question_id": current["id"], "option_id": wrong}).json()
+        assert result["is_correct"] is False
+        if path == repeat:
+            assert current["attempts_remaining"] == 1
+            assert result["session"]["status"] == "completed" and "correct_option" in result
+        else:
+            assert result["retry"] and "correct_option" not in result and "back_image" not in result
+            reopened = mc.post(path + "/question").json()["question"]
+            assert reopened == {**question, "eliminated_option_id": wrong, "attempts_remaining": 1}
+            correct = next(o["id"] for o in reopened["options"] if o["text"] not in CHOICES)
+            final = mc.post(path + "/answer", json={"question_id": reopened["id"], "option_id": correct}).json()
+            assert final["session"]["correct"] == final["session"]["answered"] == 1
 
 
 @pytest.mark.parametrize("scope", ["question", "deck"])
@@ -607,10 +639,12 @@ def test_timed_sessions_enforce_the_deadline_across_requests(mc, monkeypatch, sc
     opened = mc.post(path + "/question").json()
     question = opened["question"]
     assert opened["remaining_ms"] == 10000
-    assert set(question) == {"id", "front", "front_image", "options"}
+    assert set(question) == {"id", "front", "front_image", "options", "eliminated_option_id", "attempts_remaining"}
     now += timedelta(seconds=4)
+    wrong = next(o["id"] for o in question["options"] if o["text"] in CHOICES)
+    assert mc.post(path + "/answer", json={"question_id": question["id"], "option_id": wrong}).json()["retry"]
     resumed = mc.post(path + "/question").json()
-    assert resumed["question"] == question
+    assert resumed["question"] == {**question, "eliminated_option_id": wrong, "attempts_remaining": 1}
     assert resumed["remaining_ms"] == 6000
 
     now += timedelta(seconds=6)
@@ -647,7 +681,7 @@ def test_deck_limit_keeps_answers_submitted_before_timeout(mc, monkeypatch):
     question = mc.post(path + "/question").json()["question"]
     now += timedelta(seconds=4)
     graded = mc.post(path + "/answer", json={
-        "question_id": question["id"], "option_id": question["options"][0]["id"],
+        "question_id": question["id"], "option_id": next(o["id"] for o in question["options"] if o["text"] not in CHOICES),
     })
     assert graded.status_code == 200
     assert mc.post(path + "/question").json()["remaining_ms"] == 6000
@@ -666,7 +700,7 @@ def test_timing_migration_preserves_existing_multiple_choice_sessions(mc, monkey
     with engine.begin() as db:
         for field in ("timing_scope", "timing_seconds", "deck_deadline"):
             db.execute(text(f"ALTER TABLE multiple_choice_sessions DROP COLUMN {field}"))
-        for field in ("question_deadline", "timed_out_at"):
+        for field in ("question_deadline", "timed_out_at", "allows_retry", "eliminated_option_id"):
             db.execute(text(f"ALTER TABLE multiple_choice_questions DROP COLUMN {field}"))
     init_database(engine)
     init_database(engine)
@@ -740,8 +774,9 @@ def test_progressive_study_obeys_the_shuffled_prefix_and_waits_at_gaps(mc, monke
     for expected in order[6:]:
         question = mc.get(path + "/question").json()
         assert question["front"] == expected.front
+        correct = next(option for option in question["options"] if option["text"] == expected.back)
         assert mc.post(path + "/answer", json={
-            "question_id": question["id"], "option_id": question["options"][0]["id"],
+            "question_id": question["id"], "option_id": correct["id"],
         }).status_code == 200
     assert mc.get(path).json()["status"] == "completed"
 

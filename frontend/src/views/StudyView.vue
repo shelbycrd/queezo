@@ -4,7 +4,7 @@ import {useRouter} from 'vue-router';
 import {api} from '../../js/api.js';
 import {studyShortcut} from '../../js/card-content.js';
 import {loadTiming,saveTiming} from '../../js/study-options.js';
-import {backIcon,plural} from '../services/format.js';
+import {closeIcon,plural} from '../services/format.js';
 import {showNotice} from '../services/notice.js';
 import {useEvent,useResource} from '../composables/lifecycle.js';
 import CardContent from '../components/CardContent.vue';
@@ -91,16 +91,19 @@ useEvent(document,'keydown', event => {
   const target = event.target;
   if (!state.value || !target.closest || target.closest('input,textarea,select,[contenteditable],dialog,#account-controls,#main-navigation,.sidebar-settings')) return;
   const command = studyShortcut(event);
-  if (!command || (command === 'reveal' && target.closest('#exit-study'))) return;
+  if (!command || (command === 'reveal' && target.closest('.study-exit'))) return;
   event.preventDefault();
   void action(command === 'reveal' ? undefined : command);
 });
 const ratings = [['hard','Hard','More practice'],['normal','Normal','Getting there'],['easy','Easy','Feeling confident']];
 </script>
 <template>
-  <ResourceState v-if="!card" :error="error"/>
+  <div v-if="!card" class="study-shell">
+    <div class="study-heading"><RouterLink class="button secondary flat-button study-exit" to="/decks" aria-label="Return to Flashcards" v-html="closeIcon"/></div>
+    <ResourceState :error="error"/>
+  </div>
   <div v-else class="study-shell" :aria-busy="pending">
-    <div class="study-heading"><button id="exit-study" class="secondary small flat-button" aria-label="Back to deck" :disabled="pending" @click="leave()" v-html="backIcon"></button><div><p class="eyebrow">A little focused recall</p><h1>{{ state.deck_title }}</h1></div></div>
+    <div class="study-heading"><button type="button" class="secondary flat-button study-exit" aria-label="Return to deck" :disabled="pending" @click="leave()" v-html="closeIcon"></button><div><p class="eyebrow">A little focused recall</p><h1>{{ state.deck_title }}</h1></div></div>
     <div v-if="timing.mode === 'timed'" class="study-clock"><span>{{ timing.scope === 'question' ? 'Time for this question' : 'Time for this deck' }}</span><strong id="study-time-left" role="timer">{{ timeText }}</strong><span id="study-time-message">{{ timedOut ? 'Time is up. Review the answer and rate your recall.' : '' }}</span></div>
     <div class="progress-text"><span>{{ state.completed_cards }} of {{ state.total_cards }} cards complete</span><span>{{ plural(state.total_reviews,'review') }}</span></div><progress :max="state.total_cards" :value="state.completed_cards" aria-label="Completed flashcards"></progress>
     <article class="study-sheet" :class="{'answer-revealed':state.revealed}" aria-label="Flashcard"><section class="study-question" ref="question" tabindex="-1"><span class="content-label">Question</span><CardContent :text="card.front" :image="card.front_image" alt="Question photo"/></section>

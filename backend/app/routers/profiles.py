@@ -18,7 +18,7 @@ INTERESTS = (
     'Programming', 'Mathematics', 'Science', 'History', 'Languages', 'Engineering',
     'Literature', 'Art', 'Music', 'Economics', 'Psychology', 'Geography', 'Business',
 )
-Avatar = Literal['dog', 'cat', 'chicken']
+Avatar = Literal['dog', 'cat', 'chicken', 'duck', 'fox', 'panda', 'cow', 'hamster', 'fish', 'octopus']
 Visibility = Literal['public', 'unlisted', 'private']
 DeckSort = Literal['newest', 'oldest', 'alphabetical']
 ReportReason = Literal['inappropriate_bio', 'impersonation', 'spam', 'other']

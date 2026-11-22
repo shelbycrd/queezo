@@ -248,7 +248,21 @@ def _complete_if_done(db, session, now):
 
 def _present(question):
     return {"id": question.id, "front": question.front, "front_image": question.front_image,
-            "options": question.options}
+            "options": question.options, "eliminated_option_id": question.eliminated_option_id,
+            "attempts_remaining": 2 if question.allows_retry and question.eliminated_option_id is None else 1}
+
+
+def _record_presentation(db, session, question):
+    if question.allows_retry is not None:
+        return
+    q = MultipleChoiceQuestion
+    earlier = select(q.id).join(MultipleChoiceSession).where(
+        q.source_card_id == question.source_card_id, q.id != question.id,
+        MultipleChoiceSession.owner_id == session.owner_id,
+        # Include known presentations from sessions created before retries were tracked.
+        q.allows_retry.is_not(None) | q.answered_at.is_not(None) | q.question_deadline.is_not(None),
+    )
+    question.allows_retry = not db.scalar(select(earlier.exists()))
 
 
 def _current_deadline(session, question):
@@ -282,7 +296,7 @@ def open_owned_question(session_id, user_id, settle_stopped=False):
 
 
 def open_question(db, session):
-    """Open or resume a timed question under the write lock."""
+    """Record presentation and open or resume the timer under the write lock."""
     now = utcnow()
     status = _status(session, now)
     if status == "completed" and session.status in {"active", "failed"}:
@@ -302,6 +316,7 @@ def open_question(db, session):
                 "remaining_ms": max(1, (deadline - now) // timedelta(milliseconds=1)) if deadline else None}
 
     session.study_started_at = session.study_started_at or now
+    _record_presentation(db, session, question)
     if session.timing_scope is not None and _current_deadline(session, question) is None:
         deadline = min(now + timedelta(seconds=session.timing_seconds), session.expires_at)
         if session.timing_scope == "deck":
@@ -323,9 +338,17 @@ def submit_answer(db, session, submission):
     _require_open_question(session, question, now)
     if not any(option["id"] == submission.option_id for option in question.options):
         raise HTTPException(422, "Choose an option from the current question.")
+    if submission.option_id == question.eliminated_option_id:
+        raise HTTPException(409, "That option was already tried. Choose a different answer.")
+    _record_presentation(db, session, question)
+    session.study_started_at = session.study_started_at or now
+    if (question.allows_retry and question.eliminated_option_id is None
+            and submission.option_id != question.correct_option_id):
+        question.eliminated_option_id = submission.option_id
+        return {"question_id": question.id, "is_correct": False, "retry": True,
+                "question": _present(question), "session": session_view(db, session)}
     question.selected_option_id = submission.option_id
     question.answered_at = now
-    session.study_started_at = session.study_started_at or now
     mark_study_day(db, session.owner_id)
     _complete_if_done(db, session, now)
     answer = next(option for option in question.options if option["id"] == question.correct_option_id)

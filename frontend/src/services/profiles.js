@@ -1,4 +1,4 @@
-export const avatars = ['dog','cat','chicken'];
+export const avatars = ['dog','cat','chicken','duck','fox','panda','cow','hamster','fish','octopus'];
 export const visibility = {
   public:'Public · Anyone with the link can view your profile, and it can appear in profile search.',
   unlisted:'Unlisted · Anyone with the link can view your profile. It stays out of profile search.',

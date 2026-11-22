@@ -41,6 +41,30 @@ export function playPageTurn() {
   } catch { /* The visual workflow remains available on muted/unsupported browsers. */ }
 }
 
+export function playAnswerSound(correct) {
+  if (!soundsEnabled() || context?.state !== 'running') return;
+  try {
+    const notes = correct ? [659.25, 880, 1108.73] : [246.94, 185];
+    const start = context.currentTime;
+    notes.forEach((pitch, index) => {
+      const time = start + index * (correct ? 0.065 : 0.09);
+      const end = time + (correct ? 0.2 : 0.14);
+      const tone = context.createOscillator();
+      const gain = context.createGain();
+      tone.type = correct ? 'sine' : 'triangle';
+      tone.frequency.value = pitch;
+      gain.gain.setValueAtTime(0.001, time);
+      gain.gain.linearRampToValueAtTime(0.12, time + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.001, end);
+      tone.connect(gain);
+      gain.connect(context.destination);
+      tone.onended = () => { tone.disconnect(); gain.disconnect(); };
+      tone.start(time);
+      tone.stop(end);
+    });
+  } catch { /* Feedback still appears when audio is unavailable. */ }
+}
+
 export async function playTimerPress() {
   if (!soundsEnabled()) return;
   preparePageSound();

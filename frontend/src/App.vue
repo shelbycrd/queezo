@@ -21,6 +21,10 @@ const section = computed(() => route.meta.nav || route.name);
 const back = computed(() => route.meta.back?.(route));
 const scopeKey = computed(() => (account.value?.id || 'guest') + ':' + route.path);
 onScopeDispose(startPomodoroClock());
+watch(() => route.meta.studyFocus, focused => {
+  document.body.classList.toggle('study-focus', Boolean(focused));
+}, {immediate:true});
+onScopeDispose(() => document.body.classList.remove('study-focus'));
 watch(() => account.value?.id, id => {
   document.body.classList.toggle('signed-in', Boolean(id));
   setPomodoroUser(id ?? null);

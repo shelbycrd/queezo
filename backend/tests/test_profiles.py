@@ -98,9 +98,11 @@ def test_display_name_cooldown_immutable_username_and_validation(client, monkeyp
 def test_avatar_rolling_limits_and_unchanged_values(client, monkeypatch):
     now = datetime(2026, 10, 1, 12)
     monkeypatch.setattr(profiles, 'utcnow', lambda: now)
-    for change in range(10):
-        avatar = 'dog' if change % 2 == 0 else 'chicken'
+    avatars = ('duck', 'fox', 'panda', 'cow', 'hamster', 'fish', 'octopus', 'dog', 'cat', 'chicken')
+    for change, avatar in enumerate(avatars):
         saved = patch(client, avatar=avatar).json()
+        assert saved['avatar'] == avatar
+        assert client.get('/api/profiles/me').json()['avatar'] == avatar
         assert saved['avatar_changes_remaining'] == 9 - change
         now += timedelta(minutes=1)
     assert saved['avatar_next_change_at'] == '2026-10-01T13:00:00+00:00'

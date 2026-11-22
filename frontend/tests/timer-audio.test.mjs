@@ -28,3 +28,39 @@ test('Pomodoro audio uses the supplied file, skips silence, caches decoding, and
     for(const [key,descriptor] of Object.entries(old)) { if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key]; }
   }
 });
+
+test('Multiple-Choice uses distinct original cues and respects study mute', async () => {
+  const previous = Object.fromEntries(['window','localStorage'].map(key => [key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  const pitches = [];
+  let muted = false;
+  class Audio {
+    state = 'running';
+    currentTime = 0;
+    createOscillator() {
+      return {frequency:{}, connect(){}, stop(){}, start(){ pitches.push(this.frequency.value); }};
+    }
+    createGain() {
+      return {gain:{setValueAtTime(){}, linearRampToValueAtTime(){}, exponentialRampToValueAtTime(){}}, connect(){}};
+    }
+  }
+  Object.defineProperty(globalThis,'window',{configurable:true,value:{AudioContext:Audio}});
+  Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:() => muted ? 'off' : 'on'}});
+  try {
+    const {preparePageSound, playAnswerSound} = await import('../js/audio.js?answer-sounds');
+    preparePageSound();
+    playAnswerSound(true);
+    assert.equal(pitches.length,3);
+    assert.ok(pitches[0] < pitches[1] && pitches[1] < pitches[2]);
+    playAnswerSound(false);
+    assert.equal(pitches.length,5);
+    assert.ok(pitches[3] > pitches[4]);
+    muted = true;
+    playAnswerSound(true);
+    assert.equal(pitches.length,5);
+  } finally {
+    for (const [key,descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis,key,descriptor);
+      else delete globalThis[key];
+    }
+  }
+});

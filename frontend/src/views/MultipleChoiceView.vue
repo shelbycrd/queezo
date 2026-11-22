@@ -4,7 +4,8 @@ import {multipleChoiceSession, scoreSummary} from '../../js/multiple-choice-sess
 import {safeImageUrl} from '../../js/card-content.js';
 import {authVersion} from '../../js/auth-state.js';
 import {chooseStudy} from '../services/study-dialog.js';
-import {backIcon,plural} from '../services/format.js';
+import {playAnswerSound, preparePageSound} from '../../js/audio.js';
+import {closeIcon,plural} from '../services/format.js';
 import {useLifetime} from '../composables/lifecycle.js';
 import CardContent from '../components/CardContent.vue';
 
@@ -24,18 +25,19 @@ const FAILURE_LABELS = {
 
 const {sessionId} = defineProps({sessionId:String});
 const {active} = useLifetime(), accountVersion = authVersion();
-const view = shallowRef({}), choice = ref(''), choosing = ref(false);
+const view = shallowRef({}), choosing = ref(false);
 const focus = ref(), feedback = ref(), clockNow = ref(Date.now());
 const session = computed(() => view.value.session);
 const question = computed(() => view.value.question);
 const grade = computed(() => view.value.grade);
 const pending = computed(() => view.value.pending);
 const problem = computed(() => view.value.problem);
-const deckLink = computed(() => session.value ? '#/deck/' + session.value.deck_id : '#/decks');
+const deckPath = computed(() => session.value ? '/deck/' + session.value.deck_id : '/decks');
+const deckLink = computed(() => '#' + deckPath.value);
 const phase = computed(() => {
   if (problem.value) return 'problem';
   if (grade.value) return 'feedback:' + question.value.id;
-  if (session.value?.status === 'active' && question.value) return 'question:' + question.value.id;
+  if (session.value?.status === 'active' && question.value) return (question.value.eliminated_option_id ? 'retry:' : 'question:') + question.value.id;
   if (session.value?.status === 'active' && session.value.study_started !== false) return 'waiting';
   return session.value?.status || 'loading';
 });
@@ -49,6 +51,7 @@ const ordinal = computed(() => completed.value + (grade.value ? 0 : 1));
 const image = computed(() => safeImageUrl(grade.value?.back_image));
 const isCorrect = option => option.id === grade.value?.correct_option?.id;
 const isChosen = option => option.id === grade.value?.selected_option_id;
+const isEliminated = option => option.id === question.value?.eliminated_option_id;
 const showClock = computed(() => view.value.clock && !problem.value && (grade.value || session.value?.status === 'active'));
 const clockLabel = computed(() => session.value?.timing?.scope === 'deck' ? 'Deck time' : 'Question time');
 const clock = computed(() => {
@@ -64,18 +67,22 @@ const stats = computed(() => {
 const controller = multipleChoiceSession(sessionId, {
   update:state => { clockNow.value = Date.now(); view.value = state; },
   active:() => active() && authVersion() === accountVersion,
+  answerFeedback:playAnswerSound,
 });
-watch(() => question.value?.id, () => { choice.value = ''; }, {flush:'sync'});
-watch(phase, async () => {
+watch(phase, async current => {
   await nextTick();
-  const target = grade.value && !problem.value ? feedback.value : focus.value;
-  target?.focus({preventScroll:Boolean(grade.value)});
+  const showingFeedback = current.startsWith('feedback:') || current.startsWith('retry:');
+  (showingFeedback ? feedback.value : focus.value)?.focus({preventScroll:showingFeedback});
 });
 onMounted(() => void controller.refresh());
 const timer = setInterval(() => {
   if (showClock.value && (!grade.value || (session.value.status === 'active' && session.value.timing.scope === 'deck'))) clockNow.value = Date.now();
 },250);
 onScopeDispose(() => { controller.stop(); clearInterval(timer); });
+function selectAnswer(option) {
+  preparePageSound();
+  void controller.answer(option.id);
+}
 async function again() {
   choosing.value = true;
   try { await chooseStudy(session.value.deck_id,{mode:'multiple-choice'}); } finally { choosing.value = false; }
@@ -83,7 +90,7 @@ async function again() {
 </script>
 <template>
   <div class="study-shell mc-shell">
-    <div class="study-heading"><a class="button secondary small flat-button mc-back" :href="deckLink" aria-label="Back to deck" v-html="backIcon"></a>
+    <div class="study-heading"><RouterLink class="button secondary flat-button study-exit" :to="deckPath" :aria-label="session ? 'Return to deck' : 'Return to Flashcards'" v-html="closeIcon"/>
       <div><p class="eyebrow">Multiple-Choice Mode</p><h1>{{ session?.deck_title || 'Multiple-Choice Study' }}</h1></div>
     </div>
     <p v-if="view.message" role="status" class="mc-note">{{ view.message }}</p>
@@ -98,27 +105,32 @@ async function again() {
         <div class="progress-text"><strong>Question {{ ordinal }} of {{ ready }}</strong><span>{{ session.answered }} answered{{ session.timed_out ? ' · ' + session.timed_out + ' timed out' : '' }}</span></div>
         <progress :max="ready" :value="completed" aria-label="Questions completed"></progress>
         <article class="study-sheet mc-question"><section class="study-question"><h2 class="content-label" ref="focus" tabindex="-1">Question {{ ordinal }}</h2><CardContent :text="question.front" :image="question.front_image" alt="Question photo"/></section></article>
-        <form id="mc-answer-form" @submit.prevent="!grade && choice && controller.answer(choice)">
-          <fieldset class="mc-choices" :class="{'mc-graded':grade}" :disabled="Boolean(grade || pending)"><legend>Answer choices</legend>
-            <div class="mc-options" ref="feedback" :tabindex="grade ? -1 : undefined" :role="grade ? 'group' : undefined" :aria-label="grade ? (grade.is_correct ? 'Correct' : 'Incorrect') + '. Answer choices' : undefined">
-              <label v-for="(option,index) in question.options" :key="option.id" class="mc-option" :class="{'mc-correct':isCorrect(option),'mc-incorrect':isChosen(option) && !isCorrect(option)}">
-                <input name="answer" type="radio" required :value="option.id" :checked="grade ? isChosen(option) : choice === option.id" @change="choice = option.id">
-                <span class="mc-letter" aria-hidden="true">{{ String.fromCharCode(65 + index) }}</span><span class="mc-option-text">{{ option.text }}</span>
-                <small class="mc-option-mark"><span :class="{'is-visible':isCorrect(option)}">Correct answer</span><span :class="{'is-visible':isChosen(option)}">Your choice</span></small>
-              </label>
-            </div>
-          </fieldset>
-          <div class="actions mc-actions">
-            <button v-if="grade" type="button" :disabled="Boolean(pending)" @click="controller.next()">{{ pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question' }}</button>
-            <button v-else type="submit" :disabled="Boolean(pending)">{{ pending === 'answer' ? 'Checking…' : 'Check answer' }}</button>
-            <button v-if="session.status === 'active'" type="button" class="secondary flat-button" :disabled="Boolean(pending)" @click="controller.transition('cancel')">{{ pending === 'cancel' ? 'Ending…' : 'End session' }}</button>
+        <fieldset class="mc-choices" :disabled="Boolean(grade || pending)">
+          <legend>Answer choices</legend>
+          <div class="mc-options" ref="feedback" tabindex="-1" role="group"
+            :aria-label="grade ? (grade.is_correct ? 'Correct' : 'Incorrect') + '. Answer choices.' : 'Answer choices'"
+            :aria-describedby="grade ? undefined : 'mc-attempts'">
+            <button v-for="(option,index) in question.options" :key="option.id" type="button"
+              class="mc-option flat-button" :disabled="isEliminated(option)"
+              :class="{'mc-correct':isCorrect(option),'mc-incorrect':isEliminated(option) || (isChosen(option) && !isCorrect(option))}"
+              @click="selectAnswer(option)">
+              <span class="mc-letter" aria-hidden="true">{{ String.fromCharCode(65 + index) }}</span>
+              <span class="mc-option-text">{{ option.text }}</span>
+              <small class="mc-option-mark">
+                <span :class="{'is-visible':isCorrect(option)}">Correct answer</span>
+                <span :class="{'is-visible':isChosen(option) || isEliminated(option)}">{{ isEliminated(option) ? 'First guess' : 'Your choice' }}</span>
+              </small>
+            </button>
           </div>
-          <img v-if="image" class="card-photo" :src="image" alt="Correct answer photo">
-        </form>
+        </fieldset>
+        <div class="actions mc-actions">
+          <button v-if="grade" type="button" :disabled="Boolean(pending)" @click="controller.next()">{{ pending === 'next' ? 'Loading…' : session.status === 'completed' ? 'See results' : 'Next question' }}</button>
+          <p v-else id="mc-attempts" class="muted" role="status">{{ question.eliminated_option_id ? 'Try again. One attempt left.' : question.attempts_remaining === 2 ? 'Two attempts' : 'One attempt' }}</p>
+        </div>
+        <img v-if="image" class="card-photo" :src="image" alt="Correct answer photo">
       </template>
       <section v-else-if="phase === 'waiting'" class="panel mc-panel"><h2 ref="focus" tabindex="-1">{{ session.deck_time_over ? 'Finishing your session' : 'Preparing the next question' }}</h2>
         <p class="muted">{{ session.deck_time_over ? 'The deck timer has ended.' : 'Your place is saved. The next question will open when it’s ready.' }}</p>
-        <div class="actions mc-actions"><button type="button" class="secondary flat-button" :disabled="Boolean(pending)" @click="controller.transition('cancel')">End session</button></div>
       </section>
       <template v-else-if="finished">
         <div class="summary-heading"><div class="check" aria-hidden="true">✓</div><h2 ref="focus" tabindex="-1">Session complete</h2>

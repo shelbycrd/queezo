@@ -1,11 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {accessSync} from 'node:fs';
 import {avatarUrl, avatars, deckPagePath,profileDraft,profilePath} from '../src/services/profiles.js';
 
 test('avatar choices resolve only to bundled assets', () => {
   assert.deepEqual(avatars.map(avatarUrl), [
     '/assets/profile/dog.svg', '/assets/profile/cat.svg', '/assets/profile/chicken.svg',
+    '/assets/profile/duck.svg', '/assets/profile/fox.svg', '/assets/profile/panda.svg',
+    '/assets/profile/cow.svg', '/assets/profile/hamster.svg', '/assets/profile/fish.svg',
+    '/assets/profile/octopus.svg',
   ]);
+  for (const avatar of avatars) accessSync(new URL('../public' + avatarUrl(avatar), import.meta.url));
   assert.equal(avatarUrl('https://example.com/avatar'), '/assets/profile/cat.svg');
 });
 
