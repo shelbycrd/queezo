@@ -36,7 +36,7 @@ Verified live counts before and after: 2 decks, 8 cards, 2 study sessions, 43 re
 - Backend dependencies/build: `backend/requirements.txt`, `backend/Dockerfile`.
 - Backend tests: `backend/tests/conftest.py`, `test_gwa.py`, `test_auth.py`, `test_cli.py`, `test_ownership_migration.py`, `manual_auth_http.py`.
 - Frontend authentication: `frontend/js/auth-state.js`, `auth.js`, `api.js`, `app.js`; `frontend/index.html`; `frontend/css/auth.css`.
-- Pomodoro account isolation: `frontend/js/pomodoro.js`.
+- Pomodoro account isolation: `frontend/src/services/pomodoro.js`.
 - Frontend tests: `frontend/tests/auth-client.test.mjs`, `pomodoro-account.test.mjs`.
 - Gateway and deployment: `nginx/nginx.conf`, `nginx/security-headers.conf`, `nginx/Dockerfile`, `compose.yaml`, `.env.example`.
 - Documentation: `README.md`, `AUTH_SETUP.md`, `AUTH_IMPLEMENTATION.md`, `VERIFICATION.md`.

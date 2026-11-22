@@ -1,1 +1,0 @@
-import{M as e}from"./runtime-core.esm-bundler-BANtA0FN.js";var t=`/assets/queezo-cloud.svg`,n=e(!1),r=e(null);function i(){n.value=!0}function a(){n.value=!1}export{t as a,i,r as n,n as r,a as t};

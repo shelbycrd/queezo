@@ -1,1 +1,0 @@
-import{a as e,b as t,c as n,t as r}from"./runtime-core.esm-bundler-BANtA0FN.js";import{t as i}from"./_plugin-vue_export-helper-BDNMzG2s.js";var a={};function o(i,a){return t(),n(r,null,[a[0]||=e(`h1`,null,`Page not found`,-1),a[1]||=e(`a`,{href:`#/dashboard`},`Return to Dashboard`,-1)],64)}var s=i(a,[[`render`,o]]);export{s as default};

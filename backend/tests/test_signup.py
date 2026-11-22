@@ -122,6 +122,8 @@ def test_profile_migration_backfills_once_and_preserves_legacy_password_and_ids(
         uid = user.uid
         assert user.password_hash == 'unchanged-hash'
         assert user.username == 'user_1'
+        assert (user.profile_visibility, user.avatar, user.bio, user.interest_tags) == ('unlisted', 'cat', '', [])
+        assert user.display_name_changed_at is None and user.featured_deck_id is None
     init_database(engine)
     with Session(engine) as db:
         assert db.get(User,1).uid == uid

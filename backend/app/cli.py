@@ -7,12 +7,13 @@ import warnings
 
 from sqlalchemy import text, select, delete, func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.auth.service import create_user
 from app.database import engine, init_database
 from app.ownership_migration import assign_legacy, list_unowned
-from app.models import User, AuthSession, Deck, StudySession, ActivityDay
+from app.models import User, AuthSession, Deck, StudySession, ActivityDay, ProfileReport, utcnow
+from app.services.presenters import iso
 
 
 class InsecurePasswordInput(RuntimeError):
@@ -104,6 +105,33 @@ def manage_accounts(args):
         return 0
 
 
+def moderate_profiles(args):
+    with Session(engine) as db:
+        if args.command == 'review-profile-report':
+            db.execute(text('BEGIN IMMEDIATE'))
+            report = db.get(ProfileReport, args.report_id)
+            if report is None:
+                raise ValueError('No profile report has that ID.')
+            if report.reviewed_at is None:
+                report.reviewed_at = utcnow()
+            db.commit()
+            print(f'Profile report {args.report_id} marked reviewed.')
+            return 0
+        target, reporter = aliased(User), aliased(User)
+        statement = select(ProfileReport, target.username, reporter.username).join(
+            target, target.id == ProfileReport.target_id
+        ).join(reporter, reporter.id == ProfileReport.reporter_id)
+        if not args.include_reviewed:
+            statement = statement.where(ProfileReport.reviewed_at.is_(None))
+        rows = db.execute(statement.order_by(ProfileReport.id.desc()).limit(100)).all()
+        print(json.dumps([{
+            'id': report.id, 'target': target_name, 'reporter': reporter_name,
+            'reason': report.reason, 'explanation': report.explanation,
+            'created_at': iso(report.created_at), 'reviewed_at': iso(report.reviewed_at),
+        } for report, target_name, reporter_name in rows], indent=2))
+        return 0
+
+
 def main(argv=None):
     parser = SafeArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -115,6 +143,10 @@ def main(argv=None):
         if command == 'delete-user':
             command_parser.add_argument('--confirm', help='Repeat the exact UID to confirm deletion; otherwise prompts')
     commands.add_parser("list-unowned", help="List preserved legacy decks that have no account owner")
+    reports = commands.add_parser('list-profile-reports', help='List the latest 100 profile reports for operator review')
+    reports.add_argument('--include-reviewed', action='store_true')
+    review = commands.add_parser('review-profile-report', help='Mark a profile report reviewed')
+    review.add_argument('--report-id', type=int, required=True)
     assignment = commands.add_parser("assign-legacy", help="Assign explicitly selected unowned decks to an existing account")
     assignment.add_argument("--email", required=True, help="Existing account email")
     assignment.add_argument("--deck-id", action="append", type=int, required=True,
@@ -126,6 +158,8 @@ def main(argv=None):
         init_database()
         if args.command in {'list-users','show-user','delete-user','revoke-sessions'}:
             return manage_accounts(args)
+        if args.command in {'list-profile-reports', 'review-profile-report'}:
+            return moderate_profiles(args)
         with Session(engine) as db:
             if args.command == "list-unowned":
                 print(json.dumps(list_unowned(db), indent=2))

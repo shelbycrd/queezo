@@ -11,7 +11,7 @@ from app.auth.dependencies import require_user
 from app.auth.service import normalize_username
 from app.database import get_db, get_write_db
 from app.models import AuthSession, Deck, Friendship, SessionPresence, User, utcnow
-from app.routers.community import shared_view
+from app.routers.profiles import deck_summaries, public_decks
 
 router = APIRouter(prefix='/api/friends', tags=['Friends'])
 
@@ -104,9 +104,7 @@ def respond(username: str, body: FriendResponse, user: User = Depends(require_us
 def friend_profile(username: str, user: User = Depends(require_user), db: Session = Depends(get_db)):
     other = db.scalar(select(User).where(User.username == username))
     connection = db.get(Friendship, tuple(sorted((user.id, other.id)))) if other else None
-    if not connection or not connection.accepted:
+    if not connection or not connection.accepted or other.profile_visibility == 'private':
         raise HTTPException(404, 'Friend profile not found.')
-    decks = db.scalars(select(Deck).where(
-        Deck.owner_id == other.id, Deck.visibility == 'public', Deck.share_token.is_not(None)
-    ).order_by(Deck.created_at.desc(), Deck.id.desc()))
-    return {**identity(other), 'public_decks': [shared_view(db, deck) for deck in decks]}
+    decks = public_decks(other.id).order_by(Deck.created_at.desc(), Deck.id.desc())
+    return {**identity(other), 'public_decks': deck_summaries(db, decks)}

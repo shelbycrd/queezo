@@ -24,7 +24,7 @@ Open **Friends** from the top bar to search your list, send requests by username
 
 ## Getting started
 
-Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin. The first build needs internet access to fetch container images and Python dependencies.
+Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin. The first build fetches container images, Python dependencies, and the locked frontend packages.
 
 From the repository root, run:
 
@@ -35,6 +35,20 @@ docker compose up -d --build --wait
 Open [Queezo on localhost](http://localhost:8080) and choose **Create an account**.
 
 For custom settings, copy [`.env.example`](.env.example) to `.env`. Set `AUTH_TRUSTED_ORIGINS` to the exact browser origins, including the port, if you change `APP_PORT` or the hostname. See the [account setup guide](AUTH_SETUP.md#environment-configuration) for HTTPS settings.
+
+### Frontend development
+
+With Docker Desktop running, start the development services from the repository root:
+
+```powershell
+docker compose -f compose.yaml -f compose.dev.yaml up --build
+```
+
+Open [localhost:5173](http://localhost:5173) to develop. Vite watches `frontend/` and updates the browser when Vue components, styles, or JavaScript change. The first startup installs the locked frontend dependencies in a Docker volume. Restart the development service after changing `package.json` or `package-lock.json`.
+
+The development server forwards API requests to the Compose gateway. Sign-in cookies and API requests use the same browser origin. The development configuration adds the localhost and 127.0.0.1 port 5173 origins to the configured trusted origins. For another hostname or port, add the exact browser origin to `AUTH_TRUSTED_ORIGINS` and recreate the services.
+
+Press Ctrl+C to stop the foreground command, then use `docker compose -f compose.yaml -f compose.dev.yaml stop` to stop the services. The database remains in the existing Compose volume. The production setup uses `docker compose up -d --build --wait` and serves the built frontend on port 8080.
 
 You can also create an account from an interactive terminal:
 
@@ -48,11 +62,11 @@ The CLI also supports listing and inspecting users, revoking sessions, deleting 
 
 | Path | Role |
 | --- | --- |
-| [`frontend/`](frontend/) | HTML, CSS, and browser JavaScript. Includes all screens, the Pomodoro timer, and frontend tests. |
+| [`frontend/`](frontend/) | Vue 3, Vue Router, and Vite. Includes all views, shared components, existing styles, public assets, and frontend tests. |
 | [`backend/app/`](backend/app/) | Python 3.12 and FastAPI for accounts, flashcards, sharing, study sessions, and activity. |
 | [`backend/app/gwa/`](backend/app/gwa/) | Separate FastAPI service for decimal-based GWA calculations. |
 | [`backend/tests/`](backend/tests/) | Pytest coverage for API behavior, accounts, persistence, and migrations. |
-| [`nginx/`](nginx/) and [`compose.yaml`](compose.yaml) | Nginx serves the frontend and proxies both APIs. Compose runs the three services. |
+| [`nginx/`](nginx/) and [`compose.yaml`](compose.yaml) | The frontend image builds with Node and Vite. Nginx serves the build and proxies both APIs. Compose runs the three services. |
 
 Both APIs use SQLAlchemy and a shared SQLite database for account and session validation. The Compose database is stored in the `queezo_data` volume. `docker compose down` keeps it. **`docker compose down -v` deletes it.**
 
@@ -82,8 +96,9 @@ Start a focus session and track your progress through the study and break cycle.
 - [Account setup and troubleshooting](AUTH_SETUP.md) and [authentication implementation](AUTH_IMPLEMENTATION.md).
 - [Local Ollama generation and SQLite caching for Multiple-Choice Mode](docs/OLLAMA.md).
 - [Multiple-choice study API and preparation lifecycle](docs/MULTIPLE_CHOICE.md).
-- [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/assets/README.md).
+- [Vue development and migration verification](docs/VUE_MIGRATION.md).
+- [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/public/assets/README.md).
 
 ## License
 
-The repository does not contain a project-wide license. The bundled Quicksand font has its own [SIL Open Font License](frontend/assets/fonts/OFL-Quicksand.txt).
+The repository does not contain a project-wide license. The bundled Quicksand font has its own [SIL Open Font License](frontend/public/assets/fonts/OFL-Quicksand.txt).
