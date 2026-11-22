@@ -6,6 +6,7 @@ import {friendsOpen, friendCount, closeFriends} from '../services/friends.js';
 import {showNotice} from '../services/notice.js';
 import {useEvent} from '../composables/lifecycle.js';
 import {buttonFeedback as vButtonFeedback} from './ButtonFeedback.js';
+import {profilePath} from '../services/profiles.js';
 
 const drawer = ref(), search = ref(''), username = ref(''), requestPanel = ref();
 const list = ref(), requests = ref(), data = shallowRef(null);
@@ -97,7 +98,7 @@ onScopeDispose(() => { controller?.abort(); clearInterval(presence); clearInterv
             <details v-for="friend in friends" :key="friend.username" class="friend-row" :data-friend="friend.username" name="friend-actions">
               <summary><span class="friend-avatar" aria-hidden="true">{{ Array.from(friend.display_name.trim())[0]?.toUpperCase() || '?' }}<span class="presence-dot" :class="friend.online ? 'online' : 'offline'"></span></span>
                 <span class="friend-name"><strong>{{ friend.display_name }}</strong><small>{{ friend.online ? 'Online' : 'Offline' }}</small></span><span class="friend-chevron" aria-hidden="true">⌄</span></summary>
-              <div class="friend-actions"><a class="button secondary small flat-button" :href="'#/friend/' + encodeURIComponent(friend.username)" @click="closeFriends">View Profile</a>
+              <div class="friend-actions"><a class="button secondary small flat-button" :href="profilePath(friend.username)" @click="closeFriends">View Profile</a>
                 <button class="secondary small flat-button" type="button" disabled>Invite for a study session</button></div>
             </details>
             <p v-if="!friends.length" class="friend-empty">{{ query ? 'No friends match your search.' : 'No friends yet. Send a request by username.' }}</p>

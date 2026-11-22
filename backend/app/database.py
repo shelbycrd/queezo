@@ -35,7 +35,7 @@ def init_database(target=engine):
     from app.migrate_cards import legacy_cards
     from app.ownership_migration import migrate_ownership
     from app.media_migration import migrate_card_images
-    from app.profile_migration import migrate_profiles
+    from app.profile_migration import migrate_profiles, migrate_profile_customization
     from app.sharing_migration import migrate_sharing
 
     Base.metadata.create_all(target)
@@ -45,6 +45,7 @@ def init_database(target=engine):
         migrate_profiles(connection)
         migrate_card_images(connection)
         migrate_sharing(connection)
+        migrate_profile_customization(connection)
         # Existing multiple-choice sessions default to unlimited timing.
         for table, fields in (
             ("multiple_choice_sessions", {

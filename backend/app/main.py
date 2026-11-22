@@ -12,7 +12,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.database import get_db, init_database
 from app.errors import validation_error
-from app.routers import activity, decks, friends, multiple_choice, study
+from app.routers import activity, decks, friends, multiple_choice, profiles, study
 from app.routers import community
 from app.auth.router import router as auth_router
 from app.auth.config import get_settings
@@ -41,6 +41,7 @@ app.include_router(activity.router)
 app.include_router(auth_router)
 app.include_router(community.router)
 app.include_router(friends.router)
+app.include_router(profiles.router)
 app.add_middleware(PrivateResponseHeaders)
 
 

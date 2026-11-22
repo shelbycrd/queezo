@@ -12,6 +12,10 @@ function adopt(user) {
   account.value = authenticatedUser();
 }
 
+export function updateAccountProfileName(display_name) {
+  if (account.value) adopt({...account.value,display_name});
+}
+
 export function initAuthentication(router) {
   const events = new AbortController();
   const channel = 'BroadcastChannel' in window ? new BroadcastChannel('queezo.account') : null;
@@ -35,11 +39,12 @@ export function initAuthentication(router) {
   }
   async function authenticate(action, body, active) {
     const ticket = ++sequence;
+    const target = router.currentRoute.value.query.returnTo;
     const user = await api('/auth/' + action, {method:'POST', body, ignoreUnauthorized:true});
     if (ticket !== sequence || !active()) return;
     adopt(user);
     channel?.postMessage({type:'changed'});
-    await router.replace('/dashboard');
+    await router.replace(typeof target === 'string' && /^\/shared\/[A-Za-z0-9_-]{32,64}$/.test(target) ? target : '/dashboard');
   }
   async function logout() {
     try {

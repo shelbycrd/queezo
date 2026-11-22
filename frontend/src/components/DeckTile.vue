@@ -5,7 +5,7 @@ import {plural} from '../services/format.js';
 import {deckColor} from '../services/deck-colors.js';
 import {chooseStudy} from '../services/study-dialog.js';
 const props = defineProps({deck:Object, shared:Boolean});
-const target = computed(() => props.shared ? '#/shared/' + encodeURIComponent(props.deck.share_token) : '#/deck/' + props.deck.id);
+const target = computed(() => props.shared ? '/#/shared/' + encodeURIComponent(props.deck.share_token) : '#/deck/' + props.deck.id);
 const color = computed(() => deckColor(props.shared ? props.deck.share_token : props.deck.id));
 const pending = ref(false);
 async function study() {

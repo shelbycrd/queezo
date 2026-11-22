@@ -18,14 +18,14 @@ def check_origin(request):
         raise HTTPException(403, "Cross-site requests are not allowed.")
 
 
-def require_user(request: Request, db: Session = Depends(get_db)):
+def optional_user(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get(get_settings().cookie_name, '')
     if not 40 <= len(token) <= 128:
-        raise HTTPException(401, "Please log in to continue.")
+        return None
     result = db.execute(select(User, AuthSession).join(AuthSession, AuthSession.user_id == User.id).where(
         AuthSession.token_hash == hash_token(token), AuthSession.expires_at > utcnow())).first()
     if result is None:
-        raise HTTPException(401, "Please log in to continue.")
+        return None
     if request.method not in {'GET', 'HEAD', 'OPTIONS'}:
         check_origin(request)
         submitted = request.headers.get('x-csrf-token', '')
@@ -33,3 +33,9 @@ def require_user(request: Request, db: Session = Depends(get_db)):
             raise HTTPException(403, "Security check failed. Refresh and try again.")
     request.state.auth_session = result[1]
     return result[0]
+
+
+def require_user(user: User | None = Depends(optional_user)):
+    if user is None:
+        raise HTTPException(401, "Please log in to continue.")
+    return user

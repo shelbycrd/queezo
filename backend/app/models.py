@@ -2,7 +2,7 @@ from datetime import date, datetime, timezone
 from uuid import uuid4
 import secrets
 
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -198,7 +198,33 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(254, collation="NOCASE"), unique=True)
     password_hash: Mapped[str] = mapped_column(String(512))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    profile_visibility: Mapped[str] = mapped_column(String(8), default='unlisted', server_default='unlisted')
+    bio: Mapped[str] = mapped_column(String(200), default='', server_default='')
+    interest_tags: Mapped[list[str]] = mapped_column(JSON, default=list, server_default='[]')
+    avatar: Mapped[str] = mapped_column(String(8), default='cat', server_default='cat')
+    display_name_changed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    featured_deck_id: Mapped[int | None] = mapped_column(ForeignKey("decks.id", ondelete="SET NULL", use_alter=True))
     __table_args__ = ({"sqlite_autoincrement": True},)
+
+
+class ProfileAvatarChange(Base):
+    __tablename__ = "profile_avatar_changes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    changed_at: Mapped[datetime] = mapped_column(DateTime)
+    __table_args__ = (Index("ix_profile_avatar_user_time", "user_id", "changed_at"),)
+
+
+class ProfileReport(Base):
+    __tablename__ = "profile_reports"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    target_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    reporter_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    reason: Mapped[str] = mapped_column(String(24))
+    explanation: Mapped[str] = mapped_column(String(400), default='')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    __table_args__ = (CheckConstraint("target_id <> reporter_id"), {"sqlite_autoincrement": True})
 
 
 class AuthSession(Base):
