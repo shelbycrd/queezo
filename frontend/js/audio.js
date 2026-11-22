@@ -70,12 +70,3 @@ export async function playTimerPress() {
     source.start(now,clip.offset,clip.duration);
   } catch { timerLoad = null; /* Audio never blocks the timer. */ }
 }
-
-export function initButtonFeedback() {
-  document.addEventListener('click', event => {
-    const button = event.target.closest('button,.button,.photo-picker');
-    if (!button || button.disabled) return;
-    button.classList.add('is-pressed');
-    setTimeout(() => button.classList.remove('is-pressed'), 130);
-  }, {capture:true});
-}

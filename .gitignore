@@ -31,6 +31,7 @@ backups/
 
 # Dependencies, runtime logs, and machine-generated files.
 node_modules/
+/frontend/dist/
 *.log
 .DS_Store
 Thumbs.db

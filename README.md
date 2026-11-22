@@ -24,7 +24,7 @@ Open **Friends** from the top bar to search your list, send requests by username
 
 ## Getting started
 
-Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin. The first build needs internet access to fetch container images and Python dependencies.
+Install and start [Docker Desktop](https://docs.docker.com/desktop/) with Linux containers, or use Docker Engine with the Compose plugin. The first build fetches container images, Python dependencies, and the locked frontend packages.
 
 From the repository root, run:
 
@@ -48,11 +48,11 @@ The CLI also supports listing and inspecting users, revoking sessions, deleting 
 
 | Path | Role |
 | --- | --- |
-| [`frontend/`](frontend/) | HTML, CSS, and browser JavaScript. Includes all screens, the Pomodoro timer, and frontend tests. |
+| [`frontend/`](frontend/) | Vue 3, Vue Router, and Vite. Includes all views, shared components, existing styles, public assets, and frontend tests. |
 | [`backend/app/`](backend/app/) | Python 3.12 and FastAPI for accounts, flashcards, sharing, study sessions, and activity. |
 | [`backend/app/gwa/`](backend/app/gwa/) | Separate FastAPI service for decimal-based GWA calculations. |
 | [`backend/tests/`](backend/tests/) | Pytest coverage for API behavior, accounts, persistence, and migrations. |
-| [`nginx/`](nginx/) and [`compose.yaml`](compose.yaml) | Nginx serves the frontend and proxies both APIs. Compose runs the three services. |
+| [`nginx/`](nginx/) and [`compose.yaml`](compose.yaml) | The frontend image builds with Node and Vite. Nginx serves the build and proxies both APIs. Compose runs the three services. |
 
 Both APIs use SQLAlchemy and a shared SQLite database for account and session validation. The Compose database is stored in the `queezo_data` volume. `docker compose down` keeps it. **`docker compose down -v` deletes it.**
 
@@ -82,8 +82,9 @@ Start a focus session and track your progress through the study and break cycle.
 - [Account setup and troubleshooting](AUTH_SETUP.md) and [authentication implementation](AUTH_IMPLEMENTATION.md).
 - [Local Ollama generation and SQLite caching for Multiple-Choice Mode](docs/OLLAMA.md).
 - [Multiple-choice study API and preparation lifecycle](docs/MULTIPLE_CHOICE.md).
-- [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/assets/README.md).
+- [Vue development and migration verification](docs/VUE_MIGRATION.md).
+- [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/public/assets/README.md).
 
 ## License
 
-The repository does not contain a project-wide license. The bundled Quicksand font has its own [SIL Open Font License](frontend/assets/fonts/OFL-Quicksand.txt).
+The repository does not contain a project-wide license. The bundled Quicksand font has its own [SIL Open Font License](frontend/public/assets/fonts/OFL-Quicksand.txt).
