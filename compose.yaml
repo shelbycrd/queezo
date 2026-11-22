@@ -4,6 +4,8 @@ x-auth-environment: &auth-environment
   AUTH_ENV: ${AUTH_ENV:-development}
   AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
   AUTH_TRUSTED_ORIGINS: ${AUTH_TRUSTED_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
+  AUTH_PUBLIC_SIGNUP: ${AUTH_PUBLIC_SIGNUP:-}
+  FORWARDED_ALLOW_IPS: ${QUEEZO_PROXY_IP:-172.31.252.2}
 services:
   backend:
     build:
@@ -13,6 +15,10 @@ services:
       <<: *auth-environment
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:1.7b}
+      OLLAMA_REQUEST_TIMEOUT_SECONDS: ${OLLAMA_REQUEST_TIMEOUT_SECONDS:-60}
+      MCQ_PREPARATION_TIMEOUT_SECONDS: ${MCQ_PREPARATION_TIMEOUT_SECONDS:-900}
+      MCQ_MAX_PENDING_JOBS: ${MCQ_MAX_PENDING_JOBS:-16}
+      MCQ_MAX_PENDING_PER_USER: ${MCQ_MAX_PENDING_PER_USER:-3}
     volumes:
       - queezo_data:/data
     restart: unless-stopped
@@ -27,7 +33,10 @@ services:
       context: .
       dockerfile: nginx/Dockerfile
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "127.0.0.1:${APP_PORT:-8080}:80"
+    networks:
+      default:
+        ipv4_address: ${QUEEZO_PROXY_IP:-172.31.252.2}
     depends_on:
       backend:
         condition: service_healthy
@@ -45,7 +54,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    command: ["uvicorn", "app.gwa.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+    command: ["uvicorn", "app.gwa.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--no-access-log"]
     environment: *auth-environment
     volumes:
       - queezo_data:/data
@@ -59,5 +68,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${QUEEZO_PROXY_SUBNET:-172.31.252.0/28}
+          ip_range: ${QUEEZO_PROXY_DYNAMIC_RANGE:-172.31.252.8/29}
 volumes:
   queezo_data:

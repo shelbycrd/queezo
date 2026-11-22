@@ -1,6 +1,6 @@
 """Shared read access never broadens owner-only editing or study history."""
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
 from app.auth.dependencies import require_user
@@ -8,6 +8,7 @@ from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, User
 from app.schemas import CardInput
 from app.services.content_policy import no_urls
+from app.services import limits
 from app.services.presenters import card_view, deck_view
 
 router = APIRouter(prefix='/api', tags=['Community decks'])
@@ -43,8 +44,14 @@ def read_shared(token: str, user: User = Depends(require_user), db: Session = De
 
 
 @router.post('/shared/decks/{token}/copy', status_code=201)
-def copy_shared(token: str, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def copy_shared(token: str, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     source = shared_deck(db, token)
+    limits.require_deck_slot(db, user.id)
+    limits.require_operation_budget(db, user.id, 'deck-copy', limits.MAX_DECK_COPIES_PER_WINDOW)
+    count = db.scalar(select(func.count()).select_from(Flashcard).where(Flashcard.deck_id == source.id))
+    if count > limits.MAX_CARDS:
+        raise HTTPException(409, 'This deck contains too many cards to copy.')
+    limits.require_card_media(db, user.id, None, limits.deck_media(db, source.id))
     try:
         no_urls(source.title)
         cards = [CardInput(card_type=card.card_type,front=card.front,back=card.back,

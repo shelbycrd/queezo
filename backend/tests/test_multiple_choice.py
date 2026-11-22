@@ -702,6 +702,7 @@ def test_timing_migration_preserves_existing_multiple_choice_sessions(mc, monkey
             db.execute(text(f"ALTER TABLE multiple_choice_sessions DROP COLUMN {field}"))
         for field in ("question_deadline", "timed_out_at", "allows_retry", "eliminated_option_id"):
             db.execute(text(f"ALTER TABLE multiple_choice_questions DROP COLUMN {field}"))
+        db.execute(text("PRAGMA user_version=0"))
     init_database(engine)
     init_database(engine)
     assert mc.get(path).json() == before
@@ -886,6 +887,7 @@ def test_progressive_migration_preserves_an_existing_ready_snapshot(mc, monkeypa
     with engine.begin() as db:
         for column in ("study_started_at", "preparation_finished_at"):
             db.execute(text(f"ALTER TABLE multiple_choice_sessions DROP COLUMN {column}"))
+        db.execute(text("PRAGMA user_version=0"))
     init_database(engine)
     init_database(engine)
     state = mc.get(path).json()
@@ -905,6 +907,7 @@ def test_additive_upgrade_preserves_classic_history_and_deck_deletion_cascades(m
     with engine.begin() as db:
         db.execute(text("DROP TABLE multiple_choice_questions"))
         db.execute(text("DROP TABLE multiple_choice_sessions"))
+        db.execute(text("PRAGMA user_version=0"))
     init_database(engine)
     init_database(engine)
     assert mc.get(history_path).json() == before

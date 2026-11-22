@@ -294,6 +294,7 @@ def test_startup_adds_cache_to_existing_database_and_preserves_study_history(cac
         db.execute(text("DROP TRIGGER flashcard_distractor_source_delete"))
         db.execute(text("DROP TABLE flashcard_distractor_sources"))
         db.execute(text("DROP TABLE flashcard_distractor_cache"))
+        db.execute(text("PRAGMA user_version=0"))
     init_database(engine)
     init_database(engine)
     with engine.begin() as db:
@@ -474,6 +475,7 @@ def test_startup_preserves_a_pre_hybrid_ai_cache(cache, monkeypatch):
         db.execute(text("DROP TRIGGER flashcard_distractor_source_update"))
         db.execute(text("DROP TRIGGER flashcard_distractor_source_delete"))
         db.execute(text("DROP TABLE flashcard_distractor_sources"))
+        db.execute(text("PRAGMA user_version=0"))
         before = db.execute(text("SELECT * FROM flashcard_distractor_cache")).all()
     init_database(engine)
     init_database(engine)

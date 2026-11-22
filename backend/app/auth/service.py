@@ -55,27 +55,34 @@ def normalize_display_name(name):
 def create_user(db, email, password, *, username=None, display_name=None):
     email = normalize_email(email)
     validate_password(password)
-    if db.scalar(select(User.id).where(User.email == email)) is not None:
-        raise ValueError("An account with that email already exists.")
     username = normalize_username(username) if username is not None else 'user_' + secrets.token_hex(10)
     name = normalize_display_name(display_name) if display_name is not None else email.split('@')[0][:80]
+    return insert_user(db, email, username, name, hasher.hash(password))
+
+
+def insert_user(db, email, username, name, password_hash):
+    if db.scalar(select(User.id).where(User.email == email)) is not None:
+        raise ValueError("An account with that email already exists.")
     if db.scalar(select(User.id).where(User.username == username)) is not None:
         raise ValueError('An account with that username already exists.')
-    user = User(email=email, username=username, display_name=name, password_hash=hasher.hash(password))
+    user = User(email=email, username=username, display_name=name, password_hash=password_hash)
     db.add(user)
     db.flush()
     return user
 
 
 def reserve_signup_attempt(db, address):
+    return reserve_account_action(db, 'signup-ip:' + hash_token(address), 10)
+
+
+def reserve_account_action(db, key, limit):
     now = utcnow()
     db.execute(delete(LoginThrottle).where(LoginThrottle.window_started <= now - timedelta(seconds=RATE_WINDOW_SECONDS)))
-    key = 'signup-ip:' + hash_token(address)
     bucket = db.get(LoginThrottle, key)
     if bucket is None:
         bucket = LoginThrottle(key=key, window_started=now, attempts=0)
         db.add(bucket)
-    if bucket.attempts >= 10:
+    if bucket.attempts >= limit:
         return max(1, RATE_WINDOW_SECONDS - int((now - bucket.window_started).total_seconds()))
     bucket.attempts += 1
     return 0

@@ -20,6 +20,7 @@ const FAILURE_LABELS = {
   preparation_timeout:'Preparation ran out of time.',
   study_timeout:'The study timer ended before this question was prepared.',
   interrupted:'Preparation was interrupted.',
+  history_media_limit:'The account reached its study photo storage limit.',
   preparation_failed:'Could not prepare this card.',
 };
 

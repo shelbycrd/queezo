@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
@@ -14,14 +14,15 @@ router = APIRouter(prefix="/api", tags=["Multiple-choice study"])
 @router.post("/decks/{deck_id}/multiple-choice", status_code=202)
 async def start(deck_id: int, request: Request, user: User = Depends(require_user),
                 timing: MultipleChoiceTiming | None = None):
-    state, attempt = await run_in_threadpool(study.create_session, deck_id, user.id, timing)
-    request.app.state.multiple_choice_jobs.start(state["id"], attempt)
-    return state
+    return await request.app.state.multiple_choice_jobs.submit(
+        user.id, study.create_session, deck_id, user.id, timing,
+    )
 
 
 @router.get("/decks/{deck_id}/multiple-choice/sessions")
-def history(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_db)):
-    return study.history(db, deck_id, user.id)
+def history(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_db),
+            limit: int = Query(50, ge=1, le=50)):
+    return study.history(db, deck_id, user.id, limit=limit)
 
 
 @router.get("/multiple-choice/{session_id}")
@@ -36,13 +37,13 @@ def begin_study(session_id: str, user: User = Depends(require_user)):
 
 @router.post("/multiple-choice/{session_id}/retry", status_code=202)
 async def retry(session_id: str, request: Request, user: User = Depends(require_user)):
-    state, attempt = await run_in_threadpool(study.retry_session, session_id, user.id)
-    request.app.state.multiple_choice_jobs.start(session_id, attempt)
-    return state
+    return await request.app.state.multiple_choice_jobs.submit(
+        user.id, study.retry_session, session_id, user.id,
+    )
 
 
 @router.post("/multiple-choice/{session_id}/continue")
-def continue_ready(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def continue_ready(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     return study.continue_session(db, study.owned_session(db, session_id, user.id))
 
 
@@ -70,5 +71,5 @@ async def open_question(session_id: str, request: Request, user: User = Depends(
 
 @router.post("/multiple-choice/{session_id}/answer")
 def answer(session_id: str, submission: MultipleChoiceAnswer, user: User = Depends(require_user),
-           db: Session = Depends(get_write_db)):
+           db: Session = Depends(get_write_db, scope="function")):
     return study.submit_answer(db, study.owned_session(db, session_id, user.id), submission)

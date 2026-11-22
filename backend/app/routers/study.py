@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import defer
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import require_user
@@ -13,13 +14,16 @@ from app.schemas import PresentationInput, RatingInput
 from app.services.presenters import session_view, summary_view
 from app.services.study_scheduler import apply_rating, choose_next
 from app.services.activity import mark_study_day
+from app.services.limits import require_study_slot
 
 router = APIRouter(prefix="/api", tags=["Study sessions"])
 
 
 def session_cards(db, session, user):
     return list(db.scalars(owned_query(StudySessionCard, user).where(
-        StudySessionCard.session_id == session.id).order_by(StudySessionCard.initial_order)))
+        StudySessionCard.session_id == session.id).options(
+            defer(StudySessionCard.front_image), defer(StudySessionCard.back_image)
+        ).order_by(StudySessionCard.initial_order)))
 
 
 def require_presentation(session, data):
@@ -31,8 +35,9 @@ def require_presentation(session, data):
 
 
 @router.post("/decks/{deck_id}/study", status_code=201)
-def start_study(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def start_study(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     deck = require(db, Deck, deck_id, user)
+    require_study_slot(db, StudySession, user.id, deck_id)
     cards = list(db.scalars(owned_query(Flashcard, user).where(Flashcard.deck_id == deck_id).order_by(Flashcard.id)))
     if not cards:
         raise HTTPException(409, "Add at least one flashcard before starting a study session.")
@@ -64,7 +69,7 @@ def get_session(session_id: str, user: User = Depends(require_user), db: Session
 
 
 @router.post("/study/{session_id}/reveal")
-def reveal(session_id: str, data: PresentationInput, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def reveal(session_id: str, data: PresentationInput, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     session = require(db, StudySession, session_id, user)
     require_presentation(session, data)
     session.revealed = True
@@ -72,7 +77,7 @@ def reveal(session_id: str, data: PresentationInput, user: User = Depends(requir
 
 
 @router.post("/study/{session_id}/rate")
-def rate(session_id: str, data: RatingInput, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def rate(session_id: str, data: RatingInput, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     session = require(db, StudySession, session_id, user)
     require_presentation(session, data)
     if not session.revealed:
@@ -103,7 +108,7 @@ def rate(session_id: str, data: RatingInput, user: User = Depends(require_user),
 
 
 @router.post("/study/{session_id}/exit")
-def exit_session(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def exit_session(session_id: str, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     session = require(db, StudySession, session_id, user)
     if session.status == "active":
         session.status = "exited"

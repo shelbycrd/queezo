@@ -19,6 +19,8 @@ htmlcov/
 # Private application data and database backups.
 data/
 backups/
+.migration-backups/
+.sqlite-snapshot-*
 /outputs/
 *.db
 *.db-*

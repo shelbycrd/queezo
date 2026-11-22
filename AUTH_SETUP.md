@@ -95,7 +95,7 @@ A host copy was also saved at `outputs/backups/queezo-before-auth-20261113.db`. 
 - Session cookies are HttpOnly, SameSite=Lax, host-only, and Secure in HTTPS mode. Production uses the `__Host-` cookie prefix.
 - `/api/auth/me` restores the user and a session-bound CSRF token. The frontend keeps CSRF information in memory and sends it on state-changing requests. The server also checks request origins.
 - Login errors do not reveal whether an account exists. Persistent rate limits return HTTP 429 and a retry delay after excessive attempts.
-- All academic data routes require authentication. Ownership is enforced in SQL queries. Health checks and API documentation remain public; public documentation does not grant access to private data.
+- Decks, study history, and GWA require authentication. Ownership is enforced in SQL queries. Public profiles and health probes have explicit guest access; production hides interactive API docs and OpenAPI.
 
 Pomodoro tasks remain browser-local, namespaced by account ID. Logout stops that account's timer display and clears its visible notifications. The old anonymous Pomodoro storage is not assigned to a new account. Browser-local task data is not encrypted or synced to the server; use separate browser/OS profiles when sharing a device with people who can inspect its storage.
 
@@ -108,14 +108,15 @@ Edit `.env`, then rebuild/restart with `docker compose up -d --build --wait`.
 | `AUTH_ENV` | `development` | `production` |
 | `AUTH_COOKIE_SECURE` | `false` | `true` — required |
 | `AUTH_TRUSTED_ORIGINS` | `http://localhost:8080,http://127.0.0.1:8080` | Exact HTTPS origin, such as `https://study.example.com` |
-| `APP_PORT` | `8080`, or your chosen port | Internal gateway port behind HTTPS termination |
+| `AUTH_PUBLIC_SIGNUP` | `true` by default | `false` by default; use CLI provisioning during a controlled rollout |
+| `APP_PORT` | `8080`, or your chosen loopback port | Loopback gateway port behind HTTPS termination |
 | `DATABASE_URL` | Set by Compose to `sqlite:////data/queezo.db` | Shared persistent database path for both backends |
 
 Origins are comma-separated exact values including nondefault ports, without paths or wildcards. If you change `APP_PORT`, also update the allowed local origins. Access through a different hostname requires adding that exact origin.
 
 The Python application defaults to production with Secure cookies and refuses missing origins or insecure production configuration. Compose explicitly selects development settings for local use. No signing-secret environment variable is needed: sessions are random server-side records, not signed client tokens.
 
-Production requires a separately configured HTTPS reverse proxy/TLS endpoint; this Compose file does not provide certificates or HTTPS. Keep backend ports unpublished. Uvicorn trusts the private container proxy path, and Nginx overwrites forwarded client-IP headers. If an additional proxy terminates TLS, configure Nginx to trust only that proxy's real-IP information so rate limits use the correct client IP. Never expose the backend directly or trust client-supplied forwarding headers.
+Production requires a separately configured HTTPS reverse proxy/TLS endpoint; this Compose file does not provide certificates or HTTPS. Keep FastAPI and Vite off the public network. Compose binds Nginx to loopback, Uvicorn trusts only its reserved container address, and Nginx overwrites forwarded client-IP headers. The gateway must preserve the original Host, which production APIs check against the HTTPS origins. If an additional proxy terminates TLS, configure Nginx to trust only that proxy's real-IP information so rate limits use the correct client IP. Never expose the backend directly or trust client-supplied forwarding headers.
 
 ## Troubleshooting and tests
 

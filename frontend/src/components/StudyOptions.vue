@@ -35,7 +35,7 @@ async function submit() {
     closeStudyOptions(true);
     await router.push(`/${multiple ? 'multiple-choice' : 'study'}/${session.id}`);
   } catch (error) {
-    if (active()) showNotice(multiple && error.status === 0 ? 'Could not confirm the new session. Check Multiple-Choice history on your deck before trying again.' : error.message);
+    if (active()) showNotice(multiple && error.status === 0 ? 'Could not confirm the new session. Check Previous Session on your deck before trying again.' : error.message);
   } finally { pending.value = false; }
 }
 </script>

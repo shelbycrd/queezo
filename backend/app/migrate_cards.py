@@ -6,11 +6,15 @@ No content is deleted and no answer is inferred from a question.
 """
 import argparse
 import json
+import sqlite3
+
+from pydantic import ValidationError
 
 from sqlalchemy import inspect, text
 
 from app.database import engine
 from app.schemas import CardInput
+from app.sqlite_ops import pre_migration_snapshot
 
 CARD_TABLES = ("flashcards", "study_session_cards")
 
@@ -44,6 +48,8 @@ def repair_cards(target, answers):
                 for row in rows:
                     validated = CardInput(front=row["front"], back=supplied[str(row["id"])])
                     updates.append((table, row["id"], validated.back))
+            if updates:
+                pre_migration_snapshot(connection.connection.driver_connection)
             for table, identity, back in updates:
                 connection.execute(text(f"UPDATE {table} SET card_type = 'two_sided', back = :back WHERE id = :id"),
                                    {"id": identity, "back": back})
@@ -63,7 +69,11 @@ def main():
             try:
                 count = repair_cards(engine, json.load(source))
             except ValueError as exc:
+                if isinstance(exc, ValidationError):
+                    parser.error('Check the supplied answer text.')
                 parser.error(str(exc))
+            except (OSError, sqlite3.Error):
+                parser.error('Database update or verified snapshot failed; no card changes were committed.')
         print(f"Converted {count} legacy cards. Restart the Flashcards API to install its database guards.")
     else:
         with engine.connect() as connection:

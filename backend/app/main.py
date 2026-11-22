@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 import logging
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from anyio import Semaphore
+
+from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -25,6 +27,7 @@ async def lifespan(application):
     get_settings()
     init_database()
     await run_in_threadpool(recover_interrupted)
+    application.state.auth_slots = Semaphore(4)
     jobs = PreparationJobs()
     application.state.multiple_choice_jobs = jobs
     try:
@@ -60,14 +63,8 @@ async def conflict(_, exc):
 
 @app.exception_handler(OperationalError)
 async def unavailable(_, exc):
-    logging.exception("Database operation failed", exc_info=exc)
+    logging.warning("Database operation failed")
     return JSONResponse(status_code=503, content={"error": {"message": "The database is temporarily unavailable. Try again shortly."}})
-
-
-@app.exception_handler(Exception)
-async def unexpected_error(request: Request, exc):
-    logging.exception("Unhandled request error", exc_info=exc)
-    return JSONResponse(status_code=500, content={"error": {"message": "An unexpected server error occurred."}})
 
 
 @app.get("/api/health", tags=["Health"])

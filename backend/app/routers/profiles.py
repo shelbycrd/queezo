@@ -130,7 +130,7 @@ def featured_options(user: User = Depends(require_user), db: Session = Depends(g
 
 
 @router.patch('/me')
-def update_profile(body: ProfileUpdate, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def update_profile(body: ProfileUpdate, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     profile = db.get(User, user.id)
     now = utcnow()
     name_changed = body.display_name != profile.display_name
@@ -200,7 +200,7 @@ def list_profile_decks(
 
 @router.post('/users/{username}/reports', status_code=204)
 def report_profile(username: str, body: ReportInput, user: User = Depends(require_user),
-                   db: Session = Depends(get_write_db)):
+                   db: Session = Depends(get_write_db, scope="function")):
     target = profile_for(db, username, user.id)
     if target.id == user.id:
         raise HTTPException(422, 'You cannot report your own profile.')

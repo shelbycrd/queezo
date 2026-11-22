@@ -9,6 +9,7 @@ from app.models import Deck, Flashcard, StudySession, StudySessionCard, User, ut
 from app.schemas import CardInput, CardPatch, DeckInput, DeckPatch
 from app.services.content_policy import no_urls
 from app.services.ownership import owned_flashcards
+from app.services.limits import MAX_CARDS, media_bytes, require_card_media, require_deck_slot
 import secrets
 from app.services.presenters import card_view, deck_view, summary_view
 
@@ -51,7 +52,8 @@ def list_decks(user: User = Depends(require_user), db: Session = Depends(get_db)
 
 
 @router.post("/decks", status_code=201)
-def create_deck(data: DeckInput, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def create_deck(data: DeckInput, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
+    require_deck_slot(db, user.id)
     deck = Deck(title=data.title, visibility=data.visibility, owner_id=user.id)
     db.add(deck)
     db.flush()
@@ -64,7 +66,7 @@ def get_deck(deck_id: int, user: User = Depends(require_user), db: Session = Dep
 
 
 @router.patch("/decks/{deck_id}")
-def rename_deck(deck_id: int, data: DeckPatch, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def rename_deck(deck_id: int, data: DeckPatch, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     deck = require(db, Deck, deck_id, user)
     changes = data.model_dump(exclude_unset=True)
     if not changes:
@@ -72,13 +74,16 @@ def rename_deck(deck_id: int, data: DeckPatch, user: User = Depends(require_user
     if changes.get('visibility') in {'public','unlisted'}:
         try:
             no_urls(changes.get('title', deck.title))
-            for card in db.scalars(select(Flashcard).where(Flashcard.deck_id == deck.id)):
-                no_urls(card.front)
-                no_urls(card.back)
+            for front, back in db.execute(select(Flashcard.front, Flashcard.back).where(Flashcard.deck_id == deck.id)):
+                no_urls(front)
+                no_urls(back)
         except ValueError as error:
             raise HTTPException(422, str(error)) from error
         if not deck.share_token:
             deck.share_token = secrets.token_urlsafe(32)
+    visibility = changes.get('visibility', deck.visibility)
+    if visibility != deck.visibility and (deck.visibility == 'private' or visibility != 'public'):
+        deck.share_token = secrets.token_urlsafe(32)
     for key,value in changes.items():
         setattr(deck, key, value)
     deck.updated_at = utcnow()
@@ -87,7 +92,7 @@ def rename_deck(deck_id: int, data: DeckPatch, user: User = Depends(require_user
 
 
 @router.delete("/decks/{deck_id}", status_code=204)
-def delete_deck(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def delete_deck(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     db.delete(require(db, Deck, deck_id, user))
     db.flush()
     return Response(status_code=204)
@@ -100,12 +105,13 @@ def list_cards(deck_id: int, user: User = Depends(require_user), db: Session = D
 
 
 @router.post("/decks/{deck_id}/cards", status_code=201)
-def add_card(deck_id: int, data: CardInput, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def add_card(deck_id: int, data: CardInput, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     deck = require(db, Deck, deck_id, user)
     count = db.scalar(select(func.count()).select_from(Flashcard).join(Deck, Flashcard.deck_id == Deck.id).where(
         Flashcard.deck_id == deck_id, Deck.owner_id == user.id))
-    if count >= 150:
+    if count >= MAX_CARDS:
         raise HTTPException(409, "This deck has reached its limit of 150 flashcards.")
+    require_card_media(db, user.id, deck_id, media_bytes(data.front_image, data.back_image))
     card = Flashcard(deck_id=deck_id, **data.model_dump())
     db.add(card)
     deck.updated_at = utcnow()
@@ -127,7 +133,7 @@ def get_card(card_id: int, user: User = Depends(require_user), db: Session = Dep
 
 
 @router.patch("/cards/{card_id}")
-def edit_card(card_id: int, data: CardPatch, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def edit_card(card_id: int, data: CardPatch, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     card = require(db, Flashcard, card_id, user)
     merged = {"card_type": card.card_type, "front": card.front, "back": card.back,
               "front_image":card.front_image, "back_image":card.back_image}
@@ -135,7 +141,9 @@ def edit_card(card_id: int, data: CardPatch, user: User = Depends(require_user),
     try:
         validated = CardInput(**merged)
     except ValidationError as exc:
-        raise HTTPException(422, str(exc)) from exc
+        raise HTTPException(422, 'Check the card text and uploaded images.') from exc
+    extra = media_bytes(validated.front_image, validated.back_image) - media_bytes(card.front_image, card.back_image)
+    require_card_media(db, user.id, card.deck_id, extra)
     for key, value in validated.model_dump().items():
         setattr(card, key, value)
     card.updated_at = utcnow()
@@ -145,7 +153,7 @@ def edit_card(card_id: int, data: CardPatch, user: User = Depends(require_user),
 
 
 @router.delete("/cards/{card_id}", status_code=204)
-def delete_card(card_id: int, user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+def delete_card(card_id: int, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     card = require(db, Flashcard, card_id, user)
     require(db, Deck, card.deck_id, user).updated_at = utcnow()
     db.delete(card)
@@ -154,7 +162,8 @@ def delete_card(card_id: int, user: User = Depends(require_user), db: Session = 
 
 
 @router.get("/decks/{deck_id}/sessions")
-def session_history(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_db)):
+def session_history(deck_id: int, user: User = Depends(require_user), db: Session = Depends(get_db),
+                    limit: int = Query(50, ge=1, le=50)):
     require(db, Deck, deck_id, user)
-    sessions = db.scalars(owned_query(StudySession, user).where(StudySession.deck_id == deck_id).order_by(StudySession.started_at.desc()).limit(50))
+    sessions = db.scalars(owned_query(StudySession, user).where(StudySession.deck_id == deck_id).order_by(StudySession.started_at.desc(), StudySession.id.desc()).limit(limit))
     return [summary_view(db, session) for session in sessions]

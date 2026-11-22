@@ -61,8 +61,8 @@ def test_strength_advice_does_not_block_valid_eleven_character_password(anonymou
 def test_signup_origin_content_type_size_and_rate_limit(anonymous_client):
     assert anonymous_client.post('/api/auth/signup',json=fields(),headers={'Origin':'https://evil.example'}).status_code == 403
     assert anonymous_client.post('/api/auth/signup',data={'email':'friend@example.com'}).status_code == 422
-    assert anonymous_client.post('/api/auth/signup',content='x'*17000,headers={'Content-Type':'application/json'}).status_code == 422
-    for _ in range(8):
+    assert anonymous_client.post('/api/auth/signup',content='x'*17000,headers={'Content-Type':'application/json'}).status_code == 413
+    for _ in range(9):
         assert anonymous_client.post('/api/auth/signup',json={}).status_code == 422
     response = anonymous_client.post('/api/auth/signup',json=fields())
     assert response.status_code == 429

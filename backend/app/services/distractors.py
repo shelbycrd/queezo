@@ -10,6 +10,8 @@ from contextlib import nullcontext
 
 import httpx
 
+from app.services.inference_config import budget
+
 
 DEFAULT_BASE_URL = "http://host.docker.internal:11434"
 DEFAULT_MODEL = "qwen3:1.7b"
@@ -17,7 +19,8 @@ DEFAULT_MODEL = "qwen3:1.7b"
 GENERATION_VERSION = 2
 MAX_ATTEMPTS = 3
 ATTEMPT_TIMEOUT = 60.0
-HTTP_TIMEOUT = httpx.Timeout(ATTEMPT_TIMEOUT, connect=5.0, pool=5.0)
+def attempt_timeout():
+    return budget('OLLAMA_REQUEST_TIMEOUT_SECONDS', ATTEMPT_TIMEOUT, 0.1, 300, parse=float)
 
 CONCEPTUAL_PROMPT = (
     'Keep the choices related to the topic and similar to the correct answer in length and style. '
@@ -193,6 +196,8 @@ async def generate_distractors(
     failure = FAILURE_MESSAGES[reason]
     # Do not forward card content through ambient HTTP proxies or redirects.
     connection = nullcontext(client) if client is not None else httpx.AsyncClient(trust_env=False)
+    seconds = attempt_timeout()
+    timeout = httpx.Timeout(seconds, connect=min(5.0, seconds), pool=min(5.0, seconds))
     async with connection as http:
         for attempt in range(MAX_ATTEMPTS):
             card = {"question": front, "correct_answer": back, "previous_candidates": accepted}
@@ -208,8 +213,8 @@ async def generate_distractors(
                 "options": {"num_predict": 1024},
             }
             try:
-                async with asyncio.timeout(ATTEMPT_TIMEOUT):
-                    response = await http.post(url, json=payload, timeout=HTTP_TIMEOUT, follow_redirects=False)
+                async with asyncio.timeout(seconds):
+                    response = await http.post(url, json=payload, timeout=timeout, follow_redirects=False)
                 response.raise_for_status()
                 candidates = _parse_candidates(response)
             except (httpx.ConnectError, httpx.ConnectTimeout):

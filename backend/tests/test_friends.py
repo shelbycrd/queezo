@@ -65,3 +65,6 @@ def test_friends_consent_presence_and_profile_privacy(anonymous_client):
     login(client, 'bob')
     assert client.post('/api/friends/requests/carol/respond', json={'decision': 'decline'}).status_code == 204
     assert [friend['username'] for friend in client.get('/api/friends').json()['friends']] == ['alice']
+    login(client, 'carol')
+    response = client.post('/api/friends/requests', json={'username': 'bob'})
+    assert response.status_code == 429 and response.headers['retry-after']

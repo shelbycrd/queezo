@@ -4,7 +4,6 @@ import {useRouter} from 'vue-router';
 import {api} from '../../js/api.js';
 import {safeImageUrl} from '../../js/card-content.js';
 import {playPageTurn, preparePageSound} from '../../js/audio.js';
-import {date,duration,plural} from '../services/format.js';
 import {showNotice} from '../services/notice.js';
 import {chooseStudy} from '../services/study-dialog.js';
 import {readPhoto} from '../services/photos.js';
@@ -13,24 +12,24 @@ import CardContent from '../components/CardContent.vue';
 import CopyButton from '../components/CopyButton.vue';
 import ResourceState from '../components/ResourceState.vue';
 import EditorSide from '../components/EditorSide.vue';
-import MultipleChoiceHistory from '../components/MultipleChoiceHistory.vue';
+import PreviousSession from '../components/PreviousSession.vue';
 import VisibilityOptions from '../components/VisibilityOptions.vue';
 
 const {deckId,cardId,pageNumber,action} = defineProps({deckId:String,cardId:String,pageNumber:String,action:String});
 const router = useRouter(), path = '/decks/' + deckId;
 const PAGE_SIZE = 20, TEXT_LIMIT = 250;
-const deck = ref(), cards = ref([]), sessions = shallowRef([]), editing = shallowRef(null);
+const deck = ref(), cards = ref([]), editing = shallowRef(null);
 const draft = reactive({front:'',back:''}), images = reactive({front:null,back:null});
 const visibility = ref('private'), query = ref(''), order = ref('desc');
 const page = ref(Number(pageNumber) || 1), editPage = ref(1);
 const form = ref(), savedList = ref(), pages = ref(), menu = ref(), saveButton = ref();
 const pending = ref(false), savingVisibility = ref(false), deckBusy = ref(false), deleting = ref(false), increments = ref([]);
 const {error,active} = useResource(async signal => {
-  const [record, fetched, history] = await Promise.all([path,path+'/cards',path+'/sessions'].map(url => api(url,{signal})));
+  const [record, fetched] = await Promise.all([path,path+'/cards'].map(url => api(url,{signal})));
   if (signal.aborted) return;
   const card = cardId ? fetched.find(item => item.id === Number(cardId)) : null;
   if (cardId && !card) throw new Error('This card was not found in this deck.');
-  cards.value = fetched; sessions.value = history; editing.value = card;
+  cards.value = fetched; editing.value = card;
   for (const side of ['front','back']) {
     draft[side] = card?.[side] || ''; images[side] = safeImageUrl(card?.[side + '_image']) || null;
   }
@@ -211,11 +210,6 @@ async function deleteCard(card) {
     <nav ref="pages" id="saved-card-pages" class="saved-card-pages" aria-label="Saved card pages" :hidden="pageCount === 1">
       <button type="button" class="secondary small flat-button" :disabled="page === 1" @click="step(-1,$event)">Previous</button><span aria-live="polite">Page {{ page }} of {{ pageCount }}</span><button type="button" class="secondary small flat-button" :disabled="page === pageCount" @click="step(1,$event)">Next</button>
     </nav>
-    <details class="session-history"><summary>Recent Classic sessions <span class="muted">({{ sessions.length }})</span></summary>
-      <div v-if="sessions.length" class="panel"><ul class="history-list"><li v-for="session in sessions" :key="session.session_id"><div><p>{{ date(session.started_at) }} · <strong>{{ session.status }}</strong></p><p class="muted">{{ plural(session.total_reviews,'review') }} · {{ session.total_unique_cards }} cards studied · {{ duration(session.duration_seconds) }}</p></div>
-        <a class="button secondary small" :href="'#/' + (session.status === 'active' ? 'study' : 'summary') + '/' + session.session_id">{{ session.status === 'active' ? 'Resume' : 'Summary' }}</a>
-      </li></ul></div><p v-else class="muted">Your sessions will appear here.</p>
-    </details>
-    <MultipleChoiceHistory :deck-id="deckId"/>
+    <PreviousSession :deck-id="deckId"/>
   </div>
 </template>

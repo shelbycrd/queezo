@@ -21,6 +21,6 @@ def get_activity(user: User = Depends(require_user), db: Session = Depends(get_d
 
 @router.post('/activity/pomodoro')
 def completed_pomodoro(payload: CompletedPomodoro = Body(default=CompletedPomodoro()),
-                       user: User = Depends(require_user), db: Session = Depends(get_write_db)):
+                       user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     mark_study_day(db, user.id)
     return activity_view(db, user)

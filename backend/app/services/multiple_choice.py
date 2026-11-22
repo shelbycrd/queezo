@@ -3,12 +3,14 @@
 import asyncio
 import logging
 import random
+from collections import Counter
 from contextlib import contextmanager
 from datetime import timedelta
 from uuid import uuid4
 
+from anyio import CancelScope
 from fastapi import HTTPException
-from sqlalchemy import and_, select, text, update
+from sqlalchemy import and_, func, select, text, update
 from sqlalchemy.orm import load_only
 from starlette.concurrency import run_in_threadpool
 
@@ -19,12 +21,35 @@ from app.services.distractor_cache import (
     InsufficientDistractorsError, cached_choices_for_deck, get_or_generate_distractors,
 )
 from app.services.ownership import owned_flashcards
+from app.services.inference_config import budget
+from app.services.distractors import attempt_timeout
 from app.services.presenters import iso
+from app.services.limits import (
+    history_media_available, history_media_remaining, media_bytes, media_size, require_operation_budget, require_study_slot,
+)
 
 PREPARATION_TIMEOUT = 900
 START_QUESTIONS = 5
 SESSION_LIFETIME = timedelta(hours=24)
-logger = logging.getLogger(__name__)
+MAX_ACCOUNT_PREPARATIONS = 3
+MAX_PREPARATIONS = 16
+MAX_PREPARATIONS_PER_WINDOW = 12
+logger = logging.getLogger('uvicorn.error.queezo.preparation')
+
+
+def preparation_timeout():
+    return budget('MCQ_PREPARATION_TIMEOUT_SECONDS', PREPARATION_TIMEOUT, 1, 1800, parse=float)
+
+
+def pending_limits():
+    total = budget('MCQ_MAX_PENDING_JOBS', MAX_PREPARATIONS, 1, 64)
+    personal = budget('MCQ_MAX_PENDING_PER_USER', MAX_ACCOUNT_PREPARATIONS, 1, 16)
+    return total, min(total, personal)
+
+
+def queue_busy():
+    return HTTPException(429, 'Too many study sessions are preparing. Try again shortly.',
+                         headers={'Retry-After': '5'})
 
 
 @contextmanager
@@ -140,9 +165,24 @@ def session_view(db, session):
     }
 
 
+def require_preparation_slot(db, user_id):
+    require_operation_budget(db, user_id, 'mc-prepare', MAX_PREPARATIONS_PER_WINDOW)
+    now = utcnow()
+    session = MultipleChoiceSession
+    pending = select(func.count()).select_from(session).where(
+        session.status.in_(('preparing', 'active')), session.preparation_finished_at.is_(None),
+        session.prepare_until > now, session.expires_at > now,
+    )
+    total, personal = pending_limits()
+    if db.scalar(pending.where(session.owner_id == user_id)) >= personal or db.scalar(pending) >= total:
+        raise queue_busy()
+
+
 def create_session(deck_id, user_id, timing=None):
     with _write() as db:
         deck = _owned_deck(db, deck_id, user_id)
+        require_preparation_slot(db, user_id)
+        require_study_slot(db, MultipleChoiceSession, user_id, deck.id)
         card_ids = list(db.scalars(owned_flashcards(user_id).with_only_columns(Flashcard.id)
                                   .where(Flashcard.deck_id == deck_id).order_by(Flashcard.id)))
         if not card_ids:
@@ -151,7 +191,7 @@ def create_session(deck_id, user_id, timing=None):
         now = utcnow()
         session = MultipleChoiceSession(
             id=str(uuid4()), deck_id=deck_id, deck_title=deck.title, owner_id=user_id,
-            created_at=now, prepare_until=now + timedelta(seconds=PREPARATION_TIMEOUT),
+            created_at=now, prepare_until=now + timedelta(seconds=preparation_timeout()),
             expires_at=now + SESSION_LIFETIME,
             timing_scope=timing.scope if timing else None,
             timing_seconds=timing.seconds if timing else None,
@@ -180,6 +220,7 @@ def retry_session(session_id, user_id):
     with _write() as db:
         session = owned_session(db, session_id, user_id)
         _require_status(session, "failed")
+        require_preparation_slot(db, user_id)
         q = MultipleChoiceQuestion
         pending = update(q).where(q.session_id == session.id, q.options.is_(None))
         if session.study_started_at is not None:
@@ -190,7 +231,7 @@ def retry_session(session_id, user_id):
         session.preparation_finished_at = None
         session.status = "active" if session.study_started_at is not None else "preparing"
         session.prepare_until = min(
-            utcnow() + timedelta(seconds=PREPARATION_TIMEOUT), session.expires_at)
+            utcnow() + timedelta(seconds=preparation_timeout()), session.expires_at)
         return session_view(db, session), session.attempt
 
 
@@ -225,11 +266,11 @@ def cancel_session(session_id, user_id):
         return session_view(db, session)
 
 
-def history(db, deck_id, user_id):
+def history(db, deck_id, user_id, *, limit=50):
     _owned_deck(db, deck_id, user_id)
     sessions = list(db.scalars(select(MultipleChoiceSession).where(
         MultipleChoiceSession.deck_id == deck_id, MultipleChoiceSession.owner_id == user_id,
-    ).order_by(MultipleChoiceSession.created_at.desc()).limit(50)))
+    ).order_by(MultipleChoiceSession.created_at.desc(), MultipleChoiceSession.id.desc()).limit(limit)))
     return [session_view(db, session) for session in sessions]
 
 
@@ -415,14 +456,21 @@ def _prepare_cached(session_id, attempt):
         ).all()
         cards = {card.id: card for _, card in pending if card is not None}
         cached = cached_choices_for_deck(db, session.deck_id, cards)
+        sizes = dict(db.execute(select(Flashcard.id, media_size(Flashcard))
+                                .where(Flashcard.id.in_(cached))).all()) if cached else {}
+        remaining = history_media_remaining(db, session.owner_id) if any(sizes.values()) else 0
         ready_ids = []
         misses = []
         for question, card in pending:
             if card is None:
                 question.failure = "card_missing"
             elif card.id in cached:
-                _snapshot(question, card, cached[card.id])
-                ready_ids.append(question.id)
+                if sizes[card.id] <= remaining:
+                    remaining -= sizes[card.id]
+                    _snapshot(question, card, cached[card.id])
+                    ready_ids.append(question.id)
+                else:
+                    question.failure = 'history_media_limit'
             else:
                 misses.append((question.id, card.id))
         if ready_ids:
@@ -466,6 +514,8 @@ def _save_prepared(session_id, attempt, question_id, content, choices, failure):
             question.failure = "card_missing"
         elif (card.front, card.back) != content:
             question.failure = "card_changed"
+        elif not history_media_available(db, session.owner_id, media_bytes(card.front_image, card.back_image)):
+            question.failure = 'history_media_limit'
         else:
             _snapshot(question, card, choices)
             question.front_image = card.front_image
@@ -493,35 +543,68 @@ class PreparationJobs:
     """Own and cancel preparation tasks for the backend's single worker."""
 
     def __init__(self):
+        # Validate deployment configuration before the application accepts work.
+        pending_limits()
+        preparation_timeout()
+        attempt_timeout()
         self.model_slot = asyncio.Lock()
-        self.tasks = set()
+        self.tasks = {}
         self.current = {}
+        self.reservations = Counter()
+        self.closing = False
 
-    def start(self, session_id, attempt):
-        old = self.current.get(session_id)
-        if old is not None and not old.cancelling():
-            old.cancel()
+    async def submit(self, user_id, persist, *args):
+        if self.closing:
+            raise HTTPException(503, 'Study preparation is restarting. Try again shortly.',
+                                headers={'Retry-After': '5'})
+        total, personal = pending_limits()
+        if (len(self.tasks) + self.reservations.total() >= total or
+                list(self.tasks.values()).count(user_id) + self.reservations[user_id] >= personal):
+            logger.info('Multiple-choice admission busy: pending=%s', len(self.tasks))
+            raise queue_busy()
+        self.reservations[user_id] += 1
+        try:
+            # Keep the durable reservation and in-process job registration together.
+            with CancelScope(shield=True):
+                state, attempt = await run_in_threadpool(persist, *args)
+                self.start(state['id'], attempt, user_id)
+            return state
+        finally:
+            self.reservations[user_id] -= 1
+            if not self.reservations[user_id]:
+                del self.reservations[user_id]
+
+    def start(self, session_id, attempt, user_id=None):
+        previous = self.current.get(session_id)
+        if previous:
+            previous_attempt, old = previous
+            if previous_attempt >= attempt:
+                return
+            if not old.done() and not old.cancelling():
+                old.cancel()
         task = asyncio.create_task(self._prepare(session_id, attempt))
-        self.tasks.add(task)
-        self.current[session_id] = task
+        self.tasks[task] = user_id
+        self.current[session_id] = (attempt, task)
 
         def forget(done):
-            self.tasks.discard(done)
-            if self.current.get(session_id) is done:
+            self.tasks.pop(done, None)
+            if self.current.get(session_id) == (attempt, done):
                 del self.current[session_id]
             if not done.cancelled() and done.exception() is not None:
-                logger.error("Could not finalize multiple-choice preparation for %s", session_id)
+                logger.error('Could not finalize multiple-choice preparation')
 
         task.add_done_callback(forget)
 
     async def cancel(self, session_id):
-        task = self.current.get(session_id)
-        if task is not None:
-            if not task.cancelling():
+        entry = self.current.get(session_id)
+        if entry is not None:
+            _, task = entry
+            if not task.done() and not task.cancelling():
                 task.cancel()
             await asyncio.shield(asyncio.gather(task, return_exceptions=True))
 
     async def stop(self):
+        self.closing = True
         tasks = tuple(self.tasks)
         for task in tasks:
             if not task.cancelling():
@@ -531,8 +614,9 @@ class PreparationJobs:
 
     async def _prepare(self, session_id, attempt):
         failure = None
+        failures = Counter()
         try:
-            async with asyncio.timeout(PREPARATION_TIMEOUT):
+            async with asyncio.timeout(preparation_timeout()):
                 for question_id, card_id in await run_in_threadpool(_prepare_cached, session_id, attempt):
                     source = await run_in_threadpool(_read_source, session_id, attempt, card_id)
                     if source is None:
@@ -552,6 +636,8 @@ class PreparationJobs:
                             if error.status_code not in {404, 409}:
                                 raise
                             reason = "card_missing" if error.status_code == 404 else "card_changed"
+                    if reason:
+                        failures[reason] += 1
                     await run_in_threadpool(
                         _save_prepared, session_id, attempt, question_id, content, choices, reason,
                     )
@@ -561,7 +647,10 @@ class PreparationJobs:
             failure = "interrupted"
             raise
         except Exception:
-            logger.error("Multiple-choice preparation failed unexpectedly for %s", session_id)
+            logger.error('Multiple-choice preparation failed unexpectedly')
             failure = "preparation_failed"
         finally:
+            if failure or failures:
+                logger.info('Multiple-choice preparation settled: outcome=%s failed_cards=%s',
+                            failure or 'partial_failure', sum(failures.values()))
             await run_in_threadpool(_finish, session_id, attempt, failure)

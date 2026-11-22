@@ -83,7 +83,7 @@ def test_owner_visibility_changes_preserve_title_and_rename_preserves_visibility
     deck = make_deck(client)
     changed = client.patch(f"/api/decks/{deck['id']}",json={'visibility':'public'}).json()
     assert changed['title'] == 'Biology'
-    assert changed['share_token'] == deck['share_token']
+    assert changed['share_token'] != deck['share_token']
     renamed = client.patch(f"/api/decks/{deck['id']}",json={'title':'Cell biology'}).json()
     assert renamed['visibility'] == 'public'
     assert client.patch(f"/api/decks/{deck['id']}",json={'visibility':'private'}).status_code == 200

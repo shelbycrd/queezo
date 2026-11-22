@@ -9,6 +9,7 @@ class AuthSettings:
     environment: str
     cookie_secure: bool
     trusted_origins: tuple[str, ...]
+    public_signup: bool = False
 
     @property
     def cookie_name(self):
@@ -35,4 +36,7 @@ def get_settings():
             raise ValueError("AUTH_TRUSTED_ORIGINS requires exact HTTP(S) origins, without paths or wildcards.")
         if '*' in origin or (environment == "production" and url.scheme != "https"):
             raise ValueError("Production origins must use HTTPS; wildcard origins are forbidden.")
-    return AuthSettings(environment, secure, origins)
+    signup = (os.getenv("AUTH_PUBLIC_SIGNUP") or ("false" if environment == "production" else "true")).lower()
+    if signup not in {"true", "false"}:
+        raise ValueError("AUTH_PUBLIC_SIGNUP must be true or false.")
+    return AuthSettings(environment, secure, origins, signup == "true")

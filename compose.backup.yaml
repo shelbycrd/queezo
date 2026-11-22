@@ -1,0 +1,22 @@
+services:
+  backup:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: backup
+    env_file:
+      - path: .env.backup
+        required: false
+    environment:
+      DATABASE_URL: sqlite:////data/queezo.db
+      BACKUP_DIRECTORY: /backups
+    volumes:
+      - queezo_data:/data:ro
+      - queezo_backups:/backups
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  queezo_backups:

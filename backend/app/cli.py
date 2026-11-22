@@ -2,6 +2,7 @@
 import argparse
 import getpass
 import json
+import sqlite3
 import sys
 import warnings
 
@@ -9,9 +10,10 @@ from sqlalchemy import text, select, delete, func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, aliased
 
-from app.auth.service import create_user
+from app.auth.service import hasher, insert_user, normalize_display_name, normalize_email, normalize_username, validate_password
 from app.database import engine, init_database
 from app.ownership_migration import assign_legacy, list_unowned
+from app.sqlite_ops import pre_migration_snapshot
 from app.models import User, AuthSession, Deck, StudySession, ActivityDay, ProfileReport, utcnow
 from app.services.presenters import iso
 
@@ -52,9 +54,13 @@ def provision_user():
         return 1
     init_database()
     try:
+        normalized = normalize_email(email)
+        handle = normalize_username(username)
+        name = normalize_display_name(display_name)
+        password_hash = hasher.hash(validate_password(password))
         with Session(engine) as db:
             db.execute(text("BEGIN IMMEDIATE"))
-            user = create_user(db, email, password, username=username, display_name=display_name)
+            user = insert_user(db, normalized, handle, name, password_hash)
             created_email = user.email
             db.commit()
     except (ValueError, IntegrityError):
@@ -165,6 +171,7 @@ def main(argv=None):
                 print(json.dumps(list_unowned(db), indent=2))
                 return 0
             db.execute(text("BEGIN IMMEDIATE"))
+            pre_migration_snapshot(db.connection().connection.driver_connection)
             result = assign_legacy(db, args.email, args.deck_id)
             db.commit()
             print(f"Assigned {result['deck_count']} deck(s) and {result['session_count']} "
@@ -177,7 +184,7 @@ def main(argv=None):
     except ValueError as exc:
         # This branch handles ownership selection errors, not password inputs.
         print(str(exc), file=sys.stderr)
-    except (RuntimeError, SQLAlchemyError):
+    except (RuntimeError, SQLAlchemyError, OSError, sqlite3.Error):
         print("Command failed. Check database availability and the migration instructions in AUTH_SETUP.md.", file=sys.stderr)
     return 1
 

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from app.database import get_db, get_write_db, init_database, make_engine
+from app.database import get_db, get_db_factory, get_write_db, init_database, make_engine
 from app.main import app
 from app.gwa.main import app as gwa_app
 from app.auth.config import get_settings
@@ -41,6 +41,7 @@ def anonymous_client(tmp_path, monkeypatch):
                 raise
 
     app.dependency_overrides[get_db] = read_db
+    app.dependency_overrides[get_db_factory] = lambda: factory
     app.dependency_overrides[get_write_db] = write_db
     gwa_app.dependency_overrides[get_db] = read_db
     gwa_app.dependency_overrides[get_write_db] = write_db

@@ -172,3 +172,20 @@ def test_study_again_is_fresh(client):
     assert new['total_reviews'] == 0
     assert new['completed_cards'] == 0
     assert new['current_card']['review_count'] == 0
+
+
+
+def test_previous_session_returns_only_the_latest_of_each_mode(client):
+    from app.services import multiple_choice
+
+    deck_id = deck(client)
+    first, latest = (start(client, deck_id) for _ in range(2))
+    first_mc, latest_mc = (multiple_choice.create_session(deck_id, client.test_user_id)[0] for _ in range(2))
+    base = f'/api/decks/{deck_id}'
+    classic_history, mc_history = base + '/sessions', base + '/multiple-choice/sessions'
+
+    assert [item['session_id'] for item in client.get(classic_history + '?limit=1').json()] == [latest['id']]
+    assert [item['id'] for item in client.get(mc_history + '?limit=1').json()] == [latest_mc['id']]
+    assert len(client.get(classic_history).json()) == len(client.get(mc_history).json()) == 2
+    assert client.get(f"/api/study/{first['id']}").status_code == 200
+    assert client.get(f"/api/multiple-choice/{first_mc['id']}").status_code == 200
