@@ -4,7 +4,7 @@ from time import monotonic
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -15,7 +15,7 @@ from app.auth.config import get_settings
 from app.auth.dependencies import require_user
 from app.auth.service import hash_token, reserve_account_action
 from app.database import get_db, get_write_db, write_transaction
-from app.models import AuthSession, Deck, Flashcard, RoomMember, RoomSession, StudyRoom, User, utcnow
+from app.models import AuthSession, Deck, Flashcard, RoomInvite, RoomMember, RoomSession, StudyRoom, User, utcnow
 from app.services import room_study, study_rooms as rooms
 
 router = APIRouter(prefix='/api/rooms', tags=['Study Rooms'])
@@ -42,25 +42,39 @@ class InvitationResponse(BaseModel):
     accept: bool
 
 
-@router.get('')
-def overview(user: User = Depends(require_user), db: Session = Depends(get_db)):
+def overview_for(db, user_id):
     joined = db.scalars(select(StudyRoom).join(RoomMember).where(
-        RoomMember.user_id == user.id, StudyRoom.phase != 'closed').order_by(StudyRoom.updated_at.desc()).limit(20))
-    return {'invites': rooms.invitations(db, user.id),
+        RoomMember.user_id == user_id, StudyRoom.phase != 'closed').order_by(StudyRoom.updated_at.desc()).limit(20))
+    return {'invites': rooms.invitations(db, user_id),
             'rooms': [{'id': room.id, 'code': room.id[:8].upper(), 'phase': room.phase} for room in joined]}
 
 
+async def notify_invitation_changes(engine, user_ids):
+    for user_id in set(user_ids):
+        for changed in engine.notification_subscribers.get(user_id, ()):
+            changed.set()
+
+
+@router.get('')
+def overview(user: User = Depends(require_user), db: Session = Depends(get_db)):
+    consistent_read(db)
+    return overview_for(db, user.id)
+
+
 @router.post('', status_code=201)
-def create(body: InviteInput, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope='function')):
+def create(body: InviteInput, request: Request, tasks: BackgroundTasks, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope='function')):
     if reserve_account_action(db, f'room-create:{user.id}', 12):
         rooms.fail(429, 'Too many room creations. Try again later.')
-    return {'id': rooms.create(db, user.id, body.username)}
+    room_id, recipient = rooms.create(db, user.id, body.username)
+    tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (user.id, recipient))
+    return {'id': room_id}
 
 
 @router.post('/{room_id}/invitation', status_code=204)
-def respond(room_id: UUID, body: InvitationResponse, user: User = Depends(require_user),
+def respond(room_id: UUID, body: InvitationResponse, request: Request, tasks: BackgroundTasks, user: User = Depends(require_user),
             db: Session = Depends(get_write_db, scope='function')):
     rooms.respond(db, str(room_id), user.id, body.accept)
+    tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (user.id,))
 
 
 def consistent_read(db):
@@ -77,12 +91,13 @@ def room_state(room_id: UUID, user: User = Depends(require_user), db: Session = 
 
 
 @router.post('/{room_id}/invite', status_code=204)
-def invite(room_id: UUID, body: InviteInput, user: User = Depends(require_user),
+def invite(room_id: UUID, body: InviteInput, request: Request, tasks: BackgroundTasks, user: User = Depends(require_user),
            db: Session = Depends(get_write_db, scope='function')):
     room, _ = rooms.membership(db, str(room_id), user.id)
     if reserve_account_action(db, f'room-invite:{user.id}', 30):
         rooms.fail(429, 'Too many room invitations. Try again later.')
-    rooms.invite(db, room, user.id, body.username)
+    recipient = rooms.invite(db, room, user.id, body.username)
+    tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (recipient,))
 
 
 @router.patch('/{room_id}/settings', status_code=204)
@@ -99,17 +114,21 @@ def ready(room_id: UUID, body: ReadyInput, user: User = Depends(require_user),
     if room.phase != 'lobby':
         rooms.fail(409, 'Ready is only available in the lobby.')
     member.ready = body.ready
-    member.seen_at = utcnow()
-    member.disconnected_at = None
     rooms.touch(room)
 
 
 @router.post('/{room_id}/start', status_code=204)
 def start(room_id: UUID, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope='function')):
-    room, member = rooms.membership(db, str(room_id), user.id)
-    member.seen_at = utcnow()
-    member.disconnected_at = None
+    room, _ = rooms.membership(db, str(room_id), user.id)
     rooms.start(db, room, user.id)
+
+
+@router.get('/{room_id}/friends')
+def room_friends(room_id: UUID, page: int = Query(default=1, ge=1, le=10000),
+                 user: User = Depends(require_user), db: Session = Depends(get_db)):
+    consistent_read(db)
+    room, _ = rooms.membership(db, str(room_id), user.id)
+    return rooms.friends_page(db, room, user.id, page)
 
 
 @router.get('/{room_id}/decks')
@@ -160,15 +179,86 @@ def socket_state(factory, room_id, token_hash, *, refresh=False, reconnect=False
     return user_id, view
 
 
-@router.websocket('/{room_id}/live')
-async def live(socket: WebSocket, room_id: UUID):
+def socket_session_hash(socket):
     settings = get_settings()
     token = socket.cookies.get(settings.cookie_name, '')
-    if socket.headers.get('origin') not in settings.trusted_origins or not 40 <= len(token) <= 128:
+    if socket.headers.get('origin') in settings.trusted_origins and 40 <= len(token) <= 128:
+        return hash_token(token)
+    return None
+
+
+def notification_state(factory, token_hash):
+    with factory() as db:
+        consistent_read(db)
+        session = db.get(AuthSession, token_hash)
+        if session and session.expires_at > utcnow():
+            return session.user_id, overview_for(db, session.user_id)
+    return None
+
+
+@router.websocket('/notifications/live')
+async def live_notifications(socket: WebSocket):
+    token_hash = socket_session_hash(socket)
+    if not token_hash:
+        await socket.close(code=1008)
+        return
+    engine = socket.app.state.room_engine
+    state = await run_in_threadpool(notification_state, engine.factory, token_hash)
+    if not state:
+        await socket.close(code=1008)
+        return
+    user_id, _ = state
+    connections = engine.notification_subscribers
+    if sum(map(len, connections.values())) >= 256 or len(connections.get(user_id, ())) >= 4:
+        await socket.close(code=1013)
+        return
+    changed = asyncio.Event()
+    subscribers = connections.setdefault(user_id, set())
+    subscribers.add(changed)
+    receiver = None
+    try:
+        await socket.accept()
+        receiver = asyncio.create_task(socket.receive())
+        previous = None
+        sent_at = monotonic()
+        while True:
+            changed.clear()
+            state = await run_in_threadpool(notification_state, engine.factory, token_hash)
+            if not state:
+                await socket.close(code=1008)
+                return
+            _, snapshot = state
+            if snapshot != previous or monotonic() - sent_at >= 15:
+                await socket.send_json(snapshot)
+                previous, sent_at = snapshot, monotonic()
+            waiter = asyncio.create_task(changed.wait())
+            try:
+                done, _ = await asyncio.wait({receiver, waiter}, timeout=5, return_when=asyncio.FIRST_COMPLETED)
+                if receiver in done:
+                    if receiver.result()['type'] != 'websocket.disconnect':
+                        await socket.close(code=1008)
+                    return
+            finally:
+                waiter.cancel()
+                await asyncio.gather(waiter, return_exceptions=True)
+    except (WebSocketDisconnect, OSError):
+        pass
+    finally:
+        if receiver:
+            receiver.cancel()
+            await asyncio.gather(receiver, return_exceptions=True)
+        subscribers.discard(changed)
+        if not subscribers:
+            connections.pop(user_id, None)
+
+
+@router.websocket('/{room_id}/live')
+async def live(socket: WebSocket, room_id: UUID):
+    token_hash = socket_session_hash(socket)
+    if not token_hash:
         await socket.close(code=1008)
         return
     room_id = str(room_id)
-    token_hash = hash_token(token)
     engine = socket.app.state.room_engine
     factory = engine.factory
     initial = await run_in_threadpool(socket_state, factory, room_id, token_hash)
@@ -269,7 +359,7 @@ def chat(room_id: UUID, body: ChatInput, user: User = Depends(require_user),
 
 
 @router.post('/{room_id}/leave', status_code=204)
-def leave(room_id: UUID, body: LeaveInput, user: User = Depends(require_user),
+def leave(room_id: UUID, body: LeaveInput, request: Request, tasks: BackgroundTasks, user: User = Depends(require_user),
           db: Session = Depends(get_write_db, scope='function')):
     room, member = rooms.membership(db, str(room_id), user.id)
     if room.host_id != user.id:
@@ -277,6 +367,8 @@ def leave(room_id: UUID, body: LeaveInput, user: User = Depends(require_user),
             rooms.fail(403, 'Only the host can transfer or end the room.')
         rooms.leave(db, room, member)
     elif body.action == 'end':
+        recipients = tuple(db.scalars(select(RoomInvite.user_id).where(RoomInvite.room_id == room.id)))
+        tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (user.id, *recipients))
         rooms.close(db, room)
         return
     elif body.action == 'transfer':

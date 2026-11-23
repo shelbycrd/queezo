@@ -5,7 +5,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import delete, func, select
+from sqlalchemy import and_, case, delete, func, or_, select
 
 from app.models import Deck, Flashcard, Friendship, RoomInvite, RoomMember, RoomMessage, RoomQuestion, RoomSession, StudyRoom, User, utcnow
 from app.services.distractor_cache import _fingerprint
@@ -18,6 +18,7 @@ MAX_PREPARING = 8
 GRACE = timedelta(seconds=45)
 IDLE = timedelta(minutes=30)
 HEARTBEAT = timedelta(seconds=20)
+FRIENDS_PER_PAGE = 4
 
 
 def fail(status, message):
@@ -64,8 +65,7 @@ def eligible_friend(db, user_id, username):
     return other
 
 
-def invite(db, room, sender_id, username):
-    other = eligible_friend(db, sender_id, username)
+def invite_friend(db, room, sender_id, other):
     if len(members(db, room)) >= CAPACITY:
         fail(409, 'This room is full.')
     if db.get(RoomMember, (room.id, other.id)):
@@ -75,7 +75,14 @@ def invite(db, room, sender_id, username):
         touch(room)
 
 
+def invite(db, room, sender_id, username):
+    other = eligible_friend(db, sender_id, username)
+    invite_friend(db, room, sender_id, other)
+    return other.id
+
+
 def create(db, user_id, username):
+    other = eligible_friend(db, user_id, username)
     if db.scalar(select(func.count()).select_from(StudyRoom)
                  .where(StudyRoom.host_id == user_id, StudyRoom.phase != 'closed')) >= MAX_OPEN_ROOMS:
         fail(429, 'Close an existing room before creating another.')
@@ -86,8 +93,8 @@ def create(db, user_id, username):
     db.flush()
     db.add(RoomMember(room_id=room.id, user_id=user_id, seen_at=utcnow()))
     db.flush()
-    invite(db, room, user_id, username)
-    return room.id
+    invite_friend(db, room, user_id, other)
+    return room.id, other.id
 
 
 def invitations(db, user_id):
@@ -161,6 +168,18 @@ def round_players(db, room, session):
             if not member.spectator and str(user.id) in session.players]
 
 
+def active_lineup(people, now):
+    return [(member, user) for member, user in people if not member.spectator and connected(member, now)]
+
+
+def readiness(room, lineup):
+    if len(lineup) < 2 or not any(user.id == room.host_id for _, user in lineup):
+        return 'At least two connected participants, including the host, are required.'
+    if any(not member.ready for member, user in lineup if user.id != room.host_id):
+        return 'Waiting for all connected participants except the host to be ready.'
+    return None
+
+
 def start(db, room, user_id):
     host_only(room, user_id)
     if room.phase != 'lobby':
@@ -169,9 +188,10 @@ def start(db, room, user_id):
     if not deck:
         fail(422, 'Choose an available deck first.')
     now = utcnow()
-    active = [(member, user) for member, user in members(db, room) if not member.spectator and connected(member, now)]
-    if len(active) < 2 or not all(member.ready for member, user in active if user.id != user_id):
-        fail(409, 'Two active participants are required. Everyone except the host must be ready.')
+    people = members(db, room)
+    active = active_lineup(people, now)
+    if blocked := readiness(room, active):
+        fail(409, blocked)
     if db.scalar(select(func.count()).select_from(StudyRoom).where(StudyRoom.phase == 'preparing')) >= MAX_PREPARING:
         fail(429, 'Room preparation is busy. Try again shortly.')
     cards = list(db.execute(select(Flashcard.id, Flashcard.front, Flashcard.back).where(Flashcard.deck_id == deck.id)))
@@ -188,7 +208,7 @@ def start(db, room, user_id):
                for position, card in enumerate(cards))
     room.session_id = session.id
     room.phase = 'preparing'
-    for member, user in members(db, room):
+    for member, user in people:
         member.spectator = str(user.id) not in players
     touch(room)
 
@@ -196,16 +216,20 @@ def start(db, room, user_id):
 def lobby_view(db, room, viewer_id):
     now = utcnow()
     deck = authorized_deck(db, room)
+    people = members(db, room)
+    blockers = readiness(room, active_lineup(people, now)) if room.phase == 'lobby' else None
+    count, newest = db.execute(select(func.count(),func.max(RoomInvite.created_at)).where(RoomInvite.room_id == room.id)).one()
     return {
         'id': room.id, 'code': room.id[:8].upper(), 'name': 'Study Room',
         'phase': room.phase, 'mode': room.mode, 'seconds': room.seconds,
+        'readiness_blocker': blockers, 'invite_revision': [count, iso(newest)],
         'is_host': room.host_id == viewer_id, 'share_private': room.share_private, 'capacity': CAPACITY, 'server_time': iso(now),
         'deck': {'id': deck.id, 'title': deck.title,
                  'card_count': db.scalar(select(func.count()).select_from(Flashcard).where(Flashcard.deck_id == deck.id))}
         if deck else None,
         'participants': [{**identity(user), 'host': user.id == room.host_id, 'you': user.id == viewer_id,
                           'ready': member.ready, 'spectator': member.spectator, 'connected': connected(member, now)}
-                         for member, user in members(db, room)],
+                         for member, user in people],
     }
 
 
@@ -245,3 +269,21 @@ def reset_lobby(db, room):
     for member, _ in members(db, room):
         member.ready = member.spectator = False
     touch(room)
+
+
+def friends_page(db, room, user_id, page):
+    other = case((Friendship.first_id == user_id, Friendship.second_id), else_=Friendship.first_id)
+    rows = db.execute(
+        select(User, RoomMember.user_id, RoomInvite.user_id).select_from(User)
+        .join(Friendship, User.id == other)
+        .outerjoin(RoomMember, and_(RoomMember.room_id == room.id, RoomMember.user_id == User.id))
+        .outerjoin(RoomInvite, and_(RoomInvite.room_id == room.id, RoomInvite.user_id == User.id))
+        .where(Friendship.accepted, or_(Friendship.first_id == user_id, Friendship.second_id == user_id))
+        .order_by(User.display_name.collate('NOCASE'), User.username)
+        .offset((page - 1) * FRIENDS_PER_PAGE).limit(FRIENDS_PER_PAGE + 1)
+    ).all()
+    full = len(members(db, room)) >= CAPACITY
+    return {'page': page, 'has_next': len(rows) > FRIENDS_PER_PAGE, 'items': [
+        {**identity(user), 'status': 'member' if member else 'invited' if invited else 'full' if full else 'available'}
+        for user, member, invited in rows[:FRIENDS_PER_PAGE]
+    ]}

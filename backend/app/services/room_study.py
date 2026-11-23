@@ -264,6 +264,7 @@ class RoomEngine:
         self.factory = factory
         self.model_slot = model_slot
         self.connections = {}
+        self.notification_subscribers = {}
         self.room_connections = {}
         self.job = None
         self.tasks = (asyncio.create_task(self._prepare()), asyncio.create_task(self._clock()))

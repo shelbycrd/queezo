@@ -4,8 +4,9 @@ const {chromium} = require(process.env.QUEEZO_PLAYWRIGHT || 'playwright');
 // Run only against the disposable site described in docs/STUDY_ROOMS.md.
 const baseURL = process.env.QUEEZO_ROOM_TEST_URL || 'http://127.0.0.1:18711';
 const password = 'A disposable room test passphrase';
+const signupOrigin = process.env.QUEEZO_ROOM_TEST_SIGNUP_URL || baseURL;
 async function call(context, method, path, data, csrf, expected) {
-  const response = await context.request.fetch('/api' + path,{
+  const response = await context.request.fetch((path === '/auth/signup' ? signupOrigin : baseURL) + '/api' + path,{
     method,data,headers:{origin:baseURL,...(csrf ? {'x-csrf-token':csrf} : {})}
   });
   assert.equal(response.status(),expected,path + ' ' + await response.text());
@@ -24,6 +25,17 @@ async function call(context, method, path, data, csrf, expected) {
     const hostToken = alice.csrf_token, guestToken = bob.csrf_token;
     await call(host,'POST','/friends/requests',{username:bName},hostToken,204);
     await call(guest,'POST','/friends/requests/' + aName + '/respond',{decision:'accept'},guestToken,204);
+    for (let index = 1; index <= 4; index++) {
+      const context = await browser.newContext({baseURL});
+      try {
+        const username = 'buddy_' + index + '_' + suffix;
+        const buddy = await call(context,'POST','/auth/signup',{
+          display_name:'Buddy ' + index,username,email:username + '@example.com',password,confirm_password:password,
+        },null,201);
+        await call(host,'POST','/friends/requests',{username},hostToken,204);
+        await call(context,'POST','/friends/requests/' + aName + '/respond',{decision:'accept'},buddy.csrf_token,204);
+      } finally { await context.close(); }
+    }
     const deck = await call(host,'POST','/decks',{title:'Browser room deck'},hostToken,201);
     for (const name of ['Neptune','Venus','Mercury','Saturn']) {
       await call(host,'POST','/decks/' + deck.id + '/cards',{front:'Choose ' + name,back:name},hostToken,201);
@@ -35,22 +47,53 @@ async function call(context, method, path, data, csrf, expected) {
       if (socket.url().endsWith('/live')) socket.on('framereceived', () => frames++);
     });
 
+    const notificationsReady = new Promise(resolve => {
+      guestPage.on('websocket', socket => {
+        if (socket.url().endsWith('/rooms/notifications/live')) socket.on('framereceived',resolve);
+      });
+    });
+    await guestPage.goto('/#/dashboard');
+    await guestPage.getByRole('button',{name:'Open notifications'}).click();
+    await notificationsReady;
+    await guestPage.getByText('You’re all caught up').waitFor();
     await hostPage.goto('/#/dashboard');
     await hostPage.getByRole('button',{name:'Open friends'}).click();
-    await hostPage.locator('.friend-row summary').click();
+    await hostPage.locator('.friend-row summary').filter({hasText:'Bob'}).click();
     await hostPage.getByRole('button',{name:'Invite to Study'}).click();
     await hostPage.getByRole('heading',{name:'Lobby'}).waitFor();
     assert.equal(await hostPage.locator('.site-header').isVisible(),false);
-    await guestPage.goto('/#/dashboard');
-    await guestPage.getByRole('button',{name:'Open notifications'}).click();
+    await guestPage.locator('.room-invite-count').filter({hasText:/^1$/}).waitFor({timeout:3500});
     await guestPage.getByRole('button',{name:'Accept',exact:true}).click();
     await guestPage.getByRole('heading',{name:'Lobby'}).waitFor();
 
-    await hostPage.getByLabel('Study deck').selectOption(String(deck.id));
+    assert.equal(await guestPage.getByRole('button',{name:'Select Browser room deck'}).count(),0);
+    for (const page of [hostPage,guestPage]) {
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth &&
+        document.documentElement.scrollHeight <= innerHeight),'Room fits the viewport');
+    }
+    const study = await hostPage.locator('.room-study').boundingBox();
+    const participants = await hostPage.locator('#room-participants').boundingBox();
+    const chat = await hostPage.locator('#room-chat').boundingBox();
+    assert.equal(study.y,participants.y);
+    assert.ok(Math.abs(study.y + study.height - chat.y - chat.height) < 1);
+    await hostPage.locator('.room-invite-friends summary').click();
+    await hostPage.getByRole('button',{name:'In this room · Bob'}).waitFor();
+    await hostPage.getByRole('button',{name:'Next',exact:true}).click();
+    await hostPage.getByRole('button',{name:'Invite · Buddy 4',exact:true}).click();
+    await hostPage.getByRole('button',{name:'Invited · Buddy 4',exact:true}).waitFor();
+    assert.equal(await hostPage.getByRole('button',{name:'Invited · Buddy 4',exact:true}).isDisabled(),true);
+    await hostPage.getByRole('button',{name:'Previous',exact:true}).click();
+    await hostPage.getByRole('button',{name:'In this room · Bob'}).waitFor();
+
+    const deckOption = hostPage.getByRole('button',{name:'Select Browser room deck'});
+    await deckOption.click();
+    assert.equal(await deckOption.getAttribute('aria-pressed'),'true');
     await hostPage.getByLabel('Allow invited room members to study this deck').check();
     await hostPage.getByLabel('Study mode').selectOption('challenge');
     await hostPage.getByRole('button',{name:'Save settings'}).click();
     await guestPage.getByText('Browser room deck · 4 questions').waitFor();
+    assert.equal(await hostPage.getByRole('button',{name:'Ready',exact:true}).count(),0);
+    assert.equal(await hostPage.getByRole('button',{name:'Start study'}).isDisabled(),true);
     await guestPage.getByRole('button',{name:'Ready',exact:true}).click();
     await hostPage.getByRole('button',{name:'Start study'}).click();
     await hostPage.getByRole('heading',{name:'Question 1 of 4'}).waitFor({timeout:35000});

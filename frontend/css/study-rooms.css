@@ -1,12 +1,33 @@
-.study-focus #app:has(.room-page) { max-width: none; min-height: 100dvh; padding: 24px clamp(14px, 3vw, 48px); }
-.room-page { width: min(100%, 1500px); margin: 0 auto; }
-.room-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
-.room-heading h1 { margin: 0 0 5px; }
+body:has(.room-page) { overflow: hidden; }
+.study-focus #app:has(.room-page) {
+  width: 100%; height: 100dvh; min-height: 0; max-width: none; margin: 0;
+  padding: 12px clamp(10px, 2vw, 26px); overflow: hidden;
+}
+.room-page { width: min(100%, 1600px); height: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 0; }
+.room-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 18px; margin-bottom: 10px; }
+.room-heading h1 { margin: 0 0 4px; }
 .room-heading h1 small, .room-participants h2 small { font-size: .82rem; color: var(--muted); }
 .room-heading p { margin: 0; }
-.room-layout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(250px, 3fr); gap: 18px; align-items: start; }
-.room-study { margin: 0; min-height: 0; max-width: none; }
-.room-setup { max-width: 560px; }
+.room-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 7fr) minmax(260px, 3fr); gap: 12px; }
+.room-study { margin: 0; min-height: 0; max-width: none; overflow: auto; overscroll-behavior: contain; }
+.room-study, .room-side > .panel { padding: 16px; }
+.room-setup { max-width: 720px; min-width: 0; }
+.room-deck-selector { min-width: 0; margin: 0; padding: 0; border: 0; }
+.room-deck-selector legend { font-weight: 700; margin-bottom: 4px; }
+.room-deck-track { display: flex; gap: 9px; overflow-x: auto; padding: 6px 3px 9px; overscroll-behavior-inline: contain; }
+.room-deck-track .deck-tile { flex: 0 0 clamp(124px, 18vw, 166px); }
+.room-deck-track .deck-card.portrait-deck { min-height: 0; border-radius: 16px; box-shadow: none; }
+.room-deck-track .deck-cover { height: 46px; min-height: 0; }
+.room-deck-track .deck-cover-icon { width: 30px; height: 30px; border-radius: 9px; }
+.room-deck-track .deck-cover-icon svg { width: 16px; height: 16px; }
+.room-deck-track .deck-cover-label { display: none; }
+.room-deck-track .deck-card-body { padding: 8px; }
+.room-deck-track .deck-card-body h2 { font-size: .85rem; }
+.room-deck-track .deck-card-body p { margin-bottom: 6px; }
+.room-deck-track .deck-select-button { margin-top: auto; }
+.room-deck-track .deck-select-button::after { content: ''; position: absolute; inset: 0; border-radius: 16px; }
+.room-deck-track .deck-selected .deck-card { border-color: #507bc8; box-shadow: inset 0 0 0 1px #507bc8; }
+.room-deck-track .deck-selected .deck-select-button { background: #e4efff; color: #315d9d; }
 .room-check { display: flex; align-items: center; gap: 8px; }
 .room-check input { width: auto; }
 .room-setup .actions { margin-top: 14px; }
@@ -20,17 +41,27 @@
 .room-invitations li + li { margin-top: 6px; }
 @media (max-width: 760px) { .room-layout { grid-template-columns: minmax(0, 1fr); } }
 #open-notifications { position: relative; }
-.room-invite-dot { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; background: #436fc2; border: 1px solid white; border-radius: 50%; }
+.room-invite-count { position: absolute; top: -3px; right: -4px; min-width: 17px; padding: 1px 4px; background: #436fc2; color: white; border: 1px solid white; border-radius: 999px; font-size: .67rem; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .room-round-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .room-options { margin-block: 16px; }
 .room-results { padding-left: 20px; }
 .room-options .is-selected { border-color: #6d9be7; background: #edf5ff; }
 .room-score { margin-left: auto; white-space: nowrap; color: #4468a9; font-variant-numeric: tabular-nums; }
-.room-side { display: grid; gap: 18px; min-width: 0; align-content: start; }
+.room-side { display: grid; gap: 12px; min-width: 0; min-height: 0; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+.room-participants { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.room-chat { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.room-chat-form { flex-shrink: 0; }
+.room-invite-friends { background: #f7fafe; border: 1px solid #e3ecfa; border-radius: 14px; padding: 8px; }
+.room-invite-friends ul { opacity: .92; margin: 6px 0; }
+.room-invite-friends strong { min-width: 0; overflow-wrap: anywhere; font-size: .8rem; }
+.room-invite-friends li { padding: 4px 0; gap: 6px; }
+.room-invite-friends li button { margin-left: auto; flex-shrink: 0; }
+.room-invite-friends li button:disabled { opacity: 1; color: #586b88; background: #eef4fb; }
+.room-invite-pages { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: .72rem; }
 .room-mobile-actions, .room-drawer-close, .room-drawer-scrim { display: none; }
 .room-panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
 .room-panel-heading h2 { margin: 0; }
-.room-chat-log { max-height: 270px; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.room-chat-log { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; margin: 0; padding: 0; list-style: none; }
 .room-message { display: grid; grid-template-columns: 30px minmax(0,1fr) auto; align-items: center; gap: 3px 8px; padding: 6px 0; }
 .room-message img { border-radius: 50%; }
 .room-message strong { overflow-wrap: anywhere; }
@@ -45,5 +76,6 @@
   .room-drawer-scrim, .room-drawer-scrim:hover { position: fixed; inset: 0; z-index: 85; background: #263c6559; border: 0; border-radius: 0; box-shadow: none; }
   .room-drawer { display: none; }
   .room-drawer.drawer-open { display: block; position: fixed; z-index: 86; inset: 0 0 0 auto; width: min(380px, 92vw); border-radius: 24px 0 0 24px; overflow: auto; }
-  .room-chat-log { max-height: 55dvh; }
+  .room-side { display: contents; }
+  .room-drawer.room-chat.drawer-open { display: flex; }
 }

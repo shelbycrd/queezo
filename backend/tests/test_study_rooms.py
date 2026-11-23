@@ -325,3 +325,98 @@ def test_room_migration_from_version_one_keeps_existing_deck(client):
         assert db.execute(text('PRAGMA user_version')).scalar_one() == SCHEMA_VERSION
         assert db.execute(text('SELECT COUNT(*) FROM study_rooms')).scalar_one() == 0
     assert client.get(f'/api/decks/{deck_id}').json()['card_count'] == 2
+
+
+def test_start_checks_only_connected_players_and_requires_the_host(anonymous_client, monkeypatch):
+    from app.models import RoomMember, utcnow
+    from app.services import room_study
+
+    async def generate(*args, **kwargs):
+        return ['Option one','Option two','Option three']
+    monkeypatch.setattr(room_study, 'get_or_generate_distractors', generate)
+
+    users = make_users(anonymous_client, ('alice','bob','carol','david','elsie'),
+                       [('alice',name) for name in ('bob','carol','david','elsie')])
+    alice, bob, carol, david = map(sign_in, ('alice','bob','carol','david'))
+    path = make_room(alice)
+    room_id = path.rsplit('/',1)[1]
+    deck_id = deck(alice)
+    assert alice.post(path + '/invite',json={'username':'elsie'}).status_code == 204
+    for browser, name in ((carol,'carol'),(david,'david')):
+        assert alice.post(path + '/invite',json={'username':name}).status_code == 204
+        assert join(browser,path).status_code == 204
+    assert join(bob,path).status_code == 204
+    assert alice.patch(path + '/settings',json={'deck_id':deck_id,'mode':'collaborative','share_private':True}).status_code == 204
+
+    with anonymous_client.factory.begin() as db:
+        db.get(RoomMember,(room_id,users['carol'])).spectator = True
+    assert bob.post(path + '/ready',json={'ready':True}).status_code == 204
+    assert alice.get(path).json()['readiness_blocker']
+    assert alice.post(path + '/start').status_code == 409
+
+    with anonymous_client.factory.begin() as db:
+        db.get(RoomMember,(room_id,users['david'])).disconnected_at = utcnow()
+        db.get(RoomMember,(room_id,users['alice'])).disconnected_at = utcnow()
+    assert alice.post(path + '/start').status_code == 409
+    with anonymous_client.factory.begin() as db:
+        db.get(RoomMember,(room_id,users['alice'])).disconnected_at = None
+    assert alice.get(path).json()['readiness_blocker'] is None
+    assert alice.post(path + '/start').status_code == 204
+    with anonymous_client.factory() as db:
+        session = db.scalar(select(RoomSession).where(RoomSession.room_id == room_id))
+        assert {player['username'] for player in session.players.values()} == {'alice','bob'}
+
+
+def test_initial_invite_pushes_and_resynchronizes_without_duplicates(anonymous_client):
+    from app.auth.config import get_settings
+    from app.models import StudyRoom
+
+    make_users(anonymous_client, ('alice','bob','carol'), [('alice','bob')])
+    alice, bob, carol = map(sign_in, ('alice','bob','carol'))
+    cookie = get_settings().cookie_name
+    headers = {'origin':'http://testserver','cookie':cookie + '=' + bob.cookies[cookie]}
+    endpoint = '/api/rooms/notifications/live'
+    with anonymous_client.websocket_connect(endpoint,headers=headers) as live:
+        assert live.receive_json()['invites'] == []
+        assert alice.post('/api/rooms',json={'username':'carol'}).status_code == 404
+        with anonymous_client.factory() as db:
+            assert not list(db.scalars(select(StudyRoom)))
+        path = make_room(alice)
+        room_id = path.rsplit('/',1)[1]
+        snapshot = live.receive_json()
+        assert [item['room_id'] for item in snapshot['invites']] == [room_id]
+        assert snapshot['invites'][0]['sender']['username'] == 'alice'
+        assert carol.get('/api/rooms').json()['invites'] == []
+        assert alice.post(path + '/invite',json={'username':'bob'}).status_code == 204
+    with anonymous_client.websocket_connect(endpoint,headers=headers) as rejoined:
+        assert [item['room_id'] for item in rejoined.receive_json()['invites']] == [room_id]
+        assert join(bob,path).status_code == 204
+        update = rejoined.receive_json()
+        assert update['invites'] == []
+        assert [item['id'] for item in update['rooms']] == [room_id]
+        second_room = make_room(alice)
+        assert rejoined.receive_json()['invites'][0]['room_id'] == second_room.rsplit('/',1)[1]
+        assert bob.post(second_room + '/invitation',json={'accept':False}).status_code == 204
+        assert rejoined.receive_json()['invites'] == []
+        assert bob.get(second_room).status_code == 404
+
+
+def test_room_friends_paginate_and_show_members_and_pending_invites(anonymous_client):
+    names = ('alice','bob','carol','david','elsie','frank','grace')
+    make_users(anonymous_client, names, [('alice',name) for name in names[1:]])
+    alice, bob, frank = map(sign_in, ('alice','bob','frank'))
+    path = make_room(alice)
+    endpoint = path + '/friends'
+    assert frank.get(endpoint).status_code == 404
+    first = alice.get(endpoint).json()
+    assert first['has_next']
+    assert [(row['username'],row['status']) for row in first['items']] == [
+        ('bob','invited'),('carol','available'),('david','available'),('elsie','available')]
+    second = alice.get(endpoint + '?page=2').json()
+    assert not second['has_next'] and [row['username'] for row in second['items']] == ['frank','grace']
+    assert alice.post(path + '/invite',json={'username':'frank'}).status_code == 204
+    assert alice.get(endpoint + '?page=2').json()['items'][0]['status'] == 'invited'
+    assert join(bob,path).status_code == 204
+    assert alice.get(endpoint).json()['items'][0]['status'] == 'member'
+    assert bob.get(endpoint).json()['items'][0]['username'] == 'alice'
+    assert bob.get(path + '/decks').status_code == 403

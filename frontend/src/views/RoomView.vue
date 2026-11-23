@@ -3,6 +3,8 @@ import {computed, nextTick, onScopeDispose, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
 import {useEvent,useLifetime} from '../composables/lifecycle.js';
 import CardContent from '../components/CardContent.vue';
+import DeckTile from '../components/DeckTile.vue';
+import RoomFriends from '../components/RoomFriends.vue';
 import RoomChat from '../components/RoomChat.vue';
 import {avatarUrl} from '../services/profiles.js';
 import {accuracy, remainingSeconds, roomApi,roomModes,roomSocketUrl} from '../services/rooms.js';
@@ -15,7 +17,7 @@ const room = ref(null), error = ref(''), pending = ref(false);
 const terminal = ref(false), live = ref(false), selected = ref(null), clock = ref(Date.now()), clockOffset = ref(0);
 const drawer = ref(''), leaveDialog = ref(), leaveStep = ref(0), leaveAction = ref('transfer'), successor = ref('');
 const participantToggle = ref(), chatToggle = ref(), participantClose = ref(), chatClose = ref();
-const decks = ref([]), deckError = ref(''), invite = ref(''), friends = ref([]);
+const decks = ref([]), deckError = ref('');
 const deckId = ref(null), mode = ref('collaborative'), seconds = ref(30), sharePrivate = ref(false);
 const questionKey = computed(() => room.value?.session ? room.value.session.id + ':' + room.value.session.position : '');
 const submitted = ref(null);
@@ -36,11 +38,10 @@ const participants = computed(() => {
   return [...people].sort((a,b) => (rank.get(a.username) ?? people.length) - (rank.get(b.username) ?? people.length));
 });
 const me = computed(() => room.value?.participants.find(member => member.you));
-const activePlayers = computed(() => (room.value?.participants || []).filter(member => member.connected && !member.spectator));
 const settingsChanged = computed(() => room.value && (deckId.value !== (room.value.deck?.id ?? null) ||
   mode.value !== room.value.mode || seconds.value !== room.value.seconds || sharePrivate.value !== Boolean(room.value.share_private)));
-const canStart = computed(() => !settingsChanged.value && room.value?.deck?.card_count && activePlayers.value.length >= 2 &&
-  activePlayers.value.every(member => member.host || member.ready));
+const canStart = computed(() => !settingsChanged.value && room.value?.deck?.card_count && !room.value.readiness_blocker);
+const friendRevision = computed(() => JSON.stringify([room.value?.invite_revision,room.value?.participants.map(member => member.username)]));
 const optionsKey = computed(() => room.value ? JSON.stringify([room.value.deck?.id,room.value.mode,room.value.seconds,room.value.share_private]) : '');
 watch(optionsKey, () => {
   if (!room.value) return;
@@ -54,10 +55,6 @@ watch(() => room.value?.is_host, async host => {
   try { decks.value = await api(path + '/decks',{signal}); }
   catch (failure) { if (active()) deckError.value = failure.message; }
 });
-async function loadFriends() {
-  try { friends.value = (await api('/friends',{signal})).friends; }
-  catch (failure) { if (active()) showNotice(failure.message); }
-}
 function openDrawer(panel) {
   drawer.value = panel;
   void nextTick(() => (panel === 'participants' ? participantClose.value : chatClose.value)?.focus());
@@ -114,11 +111,10 @@ async function act(action,body,method='POST') {
     return false;
   } finally { pending.value = false; }
 }
-async function sendInvite() {
-  if (await act('invite',{username:invite.value})) {
-    invite.value = '';
-    showNotice('Study invitation sent.',true);
-  }
+function selectDeck(id) {
+  if (deckId.value === id) return;
+  deckId.value = id;
+  sharePrivate.value = false;
 }
 function saveSettings() {
   return act('settings',{deck_id:deckId.value,mode:mode.value,seconds:seconds.value,share_private:sharePrivate.value},'PATCH');
@@ -173,9 +169,14 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(t
             <p v-if="room.deck">{{ room.deck.title }} · {{ room.deck.card_count }} questions</p>
             <p v-else class="muted">Waiting for the host to select a deck.</p>
             <form v-if="room.is_host" class="room-setup" @submit.prevent="saveSettings">
-              <label for="room-deck">Study deck</label>
-              <select id="room-deck" v-model="deckId" @change="sharePrivate = false"><option :value="null">Choose a deck</option>
-                <option v-for="deck in decks" :key="deck.id" :value="deck.id">{{ deck.title }} · {{ deck.card_count }} cards</option></select>
+              <fieldset class="room-deck-selector">
+                <legend>Study deck</legend>
+                <div v-if="decks.length" class="room-deck-track" aria-label="Available study decks" tabindex="0">
+                  <DeckTile v-for="deck in decks" :key="deck.id" :deck="deck" selectable :selected="deckId === deck.id"
+                    @select="selectDeck(deck.id)"/>
+                </div>
+                <p v-else-if="!deckError" class="muted">No decks available to select.</p>
+              </fieldset>
               <p v-if="deckError" role="alert">{{ deckError }}</p>
               <label v-if="selectedDeck && selectedDeck.visibility !== 'public'" class="room-check"><input v-model="sharePrivate" type="checkbox"> Allow invited room members to study this deck</label>
               <label for="room-mode">Study mode</label><select id="room-mode" v-model="mode"><option value="collaborative">Collaborative</option><option value="challenge">Challenge</option></select>
@@ -183,7 +184,7 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(t
               <div class="actions"><button class="secondary flat-button" type="submit" :disabled="pending">Save settings</button><button type="button" :disabled="pending || !canStart" @click="act('start')">Start study</button></div>
             </form>
             <button v-else type="button" :disabled="pending" @click="act('ready',{ready:!me?.ready})">{{ me?.ready ? 'Not Ready' : 'Ready' }}</button>
-            <p class="hint">Starting requires at least two active participants and everyone except the host to be ready.</p>
+            <p class="hint">{{ room.readiness_blocker || 'All connected participants are ready to start.' }}</p>
           </template>
           <section v-else-if="room.phase === 'preparing'" aria-live="polite">
             <h2>Preparing questions</h2>
@@ -230,16 +231,9 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(t
           <div class="room-panel-heading"><h2>Participants <small>{{ room.participants.length }} / {{ room.capacity }}</small></h2><button ref="participantClose" type="button" class="secondary flat-button small room-drawer-close" aria-label="Close participants" @click="closeDrawer">×</button></div>
           <ul><li v-for="member in participants" :key="member.username">
             <img :src="avatarUrl(member.avatar)" width="36" height="36" alt="">
-            <div><strong>{{ member.display_name }}</strong><small>{{ member.host ? 'Host · ' : '' }}{{ !member.connected ? 'Disconnected' : member.spectator ? 'Spectating' : room.phase === 'question' ? (member.answered ? 'Answered' : 'Answering') : member.ready ? 'Ready' : 'Not Ready' }}</small></div><span v-if="room.mode === 'challenge' && room.session && !member.spectator" class="room-score">{{ scores[member.username] ?? 0 }} pts</span>
+            <div><strong>{{ member.display_name }}</strong><small>{{ member.host ? 'Host · ' : '' }}{{ !member.connected ? 'Disconnected' : member.spectator ? 'Spectating' : room.phase === 'question' ? (member.answered ? 'Answered' : 'Answering') : member.host ? 'Ready not required' : member.ready ? 'Ready' : 'Not Ready' }}</small></div><span v-if="room.mode === 'challenge' && room.session && !member.spectator" class="room-score">{{ scores[member.username] ?? 0 }} pts</span>
           </li></ul>
-          <details v-if="room.participants.length < room.capacity" @toggle="$event.target.open && loadFriends()">
-            <summary>Invite Friends</summary>
-            <form @submit.prevent="sendInvite">
-              <label for="room-invite">Friend</label><select id="room-invite" v-model="invite" required><option value="">Choose a friend</option>
-                <option v-for="friend in friends.filter(person => !room.participants.some(member => member.username === person.username))" :key="friend.username" :value="friend.username">{{ friend.display_name }}</option></select>
-              <button type="submit" class="small" :disabled="pending">Send invitation</button>
-            </form>
-          </details>
+          <RoomFriends :path="path" :revision="friendRevision" :full="room.participants.length >= room.capacity"/>
         </aside>
         <aside id="room-chat" class="panel room-chat room-drawer" :class="{'drawer-open':drawer === 'chat'}">
           <div class="room-panel-heading"><h2>Room Chat</h2><button ref="chatClose" type="button" class="secondary flat-button small room-drawer-close" aria-label="Close chat" @click="closeDrawer">×</button></div>

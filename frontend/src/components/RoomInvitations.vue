@@ -1,50 +1,77 @@
 <script setup>
-import {onScopeDispose, ref, watch} from 'vue';
+import {ref, watch} from 'vue';
 import {api} from '../../js/api.js';
 import {account} from '../services/session.js';
-import {roomApi,roomPath} from '../services/rooms.js';
+import {roomApi,roomPath,roomSocketUrl} from '../services/rooms.js';
 import {showNotice} from '../services/notice.js';
 
 const emit = defineEmits(['count','navigate']);
 const data = ref(null);
 const pending = ref(false);
-let controller;
-async function load() {
-  if (!account.value || controller || document.hidden) return;
-  const request = controller = new AbortController();
-  try {
-    const next = await api('/rooms',{signal:request.signal});
-    if (!request.signal.aborted) {
-      data.value = next;
-      emit('count',next.invites.length,next.rooms.length);
-    }
-  } catch { /* The next poll can recover without interrupting study. */ }
-  finally { if (controller === request) controller = null; }
+let load;
+function apply(snapshot) {
+  data.value = snapshot;
+  emit('count',snapshot?.invites.length ?? 0,snapshot?.rooms.length ?? 0);
 }
-watch(() => account.value?.id, () => {
-  controller?.abort();
-  controller = null;
-  data.value = null;
-  emit('count',0,0);
-  void load();
+
+watch(() => account.value?.id, (id, _, cleanup) => {
+  apply(null);
+  pending.value = false;
+  if (!id) return;
+  const lifetime = new AbortController();
+  let socket, retry, fetching = false, live = false;
+
+  const refresh = async () => {
+    if (fetching || live || lifetime.signal.aborted) return;
+    fetching = true;
+    try {
+      const snapshot = await api('/rooms',{signal:lifetime.signal});
+      if (!live && !lifetime.signal.aborted) apply(snapshot);
+    } catch { /* The socket will retry and recover the full notification list. */ }
+    finally { fetching = false; }
+  };
+
+  function connect() {
+    if (lifetime.signal.aborted) return;
+    socket = new WebSocket(roomSocketUrl('notifications',location.origin));
+    socket.onmessage = event => {
+      if (lifetime.signal.aborted) return;
+      live = true;
+      apply(JSON.parse(event.data));
+    };
+    socket.onclose = () => {
+      if (lifetime.signal.aborted) return;
+      live = false;
+      void refresh();
+      retry = setTimeout(connect,1800);
+    };
+  }
+  load = refresh;
+  void refresh();
+  connect();
+  cleanup(() => {
+    lifetime.abort();
+    socket?.close();
+    clearTimeout(retry);
+    load = null;
+  });
 }, {immediate:true});
-const timer = setInterval(load,12000);
-onScopeDispose(() => { clearInterval(timer); controller?.abort(); });
 
 async function respond(id,accept) {
-  if (pending.value) return;
+  const userId = account.value?.id;
+  if (pending.value || !userId) return;
   pending.value = true;
   try {
     await api(roomApi(id) + '/invitation',{method:'POST',body:{accept}});
+    if (account.value?.id !== userId) return;
+    if (data.value) apply({...data.value,invites:data.value.invites.filter(invite => invite.room_id !== id)});
     if (accept) {
       emit('navigate');
       location.href = roomPath(id);
     }
-    controller?.abort();
-    controller = null;
-    void load();
-  } catch (error) { showNotice(error.message); }
-  finally { pending.value = false; }
+    void load?.();
+  } catch (error) { if (account.value?.id === userId) showNotice(error.message); }
+  finally { if (account.value?.id === userId) pending.value = false; }
 }
 </script>
 
