@@ -267,3 +267,81 @@ class SessionPresence(Base):
     session_hash: Mapped[str] = mapped_column(
         ForeignKey("auth_sessions.token_hash", ondelete="CASCADE"), primary_key=True)
     seen_at: Mapped[datetime] = mapped_column(DateTime)
+
+
+class StudyRoom(Base):
+    __tablename__ = "study_rooms"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    host_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    deck_id: Mapped[int | None] = mapped_column(ForeignKey("decks.id", ondelete="SET NULL"))
+    deck_owner_id: Mapped[int | None] = mapped_column(Integer)
+    share_private: Mapped[bool] = mapped_column(Boolean, default=False)
+    mode: Mapped[str] = mapped_column(String(16), default="collaborative")
+    seconds: Mapped[int] = mapped_column(Integer, default=30)
+    phase: Mapped[str] = mapped_column(String(16), default="lobby", index=True)
+    session_id: Mapped[str | None] = mapped_column(String(36))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
+class RoomMember(Base):
+    __tablename__ = "study_room_members"
+    room_id: Mapped[str] = mapped_column(ForeignKey("study_rooms.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, index=True)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    seen_at: Mapped[datetime | None] = mapped_column(DateTime)
+    disconnected_at: Mapped[datetime | None] = mapped_column(DateTime)
+    ready: Mapped[bool] = mapped_column(Boolean, default=False)
+    spectator: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class RoomInvite(Base):
+    __tablename__ = "study_room_invites"
+    room_id: Mapped[str] = mapped_column(ForeignKey("study_rooms.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, index=True)
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class RoomSession(Base):
+    __tablename__ = "study_room_sessions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    room_id: Mapped[str] = mapped_column(ForeignKey("study_rooms.id", ondelete="CASCADE"), index=True)
+    deck_title: Mapped[str] = mapped_column(String(120))
+    mode: Mapped[str] = mapped_column(String(16))
+    players: Mapped[dict] = mapped_column(JSON)
+    scores: Mapped[dict] = mapped_column(JSON, default=dict)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    total: Mapped[int] = mapped_column(Integer)
+    failed: Mapped[int] = mapped_column(Integer, default=0)
+    opened_at: Mapped[datetime | None] = mapped_column(DateTime)
+    deadline: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    paused: Mapped[bool] = mapped_column(Boolean, default=False)
+    claim: Mapped[str | None] = mapped_column(String(36))
+    claim_until: Mapped[datetime | None] = mapped_column(DateTime)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class RoomQuestion(Base):
+    __tablename__ = "study_room_questions"
+    session_id: Mapped[str] = mapped_column(ForeignKey("study_room_sessions.id", ondelete="CASCADE"), primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    card_id: Mapped[int | None] = mapped_column(ForeignKey("flashcards.id", ondelete="SET NULL"))
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    front: Mapped[str | None] = mapped_column(Text)
+    front_image: Mapped[str | None] = mapped_column(Text)
+    back_image: Mapped[str | None] = mapped_column(Text)
+    options: Mapped[list | None] = mapped_column(JSON(none_as_null=True))
+    correct_id: Mapped[str | None] = mapped_column(String(36))
+    failed: Mapped[bool] = mapped_column(Boolean, default=False)
+    answers: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class RoomMessage(Base):
+    __tablename__ = "study_room_messages"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    room_id: Mapped[str] = mapped_column(ForeignKey("study_rooms.id", ondelete="CASCADE"), index=True)
+    sender_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    author: Mapped[dict] = mapped_column(JSON)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    __table_args__ = ({"sqlite_autoincrement": True},)

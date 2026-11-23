@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY backend/ ./
 USER queezo
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--no-access-log"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--no-access-log", "--ws-max-size", "4096", "--ws-max-queue", "4"]
 
 FROM application AS backup
 USER root

@@ -36,7 +36,7 @@ engine = make_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +71,7 @@ def init_database(target=engine):
             if version == SCHEMA_VERSION:
                 connection.commit()
                 return
-            if version != 0:
+            if version not in {0, 1}:
                 raise RuntimeError("Unsupported SQLite schema version. Use the matching Queezo release.")
             existing = connection.exec_driver_sql(
                 "SELECT 1 FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
@@ -80,9 +80,10 @@ def init_database(target=engine):
                 stage = "verifying pre-migration backup"
                 pre_migration_snapshot(connection.connection.driver_connection)
                 logger.info("Verified SQLite pre-migration backup")
-            stage = "applying schema version 1"
+            stage = f"applying schema version {SCHEMA_VERSION}"
             Base.metadata.create_all(connection)
-            upgrade_baseline(connection)
+            if version == 0:
+                upgrade_baseline(connection)
             connection.exec_driver_sql(f"PRAGMA user_version={SCHEMA_VERSION}")
             connection.commit()
             logger.info("SQLite schema upgraded to version %s", SCHEMA_VERSION)

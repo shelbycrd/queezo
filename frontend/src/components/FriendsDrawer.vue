@@ -6,6 +6,7 @@ import {friendsOpen, friendCount, closeFriends} from '../services/friends.js';
 import {showNotice} from '../services/notice.js';
 import {useEvent} from '../composables/lifecycle.js';
 import {buttonFeedback as vButtonFeedback} from './ButtonFeedback.js';
+import {roomPath} from '../services/rooms.js';
 import {avatarUrl, profilePath} from '../services/profiles.js';
 
 const drawer = ref(), search = ref(''), username = ref(''), section = ref('friends');
@@ -76,6 +77,21 @@ async function respond(from, decision) {
   } catch (error) { if (ticket === generation && friendsOpen.value) showNotice(error.message); }
   finally { if (ticket === generation) responding.value = null; }
 }
+const inviting = ref(false);
+async function inviteToStudy(username) {
+  if (inviting.value) return;
+  inviting.value = true;
+  const ticket = generation;
+  try {
+    const room = await api('/rooms',{method:'POST',body:{username}});
+    if (ticket === generation && friendsOpen.value) {
+      closeFriends();
+      location.href = roomPath(room.id);
+    }
+  } catch (error) {
+    if (ticket === generation && friendsOpen.value) showNotice(error.message);
+  } finally { inviting.value = false; }
+}
 async function pulse() {
   if (!account.value || document.hidden || presencePending) return;
   presencePending = true;
@@ -107,7 +123,7 @@ onScopeDispose(() => { controller?.abort(); clearInterval(presence); clearInterv
               <summary><span class="friend-avatar" aria-hidden="true"><img :src="avatarUrl(friend.avatar)" alt="" width="48" height="48"><span class="presence-dot" :class="friend.online ? 'online' : 'offline'"></span></span>
                 <span class="friend-name"><strong>{{ friend.display_name }}</strong><small>{{ friend.online ? 'Online' : 'Offline' }}</small></span><span class="friend-chevron" aria-hidden="true">⌄</span></summary>
               <div class="friend-actions"><a class="button secondary small flat-button" :href="profilePath(friend.username)" @click="closeFriends">View Profile</a>
-                <button class="secondary small flat-button" type="button" disabled>Invite for a study session</button></div>
+                <button class="secondary small flat-button" type="button" :disabled="inviting" @click="inviteToStudy(friend.username)">Invite to Study</button></div>
             </details>
             <p v-if="!friends.length" class="friend-empty">{{ query ? 'No friends match your search.' : 'No friends yet. Send a request by username.' }}</p>
           </template>

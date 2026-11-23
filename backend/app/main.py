@@ -12,13 +12,14 @@ from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.concurrency import run_in_threadpool
 
-from app.database import get_db, init_database
+from app.database import get_db, get_db_factory, init_database
 from app.errors import validation_error
-from app.routers import activity, decks, friends, multiple_choice, profiles, study
+from app.routers import activity, decks, friends, multiple_choice, profiles, study, study_rooms
 from app.routers import community
 from app.auth.router import router as auth_router
 from app.auth.config import get_settings
 from app.auth.middleware import PrivateResponseHeaders
+from app.services.room_study import RoomEngine
 from app.services.multiple_choice import PreparationJobs, recover_interrupted
 
 
@@ -30,9 +31,13 @@ async def lifespan(application):
     application.state.auth_slots = Semaphore(4)
     jobs = PreparationJobs()
     application.state.multiple_choice_jobs = jobs
+    factory = application.dependency_overrides.get(get_db_factory, get_db_factory)()
+    rooms = RoomEngine(factory, jobs.model_slot)
+    application.state.room_engine = rooms
     try:
         yield
     finally:
+        await rooms.stop()
         await jobs.stop()
 
 
@@ -45,6 +50,7 @@ app.include_router(auth_router)
 app.include_router(community.router)
 app.include_router(friends.router)
 app.include_router(profiles.router)
+app.include_router(study_rooms.router)
 app.add_middleware(PrivateResponseHeaders)
 
 

@@ -10,6 +10,7 @@ import '../css/theme.css';
 import '../css/cloud-theme.css';
 import '../css/multiple-choice.css';
 import '../css/profiles.css';
+import '../css/study-rooms.css';
 
 const cleanProfileEntry = /^\/u(?:\/|$)/.test(location.pathname);
 if (!cleanProfileEntry && /^#[^/]/.test(location.hash)) history.replaceState(history.state, '', '#/' + location.hash.slice(1));
@@ -35,6 +36,7 @@ const router = createRouter({history:cleanProfileEntry ? createWebHistory() : cr
   page('/multiple-choice/:sessionId([a-fA-F0-9-]{36})','multiple-choice',() => import('./views/MultipleChoiceView.vue'),'Flashcard',{props:true,meta:{nav:'decks',studyFocus:true}}),
   page('/gwa','gwa',() => import('./views/GwaView.vue'),'GWA Calculator'),
   {path:'/notes',redirect:'/gwa'},
+  page('/rooms/:roomId','room',() => import('./views/RoomView.vue'),'Study Room',{props:true,meta:{studyFocus:true}}),
   page('/pomodoro','pomodoro',() => import('./views/PomodoroView.vue'),'Pomodoro'),
   page('/profile','profile',profile,'Profile'),
   page('/u/:username','public-profile',profile,'Profile',{props:true,meta:{guest:true}}),

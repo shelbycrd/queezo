@@ -11,11 +11,13 @@ import {setPomodoroUser, startPomodoroClock, timerState, timerText, timerAlert, 
 import {friendsOpen, openFriends, closeFriends} from './services/friends.js';
 import {buttonFeedback as vButtonFeedback} from './components/ButtonFeedback.js';
 import FriendsDrawer from './components/FriendsDrawer.vue';
+import RoomInvitations from './components/RoomInvitations.vue';
 import NoticePopup from './components/NoticePopup.vue';
 import StudyOptions from './components/StudyOptions.vue';
 
 const route = useRoute(), auth = inject('auth');
 const accountMenu = ref(), main = ref(), notifications = ref();
+const inviteCount = ref(0), joinedRoomCount = ref(0);
 const notificationOpen = ref(false), loggingOut = ref(false);
 const navTimer = computed(() => timerState.value.running ? 'Pomodoro · ' + timerText.value : 'Pomodoro');
 const section = computed(() => route.meta.nav || route.name);
@@ -107,7 +109,7 @@ async function logout() {
     </nav>
     <a class="sidebar-settings" href="/#/profile" data-nav="profile" :aria-current="section === 'profile' ? 'page' : undefined"><img :src="avatarUrl(account?.avatar)" alt="" width="24" height="24">My Profile</a>
   </header>
-  <div v-button-feedback id="account-controls" class="account-controls" v-show="account"><button id="open-friends" aria-haspopup="dialog" aria-controls="friends-drawer" :aria-expanded="friendsOpen" @click="openFriends" type="button" class="topbar-icon secondary flat-button" aria-label="Open friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5v2"/></svg></button><button id="open-notifications" :aria-expanded="notificationOpen" aria-haspopup="dialog" aria-controls="notifications-panel" @click="toggleNotifications" type="button" class="topbar-icon secondary flat-button" aria-label="Open notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zM10 20h4"/></svg></button><details id="account-dropdown" ref="accountMenu" @click="closeFromAction"><summary class="account-trigger"><img class="account-avatar" id="account-avatar" :src="avatarUrl(account?.avatar)" alt="" width="32" height="32"><span id="account-email">{{ account?.display_name || account?.username || account?.email?.split('@')[0] }}</span><span aria-hidden="true">⌄</span></summary><div class="account-menu"><a href="/#/profile">Profile</a><a href="/#/help">Help</a><button id="logout" type="button" :disabled="loggingOut" @click="logout">Log out</button></div></details></div>
+  <div v-button-feedback id="account-controls" class="account-controls" v-show="account"><button id="open-friends" aria-haspopup="dialog" aria-controls="friends-drawer" :aria-expanded="friendsOpen" @click="openFriends" type="button" class="topbar-icon secondary flat-button" aria-label="Open friends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5v2"/></svg></button><button id="open-notifications" :aria-expanded="notificationOpen" aria-haspopup="dialog" aria-controls="notifications-panel" @click="toggleNotifications" type="button" class="topbar-icon secondary flat-button" aria-label="Open notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zM10 20h4"/></svg><span v-if="inviteCount" class="room-invite-dot" :aria-label="inviteCount + ' study invitations'"></span></button><details id="account-dropdown" ref="accountMenu" @click="closeFromAction"><summary class="account-trigger"><img class="account-avatar" id="account-avatar" :src="avatarUrl(account?.avatar)" alt="" width="32" height="32"><span id="account-email">{{ account?.display_name || account?.username || account?.email?.split('@')[0] }}</span><span aria-hidden="true">⌄</span></summary><div class="account-menu"><a href="/#/profile">Profile</a><a href="/#/help">Help</a><button id="logout" type="button" :disabled="loggingOut" @click="logout">Log out</button></div></details></div>
   <aside id="pomodoro-alert" v-button-feedback class="pomodoro-alert" aria-label="Pomodoro notification" :hidden="!timerAlert">
     <div role="status" aria-live="polite"><strong>{{ latestAlert?.title }}</strong><p>{{ latestAlert?.message }}</p></div>
     <div class="actions"><a href="/#/pomodoro">Open timer</a><button type="button" class="secondary small" id="dismiss-pomodoro-alert" aria-label="Dismiss timer notification" @click="dismissTimerAlert">Dismiss</button></div>
@@ -120,8 +122,9 @@ async function logout() {
   <Teleport to="body">
     <dialog id="notifications-panel" ref="notifications" v-button-feedback aria-label="Notifications" @close="notificationOpen = false">
       <div class="drawer-heading"><h2>Notifications</h2><button class="secondary small flat-button" aria-label="Close notifications" @click="notifications.close()">×</button></div>
+      <RoomInvitations @count="(invitations,rooms) => { inviteCount = invitations; joinedRoomCount = rooms; }" @navigate="notifications.close()"/>
       <article v-if="latestAlert"><h3>{{ latestAlert.title }}</h3><p>{{ latestAlert.message }}</p><a href="/#/pomodoro" @click="notifications.close()">Open timer</a></article>
-      <div v-else class="notifications-empty"><h3>You’re all caught up</h3><p>Timer updates will appear here.</p></div>
+      <div v-else-if="!inviteCount && !joinedRoomCount" class="notifications-empty"><h3>You’re all caught up</h3><p>Study invitations and timer updates appear here.</p></div>
     </dialog>
   </Teleport>
   <StudyOptions v-if="studyRequest" :request="studyRequest"/>

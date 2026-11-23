@@ -522,12 +522,15 @@ def _save_prepared(session_id, attempt, question_id, content, choices, failure):
             question.back_image = card.back_image
 
 
-def _snapshot(question, card, choices):
-    correct = {"id": str(uuid4()), "text": card.back}
+def shuffled_options(back, choices):
+    correct = {"id": str(uuid4()), "text": back}
     options = [correct, *({"id": str(uuid4()), "text": choice} for choice in choices)]
     random.shuffle(options)
-    question.options = options
-    question.correct_option_id = correct["id"]
+    return options, correct["id"]
+
+
+def _snapshot(question, card, choices):
+    question.options, question.correct_option_id = shuffled_options(card.back, choices)
     question.front = card.front
 
 
