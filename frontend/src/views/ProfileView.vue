@@ -1,6 +1,7 @@
 <script setup>
 import {computed, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
+import {icon} from '../../js/icons.js';
 import {useEvent, useResource} from '../composables/lifecycle.js';
 import {account, updateAccountProfile} from '../services/session.js';
 import {showNotice} from '../services/notice.js';
@@ -9,6 +10,8 @@ import {buttonFeedback as vButtonFeedback} from '../components/ButtonFeedback.js
 import CopyButton from '../components/CopyButton.vue';
 import DeckTile from '../components/DeckTile.vue';
 import ProfileEditor from '../components/ProfileEditor.vue';
+import ProfileAbout from '../components/ProfileAbout.vue';
+import ProfileSettings from '../components/ProfileSettings.vue';
 import ReportProfileDialog from '../components/ReportProfileDialog.vue';
 
 const props = defineProps({username:String});
@@ -37,7 +40,12 @@ async function changeFriendship() {
     } else {
       await api('/friends/requests',{method:'POST',body:{username}});
     }
-    if (active()) profile.value = {...profile.value,friendship:friendship === 'friends' ? 'none' : friendship === 'incoming' ? 'friends' : 'outgoing'};
+    if (!active()) return;
+    profile.value = {...profile.value,friendship:friendship === 'friends' ? 'none' : friendship === 'incoming' ? 'friends' : 'outgoing'};
+    if (friendship === 'incoming') {
+      const latest = await api(path,{signal});
+      if (active()) profile.value = latest;
+    }
   } catch (failure) {
     if (!active()) return;
     if ([0,404,409].includes(failure.status)) {
@@ -75,7 +83,7 @@ function search() { page.value = 1; q.value = input.value.trim(); }
 function saved(data) {
   profile.value = data;
   updateAccountProfile(data);
-  if (editing.value === 'avatar') return;
+  if (editing.value !== 'featured_deck_id') return;
   page.value = 1;
   reload.value++;
 }
@@ -92,13 +100,13 @@ function saved(data) {
       <section class="panel profile-card profile-header" aria-label="Profile">
         <div class="profile-picture-wrap">
           <img class="profile-avatar profile-picture" :src="avatarUrl(profile.avatar)" alt="" width="138" height="138">
-          <button v-if="profile.is_owner" type="button" class="secondary flat-button profile-picture-edit" aria-label="Change profile picture" title="Change profile picture" @click="editing = 'avatar'">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/></svg>
-          </button>
+          <button v-if="profile.is_owner" type="button" class="secondary flat-button profile-picture-edit" aria-label="Change profile picture" title="Change profile picture" @click="editing = 'avatar'" v-html="icon('edit')"></button>
+          <span v-else-if="profile.friendship === 'friends' && typeof profile.online === 'boolean'" class="presence-dot profile-presence"
+            :class="profile.online ? 'online' : 'offline'" role="img" :aria-label="profile.online ? 'Online' : 'Offline'" :title="profile.online ? 'Online' : 'Offline'"></span>
         </div>
         <div class="profile-identity"><h1>{{ profile.display_name }}</h1><p class="profile-username">@{{ profile.username }}</p><p class="muted profile-joined">Joined {{ joined }}</p></div>
         <div class="profile-actions">
-          <button v-if="profile.is_owner" type="button" @click="editing = 'profile'">Edit Profile</button>
+          <button v-if="profile.is_owner" type="button" @click="editing = 'settings'">Settings</button>
           <button type="button" class="secondary flat-button" @click="shareDialog.showModal()">Share Profile</button>
           <button v-if="account && !profile.is_owner" type="button" class="secondary flat-button" @click="reporting = true">Report Profile</button>
           <a v-if="profile.is_owner" href="/#/people" class="button secondary flat-button">Find profiles</a>
@@ -114,18 +122,17 @@ function saved(data) {
       </section>
       <div class="profile-layout">
         <aside class="profile-sidebar">
-          <section class="panel"><h2>About Me</h2><p v-if="profile.bio" class="profile-bio">{{ profile.bio }}</p><p v-else class="muted">No bio yet.</p></section>
-          <section class="panel"><h2>Interests</h2><ul v-if="profile.interest_tags.length" class="profile-tags"><li v-for="tag in profile.interest_tags" :key="tag" class="badge">{{ tag }}</li></ul><p v-else class="muted">No interests listed.</p></section>
+          <ProfileAbout :profile="profile" @saved="saved"/>
         </aside>
         <div class="profile-main">
           <section v-if="profile.featured_deck" class="profile-featured">
-            <div class="section-heading"><h2>Featured deck</h2></div>
+            <div class="section-heading"><h2>Featured deck</h2><button v-if="profile.is_owner" class="secondary flat-button profile-edit-icon" type="button" aria-label="Edit featured deck" @click="editing = 'featured_deck_id'" v-html="icon('edit')"></button></div>
             <DeckTile :deck="profile.featured_deck" shared/>
           </section>
           <section class="profile-public">
-            <div class="section-heading"><h2>Public Decks</h2></div>
+            <div class="section-heading"><h2>Public Decks</h2><button v-if="profile.is_owner && !profile.featured_deck" class="secondary small flat-button" type="button" @click="editing = 'featured_deck_id'">Choose featured deck</button></div>
             <div class="profile-filters">
-              <form role="search" class="new-deck-form" @submit.prevent="search"><div><label for="profile-deck-search">Search decks</label><input id="profile-deck-search" v-model="input" type="search" maxlength="120" placeholder="Search by title…" @search="search"></div><button type="submit" class="secondary flat-button">Search</button></form>
+              <form role="search" class="new-deck-form" @submit.prevent="search"><div><label class="sr-only" for="profile-deck-search">Search decks</label><input id="profile-deck-search" v-model="input" type="search" maxlength="120" placeholder="Search by title…" @search="search"></div><button type="submit" class="secondary flat-button">Search</button></form>
               <div><label for="profile-deck-sort">Sort decks</label><select id="profile-deck-sort" v-model="sort" @change="page = 1"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="alphabetical">Alphabetical</option></select></div>
             </div>
             <p v-if="loading" class="muted" role="status">Loading public decks…</p>
@@ -138,14 +145,15 @@ function saved(data) {
           </section>
         </div>
       </div>
-      <ProfileEditor v-if="editing" :profile="profile" :avatar-only="editing === 'avatar'" @saved="saved" @close="editing = ''"/>
+      <ProfileSettings v-if="editing === 'settings'" :profile="profile" @saved="saved" @close="editing = ''"/>
+      <ProfileEditor v-else-if="editing" :profile="profile" :mode="editing" @saved="saved" @close="editing = ''"/>
       <ReportProfileDialog v-if="reporting" :username="profile.username" @close="reporting = false"/>
       <Teleport to="body">
         <dialog ref="shareDialog" v-button-feedback class="profile-dialog" aria-labelledby="share-profile-title">
           <div class="dialog-heading"><h2 id="share-profile-title">Share Profile</h2><button type="button" class="secondary small flat-button" aria-label="Close share profile" @click="shareDialog.close()">×</button></div>
           <p v-if="profile.visibility === 'private'" class="hint">Your profile is private. Other people won’t be able to open this link.</p>
           <label for="profile-share-link">Profile link</label><input id="profile-share-link" :value="shareLink" readonly>
-          <div class="actions"><CopyButton :value="shareLink">Copy Link</CopyButton></div>
+          <div class="actions"><CopyButton :value="shareLink">Copy Link</CopyButton><button v-if="profile.is_owner" type="button" class="secondary flat-button" @click="shareDialog.close(); editing = 'visibility'">Profile visibility</button></div>
         </dialog>
       </Teleport>
     </template>

@@ -1,9 +1,10 @@
 """Profile presentation, owner preferences, and authenticated reports."""
 from datetime import timedelta
+from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
@@ -12,12 +13,11 @@ from app.auth.service import normalize_display_name
 from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, Friendship, ProfileAvatarChange, ProfileReport, User, utcnow
 from app.services.presenters import iso
+from app.services.presence import online_presence
 
 router = APIRouter(prefix='/api/profiles', tags=['Profiles'])
-INTERESTS = (
-    'Programming', 'Mathematics', 'Science', 'History', 'Languages', 'Engineering',
-    'Literature', 'Art', 'Music', 'Economics', 'Psychology', 'Geography', 'Business',
-)
+INTERESTS = tuple(dict.fromkeys((Path(__file__).resolve().parents[1] / 'interests.txt')
+                                .read_text(encoding='utf-8-sig').splitlines()))
 Avatar = Literal['dog', 'cat', 'chicken', 'duck', 'fox', 'panda', 'cow', 'hamster', 'fish', 'octopus']
 Visibility = Literal['public', 'unlisted', 'private']
 DeckSort = Literal['newest', 'oldest', 'alphabetical']
@@ -29,28 +29,33 @@ REPORT_WINDOW = timedelta(days=1)
 REPORT_LIMIT = 5
 
 
-class AvatarUpdate(BaseModel):
+class ProfileUpdate(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    avatar: Avatar
+    display_name: str | None = Field(default=None, max_length=80)
+    bio: str | None = Field(default=None, max_length=128)
+    interest_tags: list[str] | None = Field(default=None, max_length=5)
+    avatar: Avatar | None = None
+    visibility: Visibility | None = None
+    featured_deck_id: int | None = Field(default=None, ge=1)
 
-
-class ProfileUpdate(AvatarUpdate):
-    display_name: str = Field(max_length=80)
-    bio: str = Field(max_length=200)
-    interest_tags: list[str] = Field(max_length=5)
-    visibility: Visibility
-    featured_deck_id: int | None = Field(ge=1)
+    @model_validator(mode='after')
+    def validate_fields(self):
+        if not self.model_fields_set or any(
+            getattr(self, field) is None for field in self.model_fields_set - {'featured_deck_id'}
+        ):
+            raise ValueError('Send at least one profile field with a valid value.')
+        return self
 
     @field_validator('display_name')
     @classmethod
     def valid_name(cls, value):
-        return normalize_display_name(value)
+        return normalize_display_name(value) if value is not None else value
 
     @field_validator('interest_tags')
     @classmethod
     def valid_tags(cls, values):
-        if any(tag not in INTERESTS for tag in values) or len(set(values)) != len(values):
+        if values is not None and (any(tag not in INTERESTS for tag in values) or len(set(values)) != len(values)):
             raise ValueError('Choose up to five different interests from the list.')
         return values
 
@@ -133,25 +138,28 @@ def featured_options(user: User = Depends(require_user), db: Session = Depends(g
 
 
 @router.patch('/me')
-def update_profile(body: ProfileUpdate | AvatarUpdate, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
+def update_profile(body: ProfileUpdate, user: User = Depends(require_user), db: Session = Depends(get_write_db, scope="function")):
     profile = db.get(User, user.id)
     now = utcnow()
-    if isinstance(body, ProfileUpdate):
-        name_changed = body.display_name != profile.display_name
+    fields = body.model_fields_set
+    if 'display_name' in fields and body.display_name != profile.display_name:
         next_name = name_date(profile)
-        if name_changed and next_name and next_name > now:
+        if next_name and next_name > now:
             raise HTTPException(429, 'Your display name can change once every 14 days.')
+        profile.display_name = body.display_name
+        profile.display_name_changed_at = now
+    if 'featured_deck_id' in fields:
         if body.featured_deck_id is not None and db.scalar(public_decks(profile.id).with_only_columns(
                 Deck.id).where(Deck.id == body.featured_deck_id)) is None:
             raise HTTPException(422, 'Choose one of your public decks to feature.')
-        if name_changed:
-            profile.display_name = body.display_name
-            profile.display_name_changed_at = now
-        profile.bio = body.bio
-        profile.interest_tags = body.interest_tags
-        profile.profile_visibility = body.visibility
         profile.featured_deck_id = body.featured_deck_id
-    if body.avatar != profile.avatar:
+    if 'bio' in fields:
+        profile.bio = body.bio
+    if 'interest_tags' in fields:
+        profile.interest_tags = body.interest_tags
+    if 'visibility' in fields:
+        profile.profile_visibility = body.visibility
+    if 'avatar' in fields and body.avatar != profile.avatar:
         if len(avatar_times(db, profile.id, now)) >= AVATAR_LIMIT:
             raise HTTPException(429, 'You can change your avatar 10 times per hour.')
         db.execute(delete(ProfileAvatarChange).where(ProfileAvatarChange.user_id == profile.id,
@@ -183,6 +191,7 @@ def read_profile(username: str, viewer: User | None = Depends(optional_user), db
             view['friendship'] = 'none'
         elif connection.accepted:
             view['friendship'] = 'friends'
+            view['online'] = bool(db.scalar(select(online_presence(profile.id))))
         else:
             view['friendship'] = 'outgoing' if connection.requester_id == viewer_id else 'incoming'
     return view

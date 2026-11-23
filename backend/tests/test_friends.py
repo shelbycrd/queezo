@@ -51,6 +51,7 @@ def test_friends_consent_presence_and_profile_privacy(anonymous_client):
     friends = client.get('/api/friends').json()
     assert not friends['incoming'] and not friends['outgoing']
     assert [(friend['username'], friend['online']) for friend in friends['friends']] == [('bob', True)]
+    assert client.get('/api/profiles/users/bob').json()['online'] is True
     profile = client.get('/api/friends/bob/profile').json()
     assert set(profile) == {'username', 'display_name', 'public_decks'}
     assert [deck['title'] for deck in profile['public_decks']] == ['public deck']
@@ -58,6 +59,7 @@ def test_friends_consent_presence_and_profile_privacy(anonymous_client):
         db.execute(update(SessionPresence).values(seen_at=utcnow() - timedelta(minutes=3)))
         db.commit()
     assert client.get('/api/friends').json()['friends'][0]['online'] is False
+    assert client.get('/api/profiles/users/bob').json()['online'] is False
 
     login(client, 'carol')
     assert client.get('/api/friends/bob/profile').status_code == 404
@@ -87,6 +89,7 @@ def test_profile_friendship_transitions_and_avatar(anonymous_client):
     login(client, 'alice')
     assert 'friendship' not in client.get(alice_profile).json()
     assert client.get(bob_profile).json()['friendship'] == 'none'
+    assert 'online' not in client.get(bob_profile).json()
     assert client.post('/api/friends/requests', json={'username': 'bob'}).status_code == 204
     assert client.get(bob_profile).json()['friendship'] == 'outgoing'
     assert client.delete(remove_bob).status_code == 404
@@ -98,6 +101,7 @@ def test_profile_friendship_transitions_and_avatar(anonymous_client):
 
     login(client, 'carol')
     assert client.get(bob_profile).json()['friendship'] == 'none'
+    assert 'online' not in client.get(bob_profile).json()
     assert client.delete(remove_bob).status_code == 404
 
     login(client, 'alice')
@@ -108,6 +112,7 @@ def test_profile_friendship_transitions_and_avatar(anonymous_client):
     client.headers['X-CSRF-Token'] = token
     assert client.delete(remove_bob).status_code == 204
     assert client.get(bob_profile).json()['friendship'] == 'none'
+    assert 'online' not in client.get(bob_profile).json()
     assert client.get('/api/friends').json()['friends'] == []
 
     login(client, 'bob')

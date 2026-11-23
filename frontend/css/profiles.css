@@ -36,19 +36,14 @@
 .profile-dialog label, .profile-dialog legend { font-weight: 700; }
 .profile-dialog textarea { resize: vertical; }
 .profile-dialog .hint { margin: 6px 0 0; }
-.profile-edit-fields { display: grid; gap: 15px; }
-.profile-interest-options { display: flex; flex-wrap: wrap; gap: 7px 14px; }
-.profile-interest-options .hint { width: 100%; }
-.profile-interest-options label { display: inline-flex; gap: 5px; align-items: center; font-weight: 500; }
-.profile-interest-options input, .profile-avatar-picker input { width: auto; accent-color: var(--green); }
 .profile-avatar-picker { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 8px; }
 .profile-avatar-picker label { display: grid; justify-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; cursor: pointer; }
+.profile-avatar-picker label:has(input:focus-visible) { outline: 2px solid #4069bb; outline-offset: 3px; }
 .profile-avatar-picker label:has(input:checked) { border-color: #729ce8; background: #eff5ff; }
 .profile-avatar-picker label:has(input:disabled) { opacity: .62; cursor: default; }
 .profile-avatar-picker img, .profile-people img { border-radius: 50%; }
 .profile-people { padding: 0; list-style: none; }
 .profile-people a { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 0; }
-.private-account-settings { margin-top: 18px; }
 @media (max-width: 870px) {
   .profile-layout { grid-template-columns: 1fr; gap: 20px; }
 }
@@ -56,3 +51,46 @@
   .profile-filters { grid-template-columns: 1fr; }
   .profile-dialog { padding: 17px; }
 }
+
+.sidebar-settings img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.profile-picture-wrap .profile-presence { width: 22px; height: 22px; right: 5px; bottom: 5px; border-width: 3px; }
+.profile-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.profile-section-heading h2 { margin: 0; }
+.profile-edit-icon {
+  display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  flex: 0 0 auto; border-radius: 50%;
+}
+.profile-edit-icon svg { width: 16px; height: 16px; }
+.profile-section form .actions { margin-top: 12px; }
+.profile-section textarea { min-height: 90px; resize: vertical; }
+.profile-section .hint { margin-top: 4px; }
+.profile-tag-editor { align-items: center; }
+.profile-tag-editor .badge { display: inline-flex; align-items: center; gap: 3px; }
+.profile-tag-remove,
+.profile-tag-remove:hover { color: #526c96; background: transparent; border: 0; padding: 2px 5px; }
+.profile-interest-input { flex: 1 1 10em; position: relative; min-width: 0; }
+.profile-interest-input input { padding: 7px 10px; }
+.profile-interest-suggestions {
+  position: absolute; z-index: 5; inset: calc(100% + 4px) 0 auto; max-height: 12rem; overflow: auto;
+  list-style: none; margin: 0; padding: 4px; background: #fff; border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--cloud-shadow);
+}
+.profile-interest-suggestions li { padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+.profile-interest-suggestions li:hover, .profile-interest-suggestions [aria-selected=true] { background: #eaf3ff; }
+.profile-settings-rows { margin: 0; }
+.profile-settings-rows > div {
+  display: grid; grid-template-columns: minmax(6rem, .7fr) minmax(0, 1.3fr) 34px;
+  align-items: center; gap: 8px; min-height: 43px; padding: 4px 0; border-top: 1px solid var(--line);
+}
+.profile-settings-rows dt { font-size: .84rem; font-weight: 700; }
+.profile-settings-rows dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.profile-settings-rows dd > small:not(.profile-verification) { display: block; }
+.profile-email { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.profile-email > span { min-width: 0; overflow-wrap: anywhere; }
+.profile-verification { color: #5a6575; background: #eef1f5; padding: 2px 7px; border-radius: 20px; }
+.profile-verification.verified { color: #1c653f; background: #e2f4e9; }
+.profile-settings-form { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 8px; }
+.profile-settings-form fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.profile-settings-form label { margin: 8px 0 4px; }
+.profile-settings-form input { padding: 8px 10px; }
+.settings-error { color: #a03242; margin: 8px 0 0; font-size: .86rem; }

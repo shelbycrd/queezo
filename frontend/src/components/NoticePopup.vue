@@ -1,6 +1,6 @@
 <script setup>
 import {computed, nextTick, ref, watch} from 'vue';
-import {notice, showNotice} from '../services/notice.js';
+import {notice, noticeDuration, showNotice} from '../services/notice.js';
 import {buttonFeedback as vButtonFeedback} from './ButtonFeedback.js';
 const popup = ref();
 const host = ref('body');
@@ -12,7 +12,11 @@ watch(message, async (current, previous, cleanup) => {
   const modal = host.value;
   const close = () => { if (notice.value === current) showNotice(''); };
   modal?.addEventListener?.('close', close, {once:true});
-  cleanup(() => modal?.removeEventListener?.('close', close));
+  const timeout = setTimeout(close,noticeDuration);
+  cleanup(() => {
+    clearTimeout(timeout);
+    modal?.removeEventListener?.('close', close);
+  });
   await nextTick();
   if (notice.value !== current) return;
   popup.value?.showPopover?.();

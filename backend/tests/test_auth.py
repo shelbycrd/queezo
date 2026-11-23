@@ -418,3 +418,35 @@ def test_blocked_ip_random_emails_do_not_grow_throttle_metadata(anonymous_client
     with anonymous_client.factory() as db:
         buckets = {bucket.key: bucket.attempts for bucket in db.scalars(select(LoginThrottle))}
         assert buckets == {ip_key: 30, existing_email_key: 3}
+
+
+def test_password_change_checks_current_password_and_rotates_sessions(anonymous_client):
+    client = anonymous_client
+    provision(client)
+    cookie_name = get_settings().cookie_name
+    login(client)
+    previous = client.cookies[cookie_name]
+    client.cookies.clear()
+    _, account = login(client)
+    original = client.cookies[cookie_name]
+    assert account['email_verified'] is False
+    replacement = 'Different-test-password-51!'
+    body = {'current_password': PASSWORD, 'new_password': replacement, 'confirm_password': replacement}
+    token = client.headers.pop('X-CSRF-Token')
+    assert client.post('/api/auth/password', json=body).status_code == 403
+    client.headers['X-CSRF-Token'] = token
+    assert client.post('/api/auth/password', json={**body, 'current_password': 'Incorrect'}).status_code == 422
+    assert client.post('/api/auth/password', json={**body, 'confirm_password': 'Mismatch'}).status_code == 422
+    changed = client.post('/api/auth/password', json=body)
+    assert changed.status_code == 200
+    current = client.cookies[cookie_name]
+    assert current not in {original, previous}
+    assert client.get('/api/auth/me').json()['csrf_token'] == changed.json()['csrf_token']
+
+    for revoked in (original, previous):
+        client.cookies.clear()
+        client.cookies.set(cookie_name, revoked)
+        assert client.get('/api/auth/me').status_code == 401
+    client.cookies.clear()
+    assert client.post('/api/auth/login', json={'email':'learner@example.com','password':PASSWORD}).status_code == 401
+    login(client, password=replacement)

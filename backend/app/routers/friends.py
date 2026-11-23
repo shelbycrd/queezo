@@ -1,10 +1,9 @@
-from datetime import timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import case, exists, or_, select
+from sqlalchemy import case, or_, select
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
 
@@ -13,6 +12,7 @@ from app.auth.service import normalize_username, reserve_account_action
 from app.database import get_db, get_write_db
 from app.models import AuthSession, Deck, Friendship, SessionPresence, User, utcnow
 from app.routers.profiles import deck_summaries, public_decks
+from app.services.presence import online_presence
 
 router = APIRouter(prefix='/api/friends', tags=['Friends'])
 
@@ -36,12 +36,7 @@ def identity(user):
 
 @router.get('')
 def list_friends(user: User = Depends(require_user), db: Session = Depends(get_db)):
-    now = utcnow()
-    online = exists(
-        select(AuthSession.token_hash).join(SessionPresence)
-        .where(AuthSession.user_id == User.id, AuthSession.expires_at > now,
-               SessionPresence.seen_at > now - timedelta(minutes=2))
-    )
+    online = online_presence(User.id)
     other_id = case((Friendship.first_id == user.id, Friendship.second_id), else_=Friendship.first_id)
     rows = db.execute(
         select(Friendship, User, online.label('online')).join(User, User.id == other_id)

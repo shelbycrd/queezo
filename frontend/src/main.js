@@ -39,8 +39,8 @@ const router = createRouter({history:cleanProfileEntry ? createWebHistory() : cr
   page('/profile','profile',profile,'Profile'),
   page('/u/:username','public-profile',profile,'Profile',{props:true,meta:{guest:true}}),
   page('/people','people',() => import('./views/PeopleView.vue'),'Find profiles',{meta:{guest:true}}),
-  page('/settings','settings',accountPage,'Settings',{props:{section:'settings'}}),
-  page('/help','help',accountPage,'Help',{props:{section:'help'}}),
+  {path:'/settings', redirect:'/profile'},
+  page('/help','help',accountPage,'Help'),
   page('/friend/:username([A-Za-z0-9_]{3,32})','friend',profile,'Profile',{props:true,meta:{back:() => '#/dashboard'}}),
   page('/:pathMatch(.*)*','missing',() => import('./views/NotFound.vue'),'Page not found',{meta:{guest:cleanProfileEntry}}),
 ]});

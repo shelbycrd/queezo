@@ -1,4 +1,5 @@
 from datetime import timezone
+from functools import partial
 
 from anyio import WouldBlock
 from fastapi import APIRouter, Depends, Request, Response
@@ -11,7 +12,7 @@ from app.auth.config import get_settings
 from app.auth.dependencies import check_origin, require_user
 from app.auth.service import (SESSION_SECONDS, DUMMY_HASH, csrf_token, hash_token,
                               hasher, insert_user, new_session, normalize_email, reserve_login_attempt,
-                              verify_password, reserve_signup_attempt, normalize_username,
+                              verify_password, reserve_account_action, reserve_signup_attempt, normalize_username,
                               normalize_display_name, validate_password)
 from app.database import get_db_factory, get_write_db, write_transaction
 from app.models import AuthSession, LoginThrottle, User, utcnow
@@ -20,8 +21,9 @@ router = APIRouter(prefix='/api/auth', tags=['Authentication'])
 
 
 def user_view(user, token):
+    # Queezo does not currently verify email addresses.
     return {'id':user.id, 'uid':user.uid, 'username':user.username, 'display_name':user.display_name,
-            'email':user.email, 'avatar':user.avatar, 'csrf_token':csrf_token(token)}
+            'email':user.email, 'email_verified':False, 'avatar':user.avatar, 'csrf_token':csrf_token(token)}
 
 
 def error(message, status, retry=None):
@@ -131,6 +133,43 @@ def login_account(factory, payload, address, old):
         return rotate_session(db, user, old)
 
 
+def replace_password(user_id, uid, factory, payload, _address, old):
+    if not isinstance(payload, dict) or set(payload) != {'current_password', 'new_password', 'confirm_password'}:
+        return error('Complete all password fields.', 422)
+    current = payload['current_password']
+    try:
+        if not isinstance(current, str) or not 1 <= len(current) <= 1024:
+            raise ValueError('Enter your current password.')
+        replacement = validate_password(payload['new_password'])
+        if replacement != payload['confirm_password']:
+            raise ValueError('Passwords do not match.')
+        if replacement == current:
+            raise ValueError('Choose a different password.')
+    except ValueError as exc:
+        return error(str(exc), 422)
+
+    with write_transaction(factory) as db:
+        retry = reserve_account_action(db, f'password-change:{user_id}', 5)
+        if retry:
+            return error('Too many password change attempts. Try again later.', 429, retry)
+        stored_hash = db.scalar(select(User.password_hash).where(User.id == user_id, User.uid == uid))
+
+    if not stored_hash or not verify_password(stored_hash, current):
+        return error('The current password is incorrect.', 422)
+    new_hash = hasher.hash(replacement)
+
+    with write_transaction(factory) as db:
+        user = db.get(User, user_id)
+        session = db.get(AuthSession, hash_token(old))
+        if not user or user.uid != uid or not session or session.user_id != user_id or session.expires_at <= utcnow():
+            return error('Please log in again to change your password.', 401)
+        if user.password_hash != stored_hash:
+            return error('Your password changed. Try again with your current password.', 409)
+        user.password_hash = new_hash
+        db.execute(delete(AuthSession).where(AuthSession.user_id == user_id))
+        return rotate_session(db, user, None)
+
+
 async def read_json(request):
     if request.headers.get('content-type', '').split(';', 1)[0].strip().lower() != 'application/json':
         return None
@@ -156,6 +195,13 @@ async def login(request: Request, response: Response, factory=Depends(get_db_fac
     if payload is None:
         return login_error()
     return await authenticate(request, response, login_account, factory, payload)
+
+
+@router.post('/password')
+async def change_password(request: Request, response: Response, user: User = Depends(require_user),
+                          factory=Depends(get_db_factory)):
+    operation = partial(replace_password, user.id, user.uid)
+    return await authenticate(request, response, operation, factory, await read_json(request))
 
 
 @router.get('/me')

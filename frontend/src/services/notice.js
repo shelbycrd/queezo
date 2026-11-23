@@ -1,5 +1,6 @@
 import {shallowRef} from 'vue';
 
+export const noticeDuration = 5000;
 export const notice = shallowRef(null);
 export function showNotice(message, success = false) {
   notice.value = message ? {message, success} : null;

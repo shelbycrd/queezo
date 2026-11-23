@@ -206,3 +206,20 @@ def test_report_authorization_limits_and_operator_review(client, monkeypatch, ca
     assert len(json.loads(capsys.readouterr().out)) == 4
     client.cookies.clear()
     assert client.post(report_path,json=body).status_code == 401
+
+
+def test_inline_profile_edits_use_catalog_and_bio_limit(client):
+    endpoint = '/api/profiles/me'
+    original = client.get(endpoint).json()
+    assert 'Cryptography' in original['interests']
+    assert client.patch(endpoint, json={'interest_tags':['Cryptography','Music']}).status_code == 200
+    assert client.patch(endpoint, json={'interest_tags':['Cryptography','Cryptography']}).status_code == 422
+    assert client.patch(endpoint, json={'interest_tags':['Unlisted interest']}).status_code == 422
+    assert client.patch(endpoint, json={'bio':'a' * 128 + ' '}).status_code == 422
+    bio = 'a ' * 64
+    response = client.patch(endpoint, json={'bio':bio})
+    assert response.status_code == 200
+    assert response.json()['bio'] == bio
+    assert response.json()['interest_tags'] == ['Cryptography','Music']
+    assert response.json()['display_name'] == original['display_name']
+    assert response.json()['avatar'] == original['avatar']

@@ -48,6 +48,14 @@ export function initAuthentication(router) {
     channel?.postMessage({type:'changed'});
     await router.replace(typeof target === 'string' && /^\/shared\/[A-Za-z0-9_-]{32,64}$/.test(target) ? target : '/dashboard');
   }
+  async function changePassword(body) {
+    const ticket = ++sequence;
+    const user = await api('/auth/password',{method:'POST',body});
+    if (ticket !== sequence && user.id !== account.value?.id) return;
+    sequence++;
+    adopt(user);
+    channel?.postMessage({type:'refreshed'});
+  }
   async function logout() {
     try {
       await api('/auth/logout', {method:'POST', ignoreUnauthorized:true});
@@ -69,6 +77,10 @@ export function initAuthentication(router) {
   }
   onUnauthorized(expire);
   if (channel) channel.onmessage = ({data}) => {
+    if (data?.type === 'refreshed') {
+      if (account.value) void check();
+      return;
+    }
     if (!['signed-out','changed'].includes(data?.type)) return;
     expire(data.type === 'signed-out' ? 'You have been logged out.' : 'Your account session changed.');
     if (data.type === 'changed') void restore().then(user => {
@@ -79,7 +91,7 @@ export function initAuthentication(router) {
     target.addEventListener(type, check, {signal:events.signal});
   }
   const timer = setInterval(check, 60000);
-  return {restore, authenticate, logout, stop() {
+  return {restore, authenticate, changePassword, logout, stop() {
     events.abort(); channel?.close(); clearInterval(timer); onUnauthorized(() => {});
   }};
 }
