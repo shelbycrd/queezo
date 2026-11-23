@@ -94,3 +94,25 @@ export async function playTimerPress() {
     source.start(now,clip.offset,clip.duration);
   } catch { timerLoad = null; /* Audio never blocks the timer. */ }
 }
+
+let lastChatPop = -Infinity;
+export function playChatPop() {
+  if (!soundsEnabled() || context?.state !== 'running') return;
+  const now = context.currentTime;
+  if (now - lastChatPop < .4) return;
+  try {
+    const tone = context.createOscillator();
+    const volume = context.createGain();
+    tone.frequency.setValueAtTime(680,now);
+    tone.frequency.exponentialRampToValueAtTime(335,now + .065);
+    volume.gain.setValueAtTime(.001,now);
+    volume.gain.linearRampToValueAtTime(.032,now + .009);
+    volume.gain.exponentialRampToValueAtTime(.001,now + .085);
+    tone.connect(volume);
+    volume.connect(context.destination);
+    tone.onended = () => { tone.disconnect(); volume.disconnect(); };
+    tone.start(now);
+    tone.stop(now + .085);
+    lastChatPop = now;
+  } catch { /* Chat remains available when browser audio is blocked. */ }
+}

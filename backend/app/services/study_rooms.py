@@ -2,6 +2,7 @@
 
 import random
 from datetime import timedelta
+from hashlib import sha256
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -136,20 +137,28 @@ def authorized_deck(db, room):
     return None
 
 
+def settings_revision(room):
+    values = (room.host_id, room.deck_id, room.mode, room.seconds, room.share_private)
+    return sha256(repr(values).encode()).hexdigest()
+
+
 def configure(db, room, user_id, settings):
     host_only(room, user_id)
     if room.phase != 'lobby':
         fail(409, 'Return to the lobby before changing settings.')
+    if settings.expected_revision and settings.expected_revision != settings_revision(room):
+        fail(409, 'Room settings changed. Check the latest settings and try again.')
     deck = db.get(Deck, settings.deck_id) if settings.deck_id is not None else None
     if settings.deck_id is not None and (not deck or deck.owner_id is None or
             (deck.owner_id != user_id and deck.visibility != 'public')):
         fail(404, 'Deck not available.')
-    if deck and deck.visibility != 'public' and not settings.share_private:
-        fail(422, 'Authorize sharing this deck with invited room members first.')
-    next_settings = (settings.deck_id, settings.mode, settings.seconds, bool(deck and deck.owner_id == user_id and settings.share_private))
+    # Selecting an owned private or unlisted deck grants access only in this room.
+    share_private = bool(deck and deck.owner_id == user_id and deck.visibility != 'public')
+    next_settings = (settings.deck_id, settings.mode, settings.seconds, share_private)
     if (room.deck_id, room.mode, room.seconds, room.share_private) != next_settings:
         for member, _ in members(db, room):
-            member.ready = False
+            if member.user_id != room.host_id:
+                member.ready = False
     room.deck_id, room.mode, room.seconds, room.share_private = next_settings
     room.deck_owner_id = deck.owner_id if deck else None
     touch(room)
@@ -192,7 +201,10 @@ def start(db, room, user_id):
     active = active_lineup(people, now)
     if blocked := readiness(room, active):
         fail(409, blocked)
-    if db.scalar(select(func.count()).select_from(StudyRoom).where(StudyRoom.phase == 'preparing')) >= MAX_PREPARING:
+    if db.scalar(select(func.count()).select_from(StudyRoom)
+                 .where(StudyRoom.phase.in_(('preparing','waiting','question','reveal')),
+                        select(RoomQuestion.position).where(RoomQuestion.session_id == StudyRoom.session_id,
+                            RoomQuestion.options.is_(None), RoomQuestion.failed.is_(False)).exists())) >= MAX_PREPARING:
         fail(429, 'Room preparation is busy. Try again shortly.')
     cards = list(db.execute(select(Flashcard.id, Flashcard.front, Flashcard.back).where(Flashcard.deck_id == deck.id)))
     if not cards or len(cards) > 150:
@@ -217,12 +229,15 @@ def lobby_view(db, room, viewer_id):
     now = utcnow()
     deck = authorized_deck(db, room)
     people = members(db, room)
-    blockers = readiness(room, active_lineup(people, now)) if room.phase == 'lobby' else None
+    lineup = active_lineup(people, now)
+    guests = [member for member, user in lineup if user.id != room.host_id]
+    blockers = readiness(room, lineup) if room.phase == 'lobby' else None
     count, newest = db.execute(select(func.count(),func.max(RoomInvite.created_at)).where(RoomInvite.room_id == room.id)).one()
     return {
         'id': room.id, 'code': room.id[:8].upper(), 'name': 'Study Room',
-        'phase': room.phase, 'mode': room.mode, 'seconds': room.seconds,
-        'readiness_blocker': blockers, 'invite_revision': [count, iso(newest)],
+        'phase': room.phase, 'mode': room.mode, 'seconds': room.seconds, 'settings_revision': settings_revision(room),
+        'readiness_blocker': blockers, 'readiness': {'ready': sum(member.ready for member in guests), 'total': len(guests)},
+        'invite_revision': [count, iso(newest)],
         'is_host': room.host_id == viewer_id, 'share_private': room.share_private, 'capacity': CAPACITY, 'server_time': iso(now),
         'deck': {'id': deck.id, 'title': deck.title,
                  'card_count': db.scalar(select(func.count()).select_from(Flashcard).where(Flashcard.deck_id == deck.id))}

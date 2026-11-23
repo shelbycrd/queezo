@@ -32,6 +32,7 @@ class SettingsInput(BaseModel):
     mode: Literal['collaborative', 'challenge']
     seconds: int = Field(default=30, ge=10, le=120)
     share_private: bool = False
+    expected_revision: str | None = Field(default=None, min_length=64, max_length=64)
 
 
 class ReadyInput(BaseModel):
@@ -113,6 +114,10 @@ def ready(room_id: UUID, body: ReadyInput, user: User = Depends(require_user),
     room, member = rooms.membership(db, str(room_id), user.id)
     if room.phase != 'lobby':
         rooms.fail(409, 'Ready is only available in the lobby.')
+    if room.host_id == user.id:
+        rooms.fail(403, 'The host does not mark themselves ready.')
+    if member.spectator or not rooms.connected(member, utcnow()):
+        rooms.fail(409, 'Join the lobby as a connected player before marking ready.')
     member.ready = body.ready
     rooms.touch(room)
 
@@ -384,7 +389,7 @@ def leave(room_id: UUID, body: LeaveInput, request: Request, tasks: BackgroundTa
         rooms.fail(422, 'Transfer the room or end it before leaving.')
     db.flush()
     session = db.get(RoomSession, room.session_id) if room.session_id else None
-    if session and room.phase in {'preparing','question','reveal'} and not rooms.authorized_deck(db, room):
+    if session and room.phase in room_study.ACTIVE_PHASES and not rooms.authorized_deck(db, room):
         room_study.finish(room, session, utcnow())
 
 

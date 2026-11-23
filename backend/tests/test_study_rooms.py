@@ -49,7 +49,7 @@ def test_private_lobby_readiness_and_deck_authorization(anonymous_client):
     assert join(bob,path).status_code == join(bob,path).status_code == 204
     assert bob.patch(path + '/settings',json=settings).status_code == 403
     assert alice.patch(path + '/settings',json={**settings,'deck_id':other_deck}).status_code == 404
-    assert alice.patch(path + '/settings',json={**settings,'share_private':False}).status_code == 422
+    assert alice.patch(path + '/settings',json={**settings,'share_private':False}).status_code == 204
     assert alice.patch(path + '/settings',json=settings).status_code == 204
     assert bob.post(path + '/ready',json={'ready':True}).status_code == 204
     assert alice.patch(path + '/settings',json={**settings,'mode':'challenge'}).status_code == 204
@@ -82,6 +82,14 @@ def test_friend_of_friend_invites_are_unique_and_enforce_capacity(anonymous_clie
         assert join(browsers[name],path).status_code == 204
     assert join(browsers['grace'],path).status_code == 409
     assert len(alice.get(path).json()['participants']) == 6
+    assert alice.patch(path + '/settings',json={'deck_id':deck(alice),'mode':'collaborative'}).status_code == 204
+    for name in names[1:-2]:
+        assert browsers[name].post(path + '/ready',json={'ready':True}).status_code == 204
+    assert alice.get(path).json()['readiness'] == {'ready':4,'total':5}
+    assert alice.post(path + '/start').status_code == 409
+    assert browsers['frank'].post(path + '/ready',json={'ready':True}).status_code == 204
+    assert alice.get(path).json()['readiness'] == {'ready':5,'total':5}
+    assert alice.post(path + '/start').status_code == 204
 
 
 def configure_room(alice, bob, path, deck_id, mode='collaborative'):
@@ -420,3 +428,94 @@ def test_room_friends_paginate_and_show_members_and_pending_invites(anonymous_cl
     assert alice.get(endpoint).json()['items'][0]['status'] == 'member'
     assert bob.get(endpoint).json()['items'][0]['username'] == 'alice'
     assert bob.get(path + '/decks').status_code == 403
+
+
+def test_owned_decks_of_all_visibilities_are_selectable_without_granting_deck_access(anonymous_client):
+    from app.models import Deck, Flashcard
+
+    make_users(anonymous_client, ('alice','bob','carol'), [('alice','bob')])
+    alice, bob, carol = map(sign_in, ('alice','bob','carol'))
+    path = make_room(alice)
+    assert join(bob,path).status_code == 204
+    assert alice.post(path + '/ready',json={'ready':True}).status_code == 403
+    for visibility in ('public','unlisted','private'):
+        deck_id = deck(alice,2)
+        assert alice.patch(f'/api/decks/{deck_id}',json={'visibility':visibility}).status_code == 200
+        assert bob.post(path + '/ready',json={'ready':True}).status_code == 204
+        assert alice.patch(path + '/settings',json={'deck_id':deck_id,'mode':'collaborative'}).status_code == 204
+        snapshot = bob.get(path).json()
+        assert snapshot['deck']['id'] == deck_id
+        assert snapshot['readiness'] == {'ready':0,'total':1}
+        assert carol.get(path).status_code == 404
+        assert bob.get(f'/api/decks/{deck_id}').status_code == 404
+        assert bob.patch(f'/api/decks/{deck_id}',json={'title':'Attempt'}).status_code == 404
+        if visibility == 'private':
+            with anonymous_client.factory() as db:
+                token = db.get(Deck,deck_id).share_token
+                card_id = db.scalar(select(Flashcard.id).where(Flashcard.deck_id == deck_id))
+            assert bob.get(f'/api/shared/decks/{token}').status_code == 404
+            assert bob.post(f'/api/shared/decks/{token}/copy').status_code == 404
+            assert bob.patch(f'/api/cards/{card_id}',json={'front':'Attempt'}).status_code == 404
+
+
+def test_room_opens_progressively_and_waits_without_a_challenge_deadline(anonymous_client, monkeypatch):
+    import asyncio
+    from datetime import timedelta
+    from threading import Event
+
+    from app.models import utcnow
+    from app.services import room_study
+
+    release = Event()
+    generated = []
+
+    async def generate(card_id, *args, **kwargs):
+        generated.append(card_id)
+        if len(generated) == 6:
+            while not release.is_set():
+                await asyncio.sleep(.02)
+        return ['Distractor one','Distractor two','Distractor three']
+
+    monkeypatch.setattr(room_study, 'get_or_generate_distractors', generate)
+    make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
+    alice, bob = map(sign_in, ('alice','bob'))
+    path = make_room(alice)
+    configure_room(alice,bob,path,deck(alice,6),mode='challenge')
+    try:
+        view = wait_for_state(alice,path,'question')
+        assert view['session']['position'] == 0
+        assert view['session']['deadline']
+        with anonymous_client.factory() as db:
+            rows = list(db.scalars(select(RoomQuestion).order_by(RoomQuestion.position)))
+            assert len([row for row in rows if row.options]) == 5
+            assert generated[:5] == [row.card_id for row in rows[:5]]
+        for position in range(5):
+            view = wait_for_state(alice,path,'question')
+            assert view['session']['position'] == position
+            option = view['question']['options'][0]['id']
+            assert alice.post(path + '/answer',json=answer_for(view,option)).status_code == 204
+            assert bob.post(path + '/answer',json=answer_for(view,option)).status_code == 204
+            with anonymous_client.factory.begin() as db:
+                db.get(RoomSession,view['session']['id']).deadline = utcnow() - timedelta(seconds=1)
+        stalled = wait_for_state(bob,path,'waiting')
+        assert stalled['session']['position'] == 5
+        assert stalled['session']['deadline'] is None
+        assert 'question' not in stalled
+        release.set()
+        next_view = wait_for_state(bob,path,'question')
+        assert next_view['session']['position'] == 5
+        assert next_view['session']['deadline']
+        assert len(generated) == len(set(generated)) == 6
+    finally:
+        release.set()
+
+
+def test_room_settings_reject_a_stale_revision(anonymous_client):
+    make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
+    alice = sign_in('alice')
+    path = make_room(alice)
+    revision = alice.get(path).json()['settings_revision']
+    settings = {'mode':'challenge','seconds':45,'expected_revision':revision}
+    assert alice.patch(path + '/settings',json=settings).status_code == 204
+    assert alice.patch(path + '/settings',json={**settings,'seconds':70}).status_code == 409
+    assert alice.get(path).json()['seconds'] == 45

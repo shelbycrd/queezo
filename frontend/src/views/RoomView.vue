@@ -2,7 +2,10 @@
 import {computed, nextTick, onScopeDispose, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
 import {useEvent,useLifetime} from '../composables/lifecycle.js';
+import AmbientShapes from '../components/AmbientShapes.vue';
+import RoomLobbyAvatars from '../components/RoomLobbyAvatars.vue';
 import CardContent from '../components/CardContent.vue';
+import CopyButton from '../components/CopyButton.vue';
 import DeckTile from '../components/DeckTile.vue';
 import RoomFriends from '../components/RoomFriends.vue';
 import RoomChat from '../components/RoomChat.vue';
@@ -13,12 +16,33 @@ import {showNotice} from '../services/notice.js';
 const {roomId} = defineProps({roomId:String});
 const path = roomApi(roomId);
 const {signal,active} = useLifetime();
+const savingSettings = ref(false), settingsSaved = ref(false);
+let settingsTimer, draftRevision, lastServerTime = -Infinity;
 const room = ref(null), error = ref(''), pending = ref(false);
 const terminal = ref(false), live = ref(false), selected = ref(null), clock = ref(Date.now()), clockOffset = ref(0);
 const drawer = ref(''), leaveDialog = ref(), leaveStep = ref(0), leaveAction = ref('transfer'), successor = ref('');
 const participantToggle = ref(), chatToggle = ref(), participantClose = ref(), chatClose = ref();
 const decks = ref([]), deckError = ref('');
-const deckId = ref(null), mode = ref('collaborative'), seconds = ref(30), sharePrivate = ref(false);
+const deckId = ref(null), mode = ref('collaborative'), seconds = ref(30);
+const selectedDeck = computed(() => decks.value.find(deck => deck.id === deckId.value));
+const deckTrack = ref(), hasPreviousDeck = ref(false), hasNextDeck = ref(false);
+function trackDecks() {
+  const track = deckTrack.value;
+  hasPreviousDeck.value = Boolean(track && track.scrollLeft > 1);
+  hasNextDeck.value = Boolean(track && track.scrollLeft + track.clientWidth < track.scrollWidth - 2);
+}
+watch(deckTrack, (track, _, cleanup) => {
+  if (!track) return;
+  const observer = new ResizeObserver(trackDecks);
+  observer.observe(track);
+  cleanup(() => observer.disconnect());
+  trackDecks();
+});
+function browseDecks(direction) {
+  const track = deckTrack.value;
+  track?.scrollBy({left:direction * track.clientWidth * .85,
+    behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
 const questionKey = computed(() => room.value?.session ? room.value.session.id + ':' + room.value.session.position : '');
 const submitted = ref(null);
 const locked = computed(() => room.value?.question?.selected_id || (submitted.value?.key === questionKey.value ? submitted.value.option : null));
@@ -26,11 +50,21 @@ watch(questionKey, () => { selected.value = submitted.value = null; });
 const remaining = computed(() => remainingSeconds(room.value?.session?.deadline,clock.value + clockOffset.value));
 const scores = computed(() => Object.fromEntries((room.value?.leaderboard || []).map(row => [row.username,row.score])));
 function updateRoom(state) {
-  clockOffset.value = Date.parse(state.server_time) - Date.now();
+  const serverTime = Date.parse(state.server_time);
+  if (serverTime < lastServerTime) return;
+  lastServerTime = serverTime;
+  clockOffset.value = serverTime - Date.now();
   room.value = state;
   error.value = '';
 }
-const selectedDeck = computed(() => decks.value.find(deck => deck.id === deckId.value));
+function participantStatus(member) {
+  if (!member.connected) return {kind:'disconnected',label:'Disconnected'};
+  if (member.spectator) return {kind:'spectator',label:'Spectating'};
+  if (room.value.phase === 'question') return {kind:member.answered ? 'ready' : 'neutral',label:member.answered ? 'Answered' : 'Answering'};
+  if (room.value.phase !== 'lobby') return {kind:'neutral',label:'Connected'};
+  return member.host ? {kind:'neutral',label:'Ready not required'}
+    : member.ready ? {kind:'ready',label:'Ready'} : {kind:'waiting',label:'Not ready'};
+}
 const participants = computed(() => {
   const people = room.value?.participants || [];
   if (!room.value?.leaderboard) return people;
@@ -39,17 +73,29 @@ const participants = computed(() => {
 });
 const me = computed(() => room.value?.participants.find(member => member.you));
 const settingsChanged = computed(() => room.value && (deckId.value !== (room.value.deck?.id ?? null) ||
-  mode.value !== room.value.mode || seconds.value !== room.value.seconds || sharePrivate.value !== Boolean(room.value.share_private)));
-const canStart = computed(() => !settingsChanged.value && room.value?.deck?.card_count && !room.value.readiness_blocker);
+  mode.value !== room.value.mode || seconds.value !== room.value.seconds));
+const startReason = computed(() => {
+  if (savingSettings.value) return 'Saving room settings…';
+  if (settingsChanged.value) return 'Wait for the room settings to sync.';
+  if (!room.value?.deck?.card_count) return 'Choose a deck with flashcards.';
+  return room.value.readiness_blocker;
+});
 const friendRevision = computed(() => JSON.stringify([room.value?.invite_revision,room.value?.participants.map(member => member.username)]));
-const optionsKey = computed(() => room.value ? JSON.stringify([room.value.deck?.id,room.value.mode,room.value.seconds,room.value.share_private]) : '');
-watch(optionsKey, () => {
+const optionsKey = computed(() => room.value ? JSON.stringify([room.value.deck?.id,room.value.mode,room.value.seconds]) : '');
+function syncSettings() {
   if (!room.value) return;
+  draftRevision = undefined;
   deckId.value = room.value.deck?.id ?? null;
   mode.value = room.value.mode;
   seconds.value = room.value.seconds;
-  sharePrivate.value = Boolean(room.value.share_private);
+}
+watch(optionsKey, (_, previous) => {
+  if (!savingSettings.value && !settingsTimer) syncSettings();
+  if (previous && room.value?.phase === 'lobby' && !room.value.is_host) {
+    showNotice('The host updated the room settings. Readiness was reset.');
+  }
 });
+
 watch(() => room.value?.is_host, async host => {
   if (!host) return;
   try { decks.value = await api(path + '/decks',{signal}); }
@@ -111,18 +157,59 @@ async function act(action,body,method='POST') {
     return false;
   } finally { pending.value = false; }
 }
-function selectDeck(id) {
-  if (deckId.value === id) return;
+async function saveSettings() {
+  clearTimeout(settingsTimer);
+  settingsTimer = null;
+  if (!room.value?.is_host || room.value.phase !== 'lobby' || savingSettings.value || !settingsChanged.value) return;
+  if (!Number.isInteger(seconds.value) || seconds.value < 10 || seconds.value > 120) {
+    syncSettings();
+    showNotice('Enter 10–120 seconds per question.');
+    return;
+  }
+  savingSettings.value = true;
+  settingsSaved.value = false;
+  try {
+    await api(path + '/settings',{method:'PATCH',signal,body:{
+      deck_id:deckId.value,mode:mode.value,seconds:seconds.value,expected_revision:draftRevision ?? room.value.settings_revision,
+    }});
+    const latest = await api(path,{signal});
+    if (active()) {
+      updateRoom(latest);
+      settingsSaved.value = true;
+    }
+  } catch (failure) {
+    if (active()) {
+      showNotice(failure.message);
+      try { updateRoom(await api(path,{signal})); } catch { /* Restore the last confirmed settings. */ }
+    }
+  } finally {
+    if (active()) syncSettings();
+    savingSettings.value = false;
+  }
+}
+function beginSettingsEdit() {
+  if (!settingsChanged.value) draftRevision = room.value.settings_revision;
+}
+function changeDeck(id) {
+  beginSettingsEdit();
   deckId.value = id;
-  sharePrivate.value = false;
+  void saveSettings();
 }
-function saveSettings() {
-  return act('settings',{deck_id:deckId.value,mode:mode.value,seconds:seconds.value,share_private:sharePrivate.value},'PATCH');
+function changeMode(event) {
+  beginSettingsEdit();
+  mode.value = event.target.value;
+  void saveSettings();
 }
-function choose(option) {
-  if (room.value.mode === 'challenge') selected.value = option;
-  else void answer(option);
+function changeTimer(event) {
+  beginSettingsEdit();
+  seconds.value = event.target.valueAsNumber;
+  settingsSaved.value = false;
+  clearTimeout(settingsTimer);
+  if (Number.isInteger(seconds.value) && seconds.value >= 10 && seconds.value <= 120) {
+    settingsTimer = setTimeout(saveSettings,300);
+  } else settingsTimer = null;
 }
+
 async function answer(option) {
   const {session} = room.value, key = questionKey.value;
   if (await act('answer',{session_id:session.id,position:session.position,option_id:option}) && key === questionKey.value) {
@@ -149,14 +236,19 @@ function connect() {
 void refresh();
 connect();
 const ticker = setInterval(() => { clock.value = Date.now(); },250);
-onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(ticker); });
+onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearTimeout(settingsTimer); clearInterval(ticker); });
 </script>
 
 <template>
   <section class="room-page">
     <div v-if="!room" class="panel"><p role="status">{{ error || 'Opening study room…' }}</p><a class="button secondary flat-button" href="/#/dashboard">Return home</a></div>
     <template v-else>
-      <header class="panel room-heading"><div><h1>{{ room.name }} <small>{{ room.code }}</small></h1><p>{{ roomModes[room.mode] }}</p></div><button type="button" class="secondary flat-button" @click="requestLeave">Leave</button></header>
+      <header class="panel room-heading">
+        <div><div class="room-heading-title"><h1>{{ participants.find(member => member.host)?.display_name || 'Study' }}'s Room</h1><span class="badge room-code">{{ room.code }}</span><CopyButton :value="room.code">Copy code</CopyButton></div>
+          <p>{{ roomModes[room.mode] }} Session</p></div>
+        <div class="room-heading-actions"><small v-if="!live" class="room-connection" role="status">Reconnecting…</small>
+          <button type="button" class="danger flat-button room-leave" @click="requestLeave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H5v16h6m2-8h8m-3-3 3 3-3 3"/></svg>Leave Room</button></div>
+      </header>
       <div class="room-mobile-actions">
         <button ref="participantToggle" type="button" class="secondary flat-button small" aria-controls="room-participants" :aria-expanded="drawer === 'participants'" @click="openDrawer('participants')">Participants</button>
         <button ref="chatToggle" type="button" class="secondary flat-button small" aria-controls="room-chat" :aria-expanded="drawer === 'chat'" @click="openDrawer('chat')">Chat</button>
@@ -164,45 +256,73 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(t
       <button v-if="drawer" class="room-drawer-scrim" type="button" tabindex="-1" aria-label="Close room drawer" @click="closeDrawer"></button>
       <div class="room-layout">
         <section class="panel room-study">
+          <AmbientShapes/>
           <template v-if="room.phase === 'lobby'">
-            <h2>Lobby</h2>
-            <p v-if="room.deck">{{ room.deck.title }} · {{ room.deck.card_count }} questions</p>
-            <p v-else class="muted">Waiting for the host to select a deck.</p>
-            <form v-if="room.is_host" class="room-setup" @submit.prevent="saveSettings">
-              <fieldset class="room-deck-selector">
-                <legend>Study deck</legend>
-                <div v-if="decks.length" class="room-deck-track" aria-label="Available study decks" tabindex="0">
-                  <DeckTile v-for="deck in decks" :key="deck.id" :deck="deck" selectable :selected="deckId === deck.id"
-                    @select="selectDeck(deck.id)"/>
+            <div v-if="room.is_host" class="room-setup">
+              <div class="room-setup-scroll">
+                <h2>Lobby</h2>
+                <p v-if="room.deck" class="room-current-deck"><strong>{{ room.deck.title }}</strong> · {{ room.deck.card_count }} {{ room.deck.card_count === 1 ? 'flashcard' : 'flashcards' }}</p>
+                <p v-else class="muted">Choose a deck for this session.</p>
+                <section class="room-deck-selector" aria-labelledby="room-deck-heading">
+                  <div class="room-deck-heading"><h3 id="room-deck-heading">Study deck</h3><div class="room-deck-arrows">
+                    <button type="button" class="secondary flat-button" aria-label="Previous decks" :disabled="!hasPreviousDeck" @click="browseDecks(-1)">‹</button>
+                    <button type="button" class="secondary flat-button" aria-label="Next decks" :disabled="!hasNextDeck" @click="browseDecks(1)">›</button>
+                  </div></div>
+                  <div v-if="decks.length" ref="deckTrack" class="room-deck-track" aria-label="Available study decks" tabindex="0" @scroll="trackDecks">
+                    <DeckTile v-for="deck in decks" :key="deck.id" :deck="deck" selectable :selected="deckId === deck.id" :selection-disabled="savingSettings || pending" @select="changeDeck(deck.id)"/>
+                  </div>
+                  <p v-else-if="deckError" role="alert">{{ deckError }}</p>
+                  <p v-else class="muted">No decks available to select.</p>
+                </section>
+                <p v-if="selectedDeck && selectedDeck.visibility !== 'public'" class="hint room-deck-access">Invited members can study this deck in this room.</p>
+                <div class="room-mode-settings">
+                  <label for="room-mode">Study mode</label><select id="room-mode" :value="mode" :disabled="savingSettings || pending" @change="changeMode"><option value="collaborative">Collaborative</option><option value="challenge">Challenge</option></select>
+                  <template v-if="mode === 'challenge'"><label for="room-seconds">Seconds per question</label><input id="room-seconds" :value="Number.isNaN(seconds) ? '' : seconds" type="number" min="10" max="120" :disabled="savingSettings || pending" @input="changeTimer" @change="saveSettings"></template>
                 </div>
-                <p v-else-if="!deckError" class="muted">No decks available to select.</p>
-              </fieldset>
-              <p v-if="deckError" role="alert">{{ deckError }}</p>
-              <label v-if="selectedDeck && selectedDeck.visibility !== 'public'" class="room-check"><input v-model="sharePrivate" type="checkbox"> Allow invited room members to study this deck</label>
-              <label for="room-mode">Study mode</label><select id="room-mode" v-model="mode"><option value="collaborative">Collaborative</option><option value="challenge">Challenge</option></select>
-              <template v-if="mode === 'challenge'"><label for="room-seconds">Seconds per question</label><input id="room-seconds" v-model.number="seconds" type="number" min="10" max="120" required></template>
-              <div class="actions"><button class="secondary flat-button" type="submit" :disabled="pending">Save settings</button><button type="button" :disabled="pending || !canStart" @click="act('start')">Start study</button></div>
-            </form>
-            <button v-else type="button" :disabled="pending" @click="act('ready',{ready:!me?.ready})">{{ me?.ready ? 'Not Ready' : 'Ready' }}</button>
-            <p class="hint">{{ room.readiness_blocker || 'All connected participants are ready to start.' }}</p>
+                <RoomLobbyAvatars :participants="participants" compact/>
+              </div>
+              <div class="room-lobby-footer">
+                <p v-if="startReason" id="room-start-reason" class="hint">{{ startReason }}</p>
+                <div class="actions"><button type="button" :disabled="pending || Boolean(startReason)" :aria-describedby="startReason ? 'room-start-reason' : undefined" @click="act('start')">Start study</button>
+                  <small v-if="savingSettings || settingsSaved" class="muted" role="status">{{ savingSettings ? 'Saving…' : 'Saved' }}</small></div>
+              </div>
+            </div>
+            <section v-else class="room-guest-lobby">
+              <template v-if="room.deck">
+                <h2>Lobby</h2>
+                <div class="room-deck-preview"><DeckTile :deck="room.deck" preview/></div>
+                <p>{{ roomModes[room.mode] }}<span v-if="room.mode === 'challenge'"> · {{ room.seconds }} s per question</span></p>
+              </template>
+              <p class="room-waiting-label">Waiting for all connected participants except the host to be ready.</p>
+              <RoomLobbyAvatars :participants="participants"/>
+              <button v-if="me?.connected && !me.spectator" type="button" class="room-ready-button"
+                :disabled="pending" :aria-pressed="me.ready" @click="act('ready',{ready:!me.ready})">{{ me.ready ? 'Not Ready' : 'Ready' }}</button>
+            </section>
           </template>
-          <section v-else-if="room.phase === 'preparing'" aria-live="polite">
-            <h2>Preparing questions</h2>
-            <p>{{ room.session.prepared }} / {{ room.session.total }} processed</p>
-            <progress :value="room.session.prepared" :max="room.session.total" aria-label="Questions processed"></progress>
+          <section v-else-if="room.phase === 'preparing' || room.phase === 'waiting'" class="room-loading" aria-live="polite">
+            <h2>{{ room.phase === 'waiting' ? 'Loading the next question…' : 'Getting the session ready…' }}</h2>
           </section>
-          <template v-else-if="room.question">
-            <div class="room-round-heading"><h2>Question {{ room.session.position + 1 }} of {{ room.session.total }}</h2><strong v-if="remaining !== null" role="timer">{{ remaining }}s</strong></div>
-            <p v-if="me.spectator" class="muted">Spectating until the next session.</p>
-            <CardContent :text="room.question.front" :image="room.question.front_image" alt="Question photo"/>
+          <section v-else-if="room.question" class="room-round">
+            <div class="room-round-header">
+              <div class="room-round-heading"><h2>Question {{ room.session.position + 1 }} of {{ room.session.total }}</h2>
+                <strong v-if="room.mode === 'challenge' && room.phase === 'question' && remaining !== null" class="study-clock room-clock" role="timer" aria-label="Time remaining">{{ remaining }}s</strong></div>
+              <progress :value="room.session.position + (room.phase === 'reveal' ? 1 : 0)" :max="room.session.total" aria-label="Question progress"></progress>
+              <p v-if="me.spectator" class="muted">Spectating until the next session.</p>
+            </div>
+            <div class="room-round-content">
+              <article class="study-sheet mc-question room-question" :key="questionKey"><section class="study-question">
+                <CardContent :text="room.question.front" :image="room.question.front_image" alt="Question photo"/>
+              </section></article>
+            </div>
+            <div class="room-round-controls">
             <div class="mc-options room-options" aria-label="Answer choices" role="group">
               <button v-for="option in room.question.options" :key="option.id" type="button" class="mc-option flat-button"
-                :aria-pressed="room.mode === 'challenge' ? option.id === (locked || selected) : undefined" :class="{'is-selected':room.phase === 'question' && option.id === (locked || selected),'mc-correct':option.id === room.question.correct_id,'mc-incorrect':room.question.correct_id && room.question.selected_id === option.id && option.id !== room.question.correct_id}"
-                :disabled="room.phase !== 'question' || me.spectator || Boolean(locked) || pending || (room.mode === 'challenge' && remaining === 0)" @click="choose(option.id)">
+                :aria-pressed="option.id === (locked || selected)" :class="{'is-selected':room.phase === 'question' && option.id === (locked || selected),'mc-correct':option.id === room.question.correct_id,'mc-incorrect':room.question.correct_id && room.question.selected_id === option.id && option.id !== room.question.correct_id}"
+                :disabled="room.phase !== 'question' || me.spectator || Boolean(locked) || pending || (room.mode === 'challenge' && remaining === 0)" @click="selected = option.id">
                 <span class="mc-option-text">{{ option.text }}</span>
               </button>
             </div>
-            <button v-if="room.phase === 'question' && room.mode === 'challenge' && !me.spectator && !locked" type="button" :disabled="!selected || pending || remaining === 0" @click="answer(selected)">Lock In</button>
+            <button v-if="room.phase === 'question' && !me.spectator && !locked" type="button" :disabled="!selected || pending || remaining === 0" @click="answer(selected)">{{ room.mode === 'challenge' ? 'Lock In' : 'Submit Answer' }}</button>
             <p v-if="room.phase === 'question' && locked" role="status">Answer locked. Waiting for other participants.</p>
             <div v-if="room.phase === 'reveal'">
               <button v-if="room.mode === 'collaborative' && room.is_host" class="secondary flat-button small" type="button" :disabled="pending" @click="act('pause',{paused:!room.session.paused})">{{ room.session.paused ? 'Resume' : 'Pause for discussion' }}</button>
@@ -212,7 +332,8 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(t
               <p v-if="room.mode === 'collaborative'">{{ room.question.responses.filter(response => response.correct).length }} / {{ room.question.responses.length }} correct this round</p>
               <ul v-if="room.mode === 'collaborative'" class="room-results"><li v-for="response in room.question.responses" :key="response.username"><strong>{{ response.display_name }}</strong> · <template v-if="response.option_id">{{ room.question.options.find(option => option.id === response.option_id)?.text }} · {{ response.correct ? 'Correct' : 'Incorrect' }}</template><template v-else>No answer</template></li></ul>
             </div>
-          </template>
+            </div>
+          </section>
           <p v-else-if="room.phase === 'question' || room.phase === 'reveal'" role="status">Access to this deck changed. The session is ending.</p>
           <section v-else-if="room.phase === 'results'">
             <h2>Session results</h2>
@@ -224,20 +345,26 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearInterval(t
             </template>
             <button v-if="room.is_host" type="button" :disabled="pending" @click="act('lobby')">Return to lobby</button>
           </section>
-          <p v-if="error" role="alert">{{ error }}</p><p v-else-if="!live" class="hint" role="status">Connecting to live updates…</p>
+          <p v-if="error" role="alert">{{ error }}</p>
         </section>
         <div class="room-side">
         <aside id="room-participants" class="panel room-participants room-drawer" :class="{'drawer-open':drawer === 'participants'}">
           <div class="room-panel-heading"><h2>Participants <small>{{ room.participants.length }} / {{ room.capacity }}</small></h2><button ref="participantClose" type="button" class="secondary flat-button small room-drawer-close" aria-label="Close participants" @click="closeDrawer">×</button></div>
-          <ul><li v-for="member in participants" :key="member.username">
-            <img :src="avatarUrl(member.avatar)" width="36" height="36" alt="">
-            <div><strong>{{ member.display_name }}</strong><small>{{ member.host ? 'Host · ' : '' }}{{ !member.connected ? 'Disconnected' : member.spectator ? 'Spectating' : room.phase === 'question' ? (member.answered ? 'Answered' : 'Answering') : member.host ? 'Ready not required' : member.ready ? 'Ready' : 'Not Ready' }}</small></div><span v-if="room.mode === 'challenge' && room.session && !member.spectator" class="room-score">{{ scores[member.username] ?? 0 }} pts</span>
-          </li></ul>
+          <p v-if="room.phase === 'lobby'" class="room-ready-count muted" aria-live="polite">{{ room.readiness.ready }} of {{ room.readiness.total }} guests ready</p>
+          <ul class="room-member-list">
+            <li v-for="member in participants" :key="member.username">
+              <img :src="avatarUrl(member.avatar)" width="34" height="34" alt="">
+              <div class="room-member-text"><strong>{{ member.display_name }}</strong><span v-if="member.host" class="badge room-host-badge">Host</span>
+                <small class="room-member-status" :class="'is-' + participantStatus(member).kind">{{ participantStatus(member).label }}</small></div>
+              <span v-if="room.mode === 'challenge' && room.session && !member.spectator" class="room-score">{{ scores[member.username] ?? 0 }} pts</span>
+            </li>
+          </ul>
           <RoomFriends :path="path" :revision="friendRevision" :full="room.participants.length >= room.capacity"/>
         </aside>
         <aside id="room-chat" class="panel room-chat room-drawer" :class="{'drawer-open':drawer === 'chat'}">
-          <div class="room-panel-heading"><h2>Room Chat</h2><button ref="chatClose" type="button" class="secondary flat-button small room-drawer-close" aria-label="Close chat" @click="closeDrawer">×</button></div>
-          <RoomChat :messages="room.chat || []" :path="path" :visible="drawer === 'chat'"/>
+          <RoomChat :messages="room.chat || []" :path="path" :visible="drawer === 'chat'" :username="me?.username">
+            <button ref="chatClose" type="button" class="secondary flat-button small room-drawer-close" aria-label="Close chat" @click="closeDrawer">×</button>
+          </RoomChat>
         </aside>
         </div>
       </div>

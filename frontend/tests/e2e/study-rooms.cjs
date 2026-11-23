@@ -36,12 +36,26 @@ async function call(context, method, path, data, csrf, expected) {
         await call(context,'POST','/friends/requests/' + aName + '/respond',{decision:'accept'},buddy.csrf_token,204);
       } finally { await context.close(); }
     }
+    for (let index = 1; index <= 6; index++) {
+      await call(host,'POST','/decks',{title:'Carousel deck ' + index},hostToken,201);
+    }
     const deck = await call(host,'POST','/decks',{title:'Browser room deck'},hostToken,201);
     for (const name of ['Neptune','Venus','Mercury','Saturn']) {
       await call(host,'POST','/decks/' + deck.id + '/cards',{front:'Choose ' + name,back:name},hostToken,201);
     }
     const hostPage = await host.newPage();
     const guestPage = await guest.newPage();
+    for (const page of [hostPage,guestPage]) {
+      await page.addInitScript(() => {
+        window.chatSounds = 0;
+        if (!window.AudioContext) return;
+        const create = AudioContext.prototype.createOscillator;
+        AudioContext.prototype.createOscillator = function () {
+          window.chatSounds++;
+          return create.call(this);
+        };
+      });
+    }
     let frames = 0;
     for (const page of [hostPage,guestPage]) page.on('websocket', socket => {
       if (socket.url().endsWith('/live')) socket.on('framereceived', () => frames++);
@@ -62,9 +76,15 @@ async function call(context, method, path, data, csrf, expected) {
     await hostPage.getByRole('button',{name:'Invite to Study'}).click();
     await hostPage.getByRole('heading',{name:'Lobby'}).waitFor();
     assert.equal(await hostPage.locator('.site-header').isVisible(),false);
+    await hostPage.getByRole('heading',{name:"Alice's Room"}).waitFor();
+    assert.equal(await hostPage.locator('.ambient-shapes').count(),1);
+    assert.equal(await hostPage.locator('.room-study > .ambient-shapes').count(),1);
+    await hostPage.emulateMedia({reducedMotion:'reduce'});
+    assert.equal(await hostPage.locator('.ambient-shapes').isVisible(),false);
+    await hostPage.emulateMedia({reducedMotion:'no-preference'});
     await guestPage.locator('.room-invite-count').filter({hasText:/^1$/}).waitFor({timeout:3500});
     await guestPage.getByRole('button',{name:'Accept',exact:true}).click();
-    await guestPage.getByRole('heading',{name:'Lobby'}).waitFor();
+    await guestPage.getByText('Waiting for all connected participants except the host to be ready.').waitFor();
 
     assert.equal(await guestPage.getByRole('button',{name:'Select Browser room deck'}).count(),0);
     for (const page of [hostPage,guestPage]) {
@@ -77,55 +97,94 @@ async function call(context, method, path, data, csrf, expected) {
     assert.equal(study.y,participants.y);
     assert.ok(Math.abs(study.y + study.height - chat.y - chat.height) < 1);
     await hostPage.locator('.room-invite-friends summary').click();
-    await hostPage.getByRole('button',{name:'In this room · Bob'}).waitFor();
+    await hostPage.getByRole('button',{name:'Already Joined · Bob'}).waitFor();
     await hostPage.getByRole('button',{name:'Next',exact:true}).click();
     await hostPage.getByRole('button',{name:'Invite · Buddy 4',exact:true}).click();
     await hostPage.getByRole('button',{name:'Invited · Buddy 4',exact:true}).waitFor();
     assert.equal(await hostPage.getByRole('button',{name:'Invited · Buddy 4',exact:true}).isDisabled(),true);
     await hostPage.getByRole('button',{name:'Previous',exact:true}).click();
-    await hostPage.getByRole('button',{name:'In this room · Bob'}).waitFor();
+    await hostPage.getByRole('button',{name:'Already Joined · Bob'}).waitFor();
+
+    const waiting = await guestPage.locator('.room-guest-lobby').boundingBox();
+    const guestStudy = await guestPage.locator('.room-study').boundingBox();
+    assert.ok(Math.abs(waiting.y + waiting.height / 2 - guestStudy.y - guestStudy.height / 2) < 3);
+    await guestPage.locator('.room-guest-lobby').getByRole('button',{name:'Ready',exact:true}).click();
+    await hostPage.getByText('1 of 1 guests ready').waitFor();
+    await guestPage.locator('.room-lobby-avatars .ready').getByText('Bob').waitFor();
+
+    const nextDecks = hostPage.getByRole('button',{name:'Next decks'});
+    await nextDecks.click();
+    await hostPage.waitForFunction(() => document.querySelector('.room-deck-track').scrollLeft > 10);
+    assert.equal(await hostPage.evaluate(() => scrollX + scrollY),0);
+    const footer = await hostPage.locator('.room-lobby-footer').boundingBox();
+    assert.ok(Math.abs(study.y + study.height - footer.y - footer.height) < 20);
 
     const deckOption = hostPage.getByRole('button',{name:'Select Browser room deck'});
     await deckOption.click();
     assert.equal(await deckOption.getAttribute('aria-pressed'),'true');
-    await hostPage.getByLabel('Allow invited room members to study this deck').check();
     await hostPage.getByLabel('Study mode').selectOption('challenge');
-    await hostPage.getByRole('button',{name:'Save settings'}).click();
-    await guestPage.getByText('Browser room deck · 4 questions').waitFor();
+    assert.equal(await hostPage.getByRole('button',{name:'Save settings'}).count(),0);
+    await hostPage.getByLabel('Seconds per question').fill('35');
+    await guestPage.getByText('Challenge · 35 s per question').waitFor();
+    await guestPage.locator('.room-deck-preview').getByRole('heading',{name:'Browser room deck'}).waitFor();
+    await guestPage.getByText('The host updated the room settings. Readiness was reset.').waitFor();
     assert.equal(await hostPage.getByRole('button',{name:'Ready',exact:true}).count(),0);
     assert.equal(await hostPage.getByRole('button',{name:'Start study'}).isDisabled(),true);
-    await guestPage.getByRole('button',{name:'Ready',exact:true}).click();
+    await hostPage.getByText('0 of 1 guests ready').waitFor();
+    assert.equal(await guestPage.locator('#room-participants').getByRole('button',{name:'Ready',exact:true}).count(),0);
+    await guestPage.locator('.room-guest-lobby').getByRole('button',{name:'Ready',exact:true}).click();
     await hostPage.getByRole('button',{name:'Start study'}).click();
     await hostPage.getByRole('heading',{name:'Question 1 of 4'}).waitFor({timeout:35000});
     await guestPage.getByRole('heading',{name:'Question 1 of 4'}).waitFor();
     const hostOptions = await hostPage.locator('.room-options button').allTextContents();
     assert.deepEqual(hostOptions,await guestPage.locator('.room-options button').allTextContents());
     assert.equal(hostOptions.length,4);
+    const desktop = await hostPage.locator('.room-options button').evaluateAll(options => options.map(el => el.getBoundingClientRect().y));
+    const mobile = await guestPage.locator('.room-options button').evaluateAll(options => options.map(el => el.getBoundingClientRect().y));
+    assert.equal(new Set(desktop).size,1);
+    assert.equal(new Set(mobile).size,4);
+    assert.ok(await guestPage.evaluate(() => document.documentElement.scrollHeight <= innerHeight));
+    await hostPage.getByRole('button',{name:'Enter Chat'}).click();
     await guestPage.locator('.room-options button').first().click();
     await guestPage.getByRole('button',{name:'Chat',exact:true}).click();
+    assert.equal(await guestPage.getByRole('textbox',{name:'Chat message'}).count(),0);
+    await guestPage.getByRole('button',{name:'Enter Chat'}).click();
     await guestPage.getByRole('textbox',{name:'Chat message'}).fill('Test room chat');
     await guestPage.getByRole('button',{name:'Send',exact:true}).click();
-    await hostPage.getByText('Test room chat',{exact:true}).waitFor();
+    await hostPage.getByText('Test room chat').waitFor();
+    await hostPage.waitForFunction(() => window.chatSounds === 1);
+    assert.equal(await guestPage.evaluate(() => window.chatSounds),0);
+    await hostPage.getByRole('button',{name:'Mute',exact:true}).click();
+    await guestPage.getByRole('textbox',{name:'Chat message'}).fill('Muted message');
+    await guestPage.getByRole('button',{name:'Send',exact:true}).click();
+    await hostPage.getByText('Muted message').waitFor();
+    assert.equal(await hostPage.evaluate(() => window.chatSounds),1);
     await guestPage.getByRole('button',{name:'Close chat'}).click();
     assert.equal(await guestPage.locator('.room-options button').first().getAttribute('aria-pressed'),'true');
     await guestPage.getByRole('button',{name:'Lock In'}).click();
     await guestPage.getByText('Answer locked. Waiting for other participants.').waitFor();
     await guestPage.reload();
+    await guestPage.getByRole('button',{name:'Chat',exact:true}).click();
+    assert.equal(await guestPage.getByRole('button',{name:'Enter Chat'}).count(),0);
+    await guestPage.getByText('Test room chat').waitFor();
+    assert.equal(await guestPage.evaluate(() => window.chatSounds),0);
+    await guestPage.getByRole('button',{name:'Close chat'}).click();
     await guestPage.getByText('Answer locked. Waiting for other participants.').waitFor();
     await hostPage.locator('.room-options button').first().click();
     await hostPage.getByRole('button',{name:'Lock In'}).click();
     await hostPage.getByRole('list',{name:'Round leaderboard'}).waitFor();
     await guestPage.getByRole('list',{name:'Round leaderboard'}).waitFor();
     assert.ok(frames > 3,'WebSocket frames received through Nginx');
-    await hostPage.getByRole('button',{name:'Leave',exact:true}).click();
+    await hostPage.getByRole('button',{name:'Leave Room',exact:true}).click();
     await hostPage.getByRole('button',{name:'Continue',exact:true}).click();
     await hostPage.getByLabel('New host').selectOption(bName);
     await hostPage.getByRole('button',{name:'Transfer and leave',exact:true}).click();
     await hostPage.getByRole('heading',{name:'Home',exact:true}).waitFor();
     await guestPage.getByRole('button',{name:'Participants',exact:true}).click();
-    await guestPage.locator('#room-participants').getByText(/^Host/).waitFor();
+    await guestPage.locator('#room-participants').getByText('Host',{exact:true}).waitFor();
+    await guestPage.getByRole('heading',{name:"Bob's Room"}).waitFor();
     await guestPage.getByRole('button',{name:'Close participants'}).click();
-    await guestPage.getByRole('button',{name:'Leave',exact:true}).click();
+    await guestPage.getByRole('button',{name:'Leave Room',exact:true}).click();
     await guestPage.getByRole('button',{name:'Continue',exact:true}).click();
     await guestPage.getByRole('radio',{name:'End Room',exact:true}).check();
     await guestPage.getByRole('button',{name:'End Room',exact:true}).click();
