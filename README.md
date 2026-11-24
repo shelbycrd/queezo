@@ -93,6 +93,3 @@ Start a focus session and track your progress through the study and break cycle.
 - [Vue development and migration verification](docs/VUE_MIGRATION.md).
 - [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/public/assets/README.md).
 
-## License
-
-The repository does not contain a project-wide license. The bundled Quicksand font has its own [SIL Open Font License](frontend/public/assets/fonts/OFL-Quicksand.txt).
