@@ -21,18 +21,28 @@ Format-based retries are limited to short, bare lowercase Latin input with keybo
 
 Each attempt has a 60-second deadline, with a five-second connection timeout. The service makes at most three attempts. It retries insufficient candidates, invalid responses, and transient request failures. A failed connection, invalid configuration, or permanent HTTP rejection stops that card's attempts early. If Ollama falls short, `DistractorGenerationError.candidates` carries any validated candidates already collected.
 
-## SQLite cache
+## Shared SQLite cache
 
-Call `await get_or_generate_distractors(card_id, user)` from `app.services.distractor_cache` with the authenticated `User`. The service looks up an owner-scoped cache before calling Ollama. This scope also applies to publicly shared decks. Creating a flashcard does not generate choices.
+Owned-deck solo study, signed-in practice from a public or unlisted share link, and Study Rooms use the same cache. Each flashcard ID has at most one stored entry, independent of who studies it. A saved copy has new card IDs. Creating a card never calls Ollama.
 
-When Ollama provides fewer than three valid choices, the service keeps them and randomly fills the remaining slots from distinct Back answers in the same deck. It excludes the current card and comparisons equivalent to its Back or a choice already selected. A deck can supply all three distractors while Ollama is offline if it has three other eligible answers. If the combined pool is too small, new preparations report the model's last outcome and save no incomplete cache entry. A usable response with too few distinct choices reports `insufficient_distractors`. Normalized text checks can catch exact equivalents, and both AI-generated and deck-derived answers can be ambiguous in context.
+The cache stores three plain-text choices in a SQLite JSON array, the exact Front/Back SHA-256 fingerprint, the model tag, generation version, source, and timestamps.
 
-Each flashcard has at most one row in `flashcard_distractor_cache` with three choices, a SHA-256 fingerprint of its exact Front and Back text, the configured model tag, the generation version, and UTC timestamps. Startup adds `flashcard_distractor_sources` and its invalidation triggers to existing databases. Each deck-derived choice records its position, source card ID, and the source card’s Front/Back fingerprint. Positions without a source row are Ollama choices, including valid entries from before this migration.
+`source = ollama` means all three choices came from the model. `source = fallback` means one or more choices came from other cards in the same deck. The positional rows in `flashcard_distractor_sources` identify those source cards and their fingerprints. Hybrid results preserve valid model choices and fill the remaining slots from the deck.
 
-Editing or deleting a target card clears its cache. Editing or deleting a source card clears only the caches that used its answer. These changes apply to future preparation, and saved questions keep their snapshots. A valid hybrid or deck-only cache stays eligible after Ollama becomes available again.
+The exact Front and Back and the normalized choices are checked before reuse. Edits or deletions invalidate the target and relevant provenance dependencies. Adding a card leaves valid choices intact. Deck names and visibility do not change cached choices. Visibility and the current share token control access independently.
 
-A model or generation-version mismatch causes a cache miss. Phase 3.2 uses generation version 2, so version 1 choices regenerate on demand and saved study snapshots are preserved. Bump `GENERATION_VERSION` in the generator when changing the prompt or validation rules, or when replacing a model without changing its tag. The service opens its own short transactions and runs inference between them. Call it before opening a write transaction for a study session. If a card is edited during generation, the service returns a 409 and the caller can try again. Deleted or inaccessible cards return a 404. When the combined choices fall short, the cache service raises `InsufficientDistractorsError`.
+A generation-version change invalidates all prior versions on demand. A model-tag change invalidates entries that contain model choices. A fully deck-derived entry stays valid across model changes. Model outages and later recovery do not replace valid cached fallback choices. Text comparison does not establish whether a distractor is semantically correct in context.
 
-Concurrent requests for the same card on one event loop share a successful generation. Separate workers may generate in parallel on a miss. SQLite keeps a single matching row, and competing writers for the same content and settings reuse the first committed result.
+The `flashcard_distractor_jobs` table gives each card an expiring generation lease across workers. A claim is available only after the process has obtained its existing model slot. Waiters reuse a committed entry. The job identity fences stale writers, the provider deadlines bound inference, and expiry allows recovery after a hard crash. Cache publication and lease removal commit together. SQLite write transactions stay outside inference.
 
-The [multiple-choice study API](MULTIPLE_CHOICE.md) adds a preparation workflow, stores shuffled question snapshots, and grades submitted options against the original Back.
+Schema v3 adds the lease table, backfills the source flag from existing provenance, and adds a hashed share-access field to solo sessions. The normal startup migration takes a verified backup before upgrading an existing database. Existing cached text, flashcards, and study snapshots are retained.
+
+Shared solo practice requires a signed-in account and a valid share link. The app keeps session state for refresh and retry for up to 24 hours. It is excluded from Previous Session and study streaks. Expired shared sessions are removed when that account next starts Multiple-Choice.
+
+For a deliberately targeted refresh, an operator can clear one card’s choices. This preserves saved questions and leaves the next authorized session to fill the cache.
+
+```powershell
+docker compose exec backend python -m app.cli clear-distractors --card-id 42
+```
+
+See [Multiple-Choice study](MULTIPLE_CHOICE.md) and [shared-cache verification](quality/SHARED_DISTRACTORS.md).

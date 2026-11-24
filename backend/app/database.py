@@ -36,7 +36,7 @@ engine = make_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +71,7 @@ def init_database(target=engine):
             if version == SCHEMA_VERSION:
                 connection.commit()
                 return
-            if version not in {0, 1}:
+            if version not in {0, 1, 2}:
                 raise RuntimeError("Unsupported SQLite schema version. Use the matching Queezo release.")
             existing = connection.exec_driver_sql(
                 "SELECT 1 FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
@@ -84,11 +84,30 @@ def init_database(target=engine):
             Base.metadata.create_all(connection)
             if version == 0:
                 upgrade_baseline(connection)
+            upgrade_shared_distractors(connection)
             connection.exec_driver_sql(f"PRAGMA user_version={SCHEMA_VERSION}")
             connection.commit()
             logger.info("SQLite schema upgraded to version %s", SCHEMA_VERSION)
     except (OSError, sqlite3.Error, SQLAlchemyError, ValueError):
         raise RuntimeError(f"SQLite startup failed while {stage}. See the database recovery runbook.") from None
+
+
+def upgrade_shared_distractors(connection):
+    cache_columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(flashcard_distractor_cache)")}
+    if "source" not in cache_columns:
+        connection.exec_driver_sql("""
+            ALTER TABLE flashcard_distractor_cache ADD COLUMN source VARCHAR(8) NOT NULL DEFAULT 'ollama'
+            CHECK (source IN ('ollama', 'fallback'))
+        """)
+        connection.exec_driver_sql("""
+            UPDATE flashcard_distractor_cache SET source = 'fallback' WHERE EXISTS (
+                SELECT 1 FROM flashcard_distractor_sources AS provenance
+                WHERE provenance.flashcard_id = flashcard_distractor_cache.flashcard_id
+            )
+        """)
+    session_columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(multiple_choice_sessions)")}
+    if "shared_access" not in session_columns:
+        connection.exec_driver_sql("ALTER TABLE multiple_choice_sessions ADD COLUMN shared_access VARCHAR(64)")
 
 
 def upgrade_baseline(connection):

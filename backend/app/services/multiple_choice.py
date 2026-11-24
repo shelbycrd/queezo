@@ -10,17 +10,18 @@ from uuid import uuid4
 
 from anyio import CancelScope
 from fastapi import HTTPException
-from sqlalchemy import and_, func, select, text, update
+from sqlalchemy import and_, delete, func, select, text, update
 from sqlalchemy.orm import load_only
 from starlette.concurrency import run_in_threadpool
 
+from app.auth.service import hash_token
 from app.database import SessionLocal
 from app.models import Deck, Flashcard, MultipleChoiceQuestion, MultipleChoiceSession, User, utcnow
 from app.services.activity import mark_study_day
 from app.services.distractor_cache import (
     InsufficientDistractorsError, cached_choices_for_deck, get_or_generate_distractors,
 )
-from app.services.ownership import owned_flashcards
+from app.services.ownership import shared_deck
 from app.services.inference_config import budget
 from app.services.distractors import attempt_timeout
 from app.services.presenters import iso
@@ -66,10 +67,23 @@ def _owned_deck(db, deck_id, user_id):
     return deck
 
 
+def _authorized_session(db, statement):
+    row = db.execute(
+        statement.join(Deck).add_columns(Deck.owner_id, Deck.visibility, Deck.share_token)
+    ).one_or_none()
+    if row is None:
+        return None
+    session, deck_owner, visibility, token = row
+    if session.shared_access is None:
+        return session if session.owner_id == deck_owner else None
+    if deck_owner is not None and visibility in ('public', 'unlisted') and token and hash_token(token) == session.shared_access:
+        return session
+    return None
+
+
 def owned_session(db, session_id, user_id):
-    session = db.scalar(select(MultipleChoiceSession).join(Deck).where(
+    session = _authorized_session(db, select(MultipleChoiceSession).where(
         MultipleChoiceSession.id == session_id, MultipleChoiceSession.owner_id == user_id,
-        Deck.owner_id == user_id,
     ))
     if session is None:
         raise HTTPException(404, "Multiple-choice session not found.")
@@ -130,8 +144,9 @@ def session_view(db, session):
     deck_time_over = _deck_time_over(session, now)
     opening = _opening_progress(rows)
     stalled = session.status == "preparing" and status in {"failed", "expired"}
-    failures = [{"card_id": row.source_card_id, "reason": row.failure or "preparation_timeout"}
-                for row in rows if row.failure or (stalled and row.correct_option_id is None)]
+    failures = [{"card_id": position if session.shared_access else row.source_card_id,
+                 "reason": row.failure or "preparation_timeout"}
+                for position, row in enumerate(rows, 1) if row.failure or (stalled and row.correct_option_id is None)]
     ready = sum(row.correct_option_id is not None for row in rows)
     answered = sum(row.selected_option_id is not None for row in rows)
     correct = sum(row.selected_option_id is not None and row.selected_option_id == row.correct_option_id
@@ -148,7 +163,8 @@ def session_view(db, session):
             "deck_time_over": deck_time_over,
         }
     return {
-        "id": session.id, "mode": "multiple_choice", "deck_id": session.deck_id,
+        "id": session.id, "mode": "multiple_choice", "deck_id": None if session.shared_access else session.deck_id,
+        **({"shared": True} if session.shared_access else {}),
         "deck_title": session.deck_title, "status": status,
         "preparing": preparing, "study_started": session.study_started_at is not None,
         "can_start": session.study_started_at is None and (status == "active" or (
@@ -178,19 +194,24 @@ def require_preparation_slot(db, user_id):
         raise queue_busy()
 
 
-def create_session(deck_id, user_id, timing=None):
+def create_session(deck_id, user_id, timing=None, *, share_token=None):
     with _write() as db:
-        deck = _owned_deck(db, deck_id, user_id)
+        deck = shared_deck(db, share_token) if share_token is not None else _owned_deck(db, deck_id, user_id)
+        now = utcnow()
+        db.execute(delete(MultipleChoiceSession).where(
+            MultipleChoiceSession.owner_id == user_id, MultipleChoiceSession.shared_access.is_not(None),
+            MultipleChoiceSession.expires_at <= now,
+        ))
         require_preparation_slot(db, user_id)
         require_study_slot(db, MultipleChoiceSession, user_id, deck.id)
-        card_ids = list(db.scalars(owned_flashcards(user_id).with_only_columns(Flashcard.id)
-                                  .where(Flashcard.deck_id == deck_id).order_by(Flashcard.id)))
+        card_ids = list(db.scalars(select(Flashcard.id)
+                                  .where(Flashcard.deck_id == deck.id).order_by(Flashcard.id)))
         if not card_ids:
             raise HTTPException(409, "Add at least one flashcard before starting a study session.")
         random.shuffle(card_ids)
-        now = utcnow()
         session = MultipleChoiceSession(
-            id=str(uuid4()), deck_id=deck_id, deck_title=deck.title, owner_id=user_id,
+            id=str(uuid4()), deck_id=deck.id, deck_title=deck.title, owner_id=user_id,
+            shared_access=hash_token(share_token) if share_token is not None else None,
             created_at=now, prepare_until=now + timedelta(seconds=preparation_timeout()),
             expires_at=now + SESSION_LIFETIME,
             timing_scope=timing.scope if timing else None,
@@ -270,6 +291,7 @@ def history(db, deck_id, user_id, *, limit=50):
     _owned_deck(db, deck_id, user_id)
     sessions = list(db.scalars(select(MultipleChoiceSession).where(
         MultipleChoiceSession.deck_id == deck_id, MultipleChoiceSession.owner_id == user_id,
+        MultipleChoiceSession.shared_access.is_(None),
     ).order_by(MultipleChoiceSession.created_at.desc(), MultipleChoiceSession.id.desc()).limit(limit)))
     return [session_view(db, session) for session in sessions]
 
@@ -296,10 +318,14 @@ def _present(question):
 def _record_presentation(db, session, question):
     if question.allows_retry is not None:
         return
+    if session.shared_access is not None:
+        question.allows_retry = True
+        return
     q = MultipleChoiceQuestion
     earlier = select(q.id).join(MultipleChoiceSession).where(
         q.source_card_id == question.source_card_id, q.id != question.id,
         MultipleChoiceSession.owner_id == session.owner_id,
+        MultipleChoiceSession.shared_access.is_(None),
         # Include known presentations from sessions created before retries were tracked.
         q.allows_retry.is_not(None) | q.answered_at.is_not(None) | q.question_deadline.is_not(None),
     )
@@ -390,7 +416,8 @@ def submit_answer(db, session, submission):
                 "question": _present(question), "session": session_view(db, session)}
     question.selected_option_id = submission.option_id
     question.answered_at = now
-    mark_study_day(db, session.owner_id)
+    if session.shared_access is None:
+        mark_study_day(db, session.owner_id)
     _complete_if_done(db, session, now)
     answer = next(option for option in question.options if option["id"] == question.correct_option_id)
     return {"question_id": question.id, "selected_option_id": question.selected_option_id,
@@ -427,12 +454,16 @@ def recover_interrupted():
             _settle(db, session, "interrupted")
 
 
-def _preparing(db, session_id, attempt):
-    return db.scalar(select(MultipleChoiceSession).join(Deck).where(
+def _pending_preparation(session_id, attempt):
+    return select(MultipleChoiceSession).where(
         MultipleChoiceSession.id == session_id, MultipleChoiceSession.attempt == attempt,
-        MultipleChoiceSession.status.in_(("preparing", "active")), MultipleChoiceSession.owner_id == Deck.owner_id,
+        MultipleChoiceSession.status.in_(("preparing", "active")),
         MultipleChoiceSession.preparation_finished_at.is_(None),
-    ))
+    )
+
+
+def _preparing(db, session_id, attempt):
+    return _authorized_session(db, _pending_preparation(session_id, attempt))
 
 
 def _can_prepare(session):
@@ -483,19 +514,19 @@ def _prepare_cached(session_id, attempt):
 
 
 def _source_card(session, card_id):
-    return owned_flashcards(session.owner_id).where(
-        Flashcard.id == card_id, Flashcard.deck_id == session.deck_id,
-    )
+    return select(Flashcard).where(Flashcard.id == card_id, Flashcard.deck_id == session.deck_id)
 
 
 def _read_source(session_id, attempt, card_id):
     with SessionLocal() as db:
+        db.execute(text("BEGIN"))
         session = _preparing(db, session_id, attempt)
         if not _can_prepare(session):
             return None
         content = db.execute(_source_card(session, card_id)
                              .with_only_columns(Flashcard.front, Flashcard.back)).one_or_none()
-        return session.owner_id, tuple(content) if content is not None else None
+        owner_id = db.get(Deck, session.deck_id).owner_id
+        return owner_id, tuple(content) if content is not None else None
 
 
 def _save_prepared(session_id, attempt, question_id, content, choices, failure):
@@ -536,7 +567,8 @@ def _snapshot(question, card, choices):
 
 def _finish(session_id, attempt, failure):
     with _write() as db:
-        session = _preparing(db, session_id, attempt)
+        # Close the queued work even if the share was revoked while it ran.
+        session = db.scalar(_pending_preparation(session_id, attempt))
         if session is None:
             return
         _settle(db, session, failure or "preparation_timeout")

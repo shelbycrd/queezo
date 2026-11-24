@@ -9,17 +9,10 @@ from app.models import Deck, Flashcard, User
 from app.schemas import CardInput
 from app.services.content_policy import no_urls
 from app.services import limits
+from app.services.ownership import shared_deck
 from app.services.presenters import card_view, deck_view
 
 router = APIRouter(prefix='/api', tags=['Community decks'])
-
-
-def shared_deck(db, token):
-    deck = db.scalar(select(Deck).where(Deck.share_token == token, Deck.owner_id.is_not(None),
-                                       Deck.visibility.in_(['public','unlisted'])))
-    if deck is None:
-        raise HTTPException(404, 'Shared deck not found.')
-    return deck
 
 
 def shared_view(db, deck):

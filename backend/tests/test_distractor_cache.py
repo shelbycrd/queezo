@@ -1,6 +1,7 @@
 import asyncio
 import json
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 from threading import Barrier
 from unittest.mock import AsyncMock
 
@@ -11,7 +12,7 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.orm import sessionmaker
 
 from app.database import init_database, make_engine
-from app.models import Deck, Flashcard, FlashcardDistractorCache, FlashcardDistractorSource, User
+from app.models import Deck, Flashcard, FlashcardDistractorCache, FlashcardDistractorJob, FlashcardDistractorSource, User, utcnow
 from app.services import distractor_cache, distractors
 from app.services.distractors import DistractorGenerationError
 from conftest import deck, review
@@ -167,22 +168,104 @@ def test_simultaneous_calls_on_one_loop_generate_once(cache, monkeypatch):
     assert len(cached_rows(client)) == 1
 
 
-def test_competing_event_loops_reuse_the_winning_write(cache, monkeypatch):
+def test_competing_event_loops_generate_only_once(cache, monkeypatch):
     client, owner = cache
     card_id = make_card(client, deck(client, count=0))
     barrier = Barrier(2)
 
     async def generate(*args, **kwargs):
-        slot = await asyncio.to_thread(barrier.wait, 10)
-        return FIRST_CHOICES if slot == 0 else OTHER_CHOICES
+        await asyncio.sleep(.15)
+        return FIRST_CHOICES
 
-    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    def requested():
+        barrier.wait(5)
+        return lookup(card_id, owner)
+
+    generator = AsyncMock(side_effect=generate)
+    monkeypatch.setattr(distractors, "generate_distractors", generator)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [pool.submit(lookup, card_id, owner) for _ in range(2)]
-        first, second = [result.result(timeout=15) for result in results]
+        results = [pool.submit(requested) for _ in range(2)]
+        first, second = [result.result(timeout=10) for result in results]
     [row] = cached_rows(client)
-    assert first == second == row.distractors
-    assert first in (FIRST_CHOICES, OTHER_CHOICES)
+    assert first == second == row.distractors == FIRST_CHOICES
+    assert row.source == "ollama"
+    generator.assert_awaited_once()
+
+
+def test_expired_generation_lease_is_reclaimed_and_old_writer_is_fenced(cache, monkeypatch):
+    client, owner = cache
+    card_id = make_card(client, deck(client, count=0))
+    old_token = "abandoned-worker"
+    with client.factory.begin() as db:
+        card = db.get(Flashcard, card_id)
+        fingerprint = distractor_cache._fingerprint(card.front, card.back)
+        db.add(FlashcardDistractorJob(flashcard_id=card_id, token=old_token,
+                                    expires_at=utcnow() - timedelta(seconds=1)))
+
+    async def generate(*args, **kwargs):
+        with pytest.raises(HTTPException) as stale:
+            await asyncio.to_thread(
+                distractor_cache._store, card_id, owner.id, fingerprint, distractors.configured_model(),
+                distractors.GENERATION_VERSION, OTHER_CHOICES, "insufficient_distractors", old_token,
+            )
+        assert stale.value.status_code == 409
+        return FIRST_CHOICES
+
+    generator = AsyncMock(side_effect=generate)
+    monkeypatch.setattr(distractors, "generate_distractors", generator)
+    assert lookup(card_id, owner) == FIRST_CHOICES
+    generator.assert_awaited_once()
+    with client.factory() as db:
+        assert db.get(FlashcardDistractorJob, card_id) is None
+
+
+def test_cancelled_generation_releases_lease_for_next_study(cache, monkeypatch):
+    client, owner = cache
+    card_id = make_card(client, deck(client, count=0))
+
+    async def run():
+        started = asyncio.Event()
+
+        async def pause(*args, **kwargs):
+            started.set()
+            await asyncio.Future()
+
+        monkeypatch.setattr(distractors, "generate_distractors", pause)
+        job = asyncio.create_task(distractor_cache.get_or_generate_distractors(card_id, owner))
+        await asyncio.wait_for(started.wait(), 5)
+        job.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await job
+        with client.factory() as db:
+            assert db.get(FlashcardDistractorJob, card_id) is None
+        monkeypatch.setattr(distractors, "generate_distractors", AsyncMock(return_value=FIRST_CHOICES))
+        assert await distractor_cache.get_or_generate_distractors(card_id, owner) == FIRST_CHOICES
+
+    asyncio.run(run())
+
+
+def test_pure_fallback_survives_model_change_and_new_card_until_explicit_clear(cache, monkeypatch):
+    client, owner = cache
+    deck_id = deck(client, count=3)
+    target = make_card(client, deck_id)
+    offline = AsyncMock(side_effect=DistractorGenerationError("Offline", reason="ollama_unavailable"))
+    monkeypatch.setattr(distractors, "generate_distractors", offline)
+    assert not cached_rows(client)
+    original = lookup(target, owner)
+    [row] = cached_rows(client)
+    assert row.source == "fallback"
+    assert len(source_rows(client, target)) == 3
+    assert make_card(client, deck_id, "Additional answer")
+    monkeypatch.setenv("OLLAMA_MODEL", "another-model")
+    assert lookup(target, owner) == original
+    offline.assert_awaited_once()
+    with client.factory.begin() as db:
+        assert distractor_cache.clear_cached_distractors(db, target)
+    assert not cached_rows(client)
+    online = AsyncMock(return_value=FIRST_CHOICES)
+    monkeypatch.setattr(distractors, "generate_distractors", online)
+    assert lookup(target, owner) == FIRST_CHOICES
+    online.assert_awaited_once()
 
 
 @pytest.mark.parametrize("change,status", [("edit", 409), ("delete", 404), ("transfer", 404)])
@@ -445,23 +528,30 @@ def test_hybrid_cache_replaced_cleanly_when_generation_version_changes(cache, mo
     assert source_rows(client, target) == []
 
 
-def test_hybrid_racing_writers_share_choices_and_provenance(cache, monkeypatch):
+def test_hybrid_concurrent_requests_share_choices_and_provenance(cache, monkeypatch):
     client, owner = cache
     target = make_card(client, deck(client, count=4))
     barrier = Barrier(2)
 
     async def generate(*args, **kwargs):
-        slot = await asyncio.to_thread(barrier.wait, 10)
-        raise DistractorGenerationError("Partial", candidates=[FIRST_CHOICES[slot]])
+        await asyncio.sleep(.15)
+        raise DistractorGenerationError("Partial", candidates=FIRST_CHOICES[:1])
 
-    monkeypatch.setattr(distractors, "generate_distractors", generate)
+    def requested():
+        barrier.wait(5)
+        return lookup(target, owner)
+
+    generator = AsyncMock(side_effect=generate)
+    monkeypatch.setattr(distractors, "generate_distractors", generator)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [pool.submit(lookup, target, owner) for _ in range(2)]
-        first, second = [result.result(timeout=15) for result in results]
+        results = [pool.submit(requested) for _ in range(2)]
+        first, second = [result.result(timeout=10) for result in results]
     [row] = cached_rows(client)
     assert first == second == row.distractors
-    assert first[0] in FIRST_CHOICES[:2]
+    assert row.source == "fallback"
+    assert first[0] == FIRST_CHOICES[0]
     assert len(source_rows(client, target)) == 2
+    generator.assert_awaited_once()
 
 
 def test_startup_preserves_a_pre_hybrid_ai_cache(cache, monkeypatch):
@@ -484,3 +574,55 @@ def test_startup_preserves_a_pre_hybrid_ai_cache(cache, monkeypatch):
         assert db.execute(text("PRAGMA foreign_key_check")).all() == []
     assert lookup(target, owner) == FIRST_CHOICES
     generate.assert_awaited_once()
+
+
+def test_version_two_migration_preserves_choices_and_backfills_source(tmp_path):
+    from sqlalchemy.schema import CreateTable
+
+    from app.database import Base, SCHEMA_VERSION
+
+    engine = make_engine(f"sqlite:///{(tmp_path / 'v2-cache.db').as_posix()}")
+    with engine.begin() as db:
+        for table in Base.metadata.sorted_tables:
+            if table.name == "flashcard_distractor_jobs":
+                continue
+            lines = str(CreateTable(table).compile(engine)).splitlines()
+            if table.name == "flashcard_distractor_cache":
+                lines = [line for line in lines if "source VARCHAR" not in line and "CHECK (source IN" not in line]
+            if table.name == "multiple_choice_sessions":
+                lines = [line for line in lines if "shared_access VARCHAR" not in line]
+            db.exec_driver_sql("\n".join(lines))
+        db.exec_driver_sql("PRAGMA user_version=2")
+
+    session = sessionmaker(bind=engine)
+    with session.begin() as db:
+        deck_row = Deck(title="Legacy cache")
+        db.add(deck_row)
+        db.flush()
+        cards = [Flashcard(deck_id=deck_row.id, front=f"Legacy question {i}", back=back)
+                 for i, back in enumerate(("Tokyo", "Kyoto", "Rome"))]
+        db.add_all(cards)
+        db.flush()
+        ai, hybrid, source = cards
+        saved = [(ai.id, FIRST_CHOICES), (hybrid.id, ["Osaka", "Nara", source.back])]
+        for card, (_, choices) in zip((ai, hybrid), saved):
+            db.execute(text("""
+                INSERT INTO flashcard_distractor_cache
+                (flashcard_id,distractors,content_fingerprint,ollama_model,generation_version,created_at,updated_at)
+                VALUES (:id,:choices,:fingerprint,'qwen3:1.7b',2,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+            """), {"id": card.id, "choices": json.dumps(choices),
+                   "fingerprint": distractor_cache._fingerprint(card.front, card.back)})
+        db.add(FlashcardDistractorSource(flashcard_id=hybrid.id, position=2, source_card_id=source.id,
+                content_fingerprint=distractor_cache._fingerprint(source.front, source.back)))
+
+    init_database(engine)
+    init_database(engine)
+    with session() as db:
+        records = db.scalars(select(FlashcardDistractorCache).order_by(FlashcardDistractorCache.flashcard_id)).all()
+        assert [(row.flashcard_id, row.distractors) for row in records] == saved
+        assert [row.source for row in records] == ["ollama", "fallback"]
+        assert db.execute(text("PRAGMA user_version")).scalar_one() == SCHEMA_VERSION
+        assert db.execute(text("PRAGMA foreign_key_check")).all() == []
+        assert db.scalars(select(FlashcardDistractorJob)).all() == []
+        assert "shared_access" in {row[1] for row in db.execute(text("PRAGMA table_info(multiple_choice_sessions)"))}
+    engine.dispose()

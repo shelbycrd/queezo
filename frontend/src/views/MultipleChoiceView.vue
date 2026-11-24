@@ -1,20 +1,21 @@
 <script setup>
 import {computed, nextTick, onMounted, onScopeDispose, ref, shallowRef, watch} from 'vue';
+import {useRoute} from 'vue-router';
 import {multipleChoiceSession, scoreSummary} from '../../js/multiple-choice-session.js';
 import {safeImageUrl} from '../../js/card-content.js';
 import {authVersion} from '../../js/auth-state.js';
-import {chooseStudy} from '../services/study-dialog.js';
+import {chooseSharedStudy, chooseStudy} from '../services/study-dialog.js';
 import {playAnswerSound, preparePageSound} from '../../js/audio.js';
 import {closeIcon,plural} from '../services/format.js';
 import {useLifetime} from '../composables/lifecycle.js';
 import CardContent from '../components/CardContent.vue';
 
 const FAILURE_LABELS = {
-  generation_failed:'Could not find three distinct choices. Check Ollama or add cards with different answers.',
-  insufficient_distractors:'Too few distinct answers for this card. Add cards with different answers or retry with Ollama.',
-  ollama_unavailable:'Ollama is unavailable. Check that it is running and the model is installed, then retry.',
-  generation_timeout:'Ollama took too long to respond. Retry the failed cards.',
-  invalid_ai_response:'Ollama returned an unreadable response. Retry or add cards with different answers.',
+  generation_failed:'Could not prepare three distinct choices. Retry the failed cards.',
+  insufficient_distractors:'Too few distinct choices for this card.',
+  ollama_unavailable:'Some choices could not be prepared. Try again shortly.',
+  generation_timeout:'Preparing the choices took too long. Retry the failed cards.',
+  invalid_ai_response:'The choices could not be prepared. Retry the failed cards.',
   card_missing:'The card was deleted or is no longer accessible.',
   card_changed:'The card changed during preparation.',
   preparation_timeout:'Preparation ran out of time.',
@@ -33,7 +34,12 @@ const question = computed(() => view.value.question);
 const grade = computed(() => view.value.grade);
 const pending = computed(() => view.value.pending);
 const problem = computed(() => view.value.problem);
-const deckPath = computed(() => session.value ? '/deck/' + session.value.deck_id : '/decks');
+const route = useRoute();
+const sharedToken = computed(() => typeof route.query.shared === 'string' &&
+  /^[A-Za-z0-9_-]{32,64}$/.test(route.query.shared) ? route.query.shared : null);
+const deckPath = computed(() => session.value?.shared || (!session.value && sharedToken.value)
+  ? (sharedToken.value ? '/shared/' + sharedToken.value : '/dashboard')
+  : session.value ? '/deck/' + session.value.deck_id : '/decks');
 const deckLink = computed(() => '#' + deckPath.value);
 const phase = computed(() => {
   if (problem.value) return 'problem';
@@ -43,6 +49,10 @@ const phase = computed(() => {
   return session.value?.status || 'loading';
 });
 const preparation = computed(() => phase.value === 'preparing' || phase.value === 'failed' || session.value?.can_start);
+const openingPercent = computed(() => {
+  const opening = session.value?.opening;
+  return opening?.target ? Math.round(opening.ready * 100 / opening.target) : 0;
+});
 const finished = computed(() => phase.value === 'completed');
 const failed = computed(() => phase.value === 'failed');
 const unavailable = computed(() => problem.value && [401,404].includes(problem.value.status));
@@ -86,7 +96,11 @@ function selectAnswer(option) {
 }
 async function again() {
   choosing.value = true;
-  try { await chooseStudy(session.value.deck_id,{mode:'multiple-choice'}); } finally { choosing.value = false; }
+  try {
+    if (session.value.shared) {
+      if (sharedToken.value) await chooseSharedStudy(sharedToken.value,{mode:'multiple-choice'});
+    } else await chooseStudy(session.value.deck_id,{mode:'multiple-choice'});
+  } finally { choosing.value = false; }
 }
 </script>
 <template>
@@ -137,7 +151,7 @@ async function again() {
         <div class="summary-heading"><div class="check" aria-hidden="true">✓</div><h2 ref="focus" tabindex="-1">Session complete</h2>
           <p v-if="session.progress.failed" class="muted">{{ plural(session.progress.failed,'card') }} skipped during preparation.</p></div>
         <div class="summary-grid mc-summary-grid"><div v-for="[label,value] in stats" :key="label" class="stat"><p class="muted">{{ label }}</p><div class="value">{{ value }}</div></div></div>
-        <div class="actions mc-actions"><button type="button" :disabled="choosing" @click="again">Study again</button><a class="button secondary flat-button" :href="deckLink">Return to deck</a></div>
+        <div class="actions mc-actions"><button v-if="!session.shared || sharedToken" type="button" :disabled="choosing" @click="again">Study again</button><a class="button secondary flat-button" :href="deckLink">Return to deck</a></div>
       </template>
       <section v-else-if="['expired','cancelled'].includes(phase)" class="panel mc-panel">
         <h2 ref="focus" tabindex="-1">{{ phase === 'expired' ? 'Session expired' : 'Session cancelled' }}</h2>
@@ -148,8 +162,8 @@ async function again() {
         <h2 id="mc-state-heading" ref="focus" tabindex="-1">{{ failed ? (session.progress.ready ? 'Some questions couldn’t be prepared' : 'Questions couldn’t be prepared') : 'Preparing your questions' }}</h2>
         <p class="muted">{{ failed ? (session.progress.ready ? 'Retry failed cards, study the ready questions, or return to your deck.' : 'Retry the failed cards or return to your deck to use Classic Mode.') : 'Checking the first questions in your shuffled deck.' }}</p>
         <p v-if="failed" class="muted">{{ session.progress.ready }} ready · {{ session.progress.failed }} failed</p>
-        <div v-else class="mc-preparation-progress" role="status"><div class="progress-text"><strong>{{ session.opening.ready }} of {{ session.opening.target }} opening questions ready</strong></div><progress :max="session.opening.target" :value="session.opening.ready" aria-label="Opening questions ready"></progress></div>
-        <details v-if="session.failures.length" class="mc-failures"><summary>See failed cards ({{ session.failures.length }})</summary><ul><li v-for="failure in session.failures" :key="failure.card_id"><strong>Card ID {{ failure.card_id }}</strong><span>{{ FAILURE_LABELS[failure.reason] || 'Could not prepare this card.' }}</span></li></ul></details>
+        <div v-else class="mc-preparation-progress" role="status"><div class="progress-text"><strong>{{ openingPercent }}% ready</strong></div><progress max="100" :value="openingPercent" aria-label="Getting your study session ready"></progress></div>
+        <details v-if="session.failures.length" class="mc-failures"><summary>See failed cards ({{ session.failures.length }})</summary><ul><li v-for="failure in session.failures" :key="failure.card_id"><strong>{{ session.shared ? 'Card' : 'Card ID' }} {{ failure.card_id }}</strong><span>{{ FAILURE_LABELS[failure.reason] || 'Could not prepare this card.' }}</span></li></ul></details>
         <div class="actions mc-actions"><button v-if="failed" type="button" :disabled="Boolean(pending)" @click="controller.transition('retry')">{{ pending === 'retry' ? 'Retrying…' : 'Retry failed cards' }}</button>
           <button v-if="failed && session.progress.ready" type="button" class="secondary flat-button" :disabled="Boolean(pending)" @click="controller.transition('continue')">{{ pending === 'continue' ? 'Opening…' : 'Study ' + plural(session.progress.ready,'ready question') }}</button>
           <button type="button" class="secondary flat-button" :disabled="Boolean(pending)" @click="controller.transition('cancel')">{{ pending === 'cancel' ? 'Cancelling…' : 'Cancel preparation' }}</button>

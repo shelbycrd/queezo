@@ -1,3 +1,5 @@
+from functools import partial
+
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
@@ -16,6 +18,14 @@ async def start(deck_id: int, request: Request, user: User = Depends(require_use
                 timing: MultipleChoiceTiming | None = None):
     return await request.app.state.multiple_choice_jobs.submit(
         user.id, study.create_session, deck_id, user.id, timing,
+    )
+
+
+@router.post("/shared/decks/{token}/multiple-choice", status_code=202)
+async def start_shared(token: str, request: Request, user: User = Depends(require_user),
+                       timing: MultipleChoiceTiming | None = None):
+    return await request.app.state.multiple_choice_jobs.submit(
+        user.id, partial(study.create_session, share_token=token), None, user.id, timing,
     )
 
 

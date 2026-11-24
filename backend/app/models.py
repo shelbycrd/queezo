@@ -52,11 +52,13 @@ class FlashcardDistractorCache(Base):
     content_fingerprint: Mapped[str] = mapped_column(String(64))
     ollama_model: Mapped[str] = mapped_column(Text)
     generation_version: Mapped[int] = mapped_column(Integer)
+    source: Mapped[str] = mapped_column(String(8), default="ollama", server_default="ollama")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
     __table_args__ = (
         CheckConstraint("json_valid(distractors) AND json_type(distractors) = 'array' "
                         "AND json_array_length(distractors) = 3"),
+        CheckConstraint("source IN ('ollama', 'fallback')"),
     )
 
 
@@ -74,6 +76,16 @@ class FlashcardDistractorSource(Base):
     __table_args__ = (CheckConstraint("position BETWEEN 0 AND 2 AND flashcard_id <> source_card_id"),)
 
 
+class FlashcardDistractorJob(Base):
+    """An expiring, fenced generation claim shared by all SQLite writers."""
+
+    __tablename__ = "flashcard_distractor_jobs"
+
+    flashcard_id: Mapped[int] = mapped_column(ForeignKey("flashcards.id", ondelete="CASCADE"), primary_key=True)
+    token: Mapped[str] = mapped_column(String(36))
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+
+
 class MultipleChoiceSession(Base):
     __tablename__ = "multiple_choice_sessions"
 
@@ -81,6 +93,7 @@ class MultipleChoiceSession(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     deck_id: Mapped[int] = mapped_column(ForeignKey("decks.id", ondelete="CASCADE"), index=True)
     deck_title: Mapped[str] = mapped_column(String(120))
+    shared_access: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(16), default="preparing")
     attempt: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

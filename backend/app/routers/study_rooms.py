@@ -146,9 +146,12 @@ def room_decks(room_id: UUID, user: User = Depends(require_user), db: Session = 
             .order_by((Deck.owner_id == user.id).desc(), Deck.updated_at.desc()).limit(200)).mappings()]
 
 
-class AnswerInput(BaseModel):
+class RoundInput(BaseModel):
     session_id: UUID
     position: int = Field(ge=0, le=149)
+
+
+class AnswerInput(RoundInput):
     option_id: UUID
 
 
@@ -159,29 +162,39 @@ def answer(room_id: UUID, body: AnswerInput, user: User = Depends(require_user),
     room_study.submit(db, room, member, user.id, str(body.session_id), body.position, str(body.option_id))
 
 
+def _socket_room(db, room_id, token_hash, now):
+    session = db.get(AuthSession, token_hash)
+    if not session or session.expires_at <= now:
+        return None
+    room = db.get(StudyRoom, room_id)
+    member = db.get(RoomMember, (room_id, session.user_id))
+    if not room or room.phase == 'closed' or not member:
+        return None
+    return room, member
+
+
 def socket_state(factory, room_id, token_hash, *, refresh=False, reconnect=False):
-    now = utcnow()
     with factory() as db:
         consistent_read(db)
-        session = db.get(AuthSession, token_hash)
-        if not session or session.expires_at <= now:
+        now = utcnow()
+        state = _socket_room(db, room_id, token_hash, now)
+        if not state:
             return None
-        user_id = session.user_id
-        room = db.get(StudyRoom, room_id)
-        member = db.get(RoomMember, (room_id, user_id))
-        if not room or room.phase == 'closed' or not member:
+        room, member = state
+        needs_heartbeat = reconnect or member.disconnected_at or not member.seen_at or now - member.seen_at >= timedelta(seconds=8)
+        if not refresh or not needs_heartbeat:
+            return member.user_id, room_study.study_view(db, room, member.user_id)
+
+    with write_transaction(factory) as db:
+        now = utcnow()
+        state = _socket_room(db, room_id, token_hash, now)
+        if not state:
             return None
-        view = room_study.study_view(db, room, user_id)
-    if refresh:
-        with write_transaction(factory) as db:
-            session = db.get(AuthSession, token_hash)
-            member = db.get(RoomMember, (room_id, user_id))
-            if not session or session.expires_at <= now or not member:
-                return None
-            if reconnect or member.disconnected_at or not member.seen_at or now - member.seen_at >= timedelta(seconds=8):
-                member.disconnected_at = None
-                member.seen_at = now
-    return user_id, view
+        room, member = state
+        if reconnect or member.disconnected_at or not member.seen_at or now - member.seen_at >= timedelta(seconds=8):
+            member.disconnected_at = None
+            member.seen_at = now
+        return member.user_id, room_study.study_view(db, room, member.user_id)
 
 
 def socket_session_hash(socket):
@@ -326,7 +339,7 @@ def mark_disconnected(factory, room_id, user_id, disconnected_at):
             member.seen_at = member.disconnected_at = disconnected_at
 
 
-class PauseInput(BaseModel):
+class PauseInput(RoundInput):
     paused: bool
 
 
@@ -338,9 +351,12 @@ def pause(room_id: UUID, body: PauseInput, user: User = Depends(require_user),
     session = db.get(RoomSession, room.session_id) if room.session_id else None
     if room.phase != 'reveal' or not session or session.mode != 'collaborative':
         rooms.fail(409, 'Pause is available during collaborative review.')
+    now = utcnow()
+    if session.id != str(body.session_id) or session.position != body.position or (session.deadline and session.deadline <= now):
+        rooms.fail(409, 'That review is no longer active.')
     if session.paused != body.paused:
         session.paused = body.paused
-        session.deadline = None if body.paused else utcnow() + room_study.REVIEW
+        session.deadline = None if body.paused else now + room_study.REVIEW
         rooms.touch(room)
 
 
@@ -370,23 +386,19 @@ def leave(room_id: UUID, body: LeaveInput, request: Request, tasks: BackgroundTa
     if room.host_id != user.id:
         if body.action != 'leave':
             rooms.fail(403, 'Only the host can transfer or end the room.')
-        rooms.leave(db, room, member)
-    elif body.action == 'end':
-        recipients = tuple(db.scalars(select(RoomInvite.user_id).where(RoomInvite.room_id == room.id)))
-        tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (user.id, *recipients))
-        rooms.close(db, room)
-        return
-    elif body.action == 'transfer':
-        now = utcnow()
-        replacement = next((candidate.id for participant, candidate in rooms.members(db, room)
-                            if candidate.username == body.username and candidate.id != user.id
-                            and rooms.connected(participant, now)), None)
-        if replacement is None:
-            rooms.fail(422, 'Choose a connected participant to transfer the room to.')
-        room_study.assign_host(db, room, replacement, now)
-        rooms.leave(db, room, member)
     else:
-        rooms.fail(422, 'Transfer the room or end it before leaving.')
+        replacement = None
+        if body.action != 'end':
+            # Membership is returned in join order, independent of the leaderboard.
+            replacement = next((candidate.id for _, candidate in rooms.members(db, room)
+                                if candidate.id != user.id), None)
+        if replacement is None:
+            recipients = tuple(db.scalars(select(RoomInvite.user_id).where(RoomInvite.room_id == room.id)))
+            tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (user.id, *recipients))
+            rooms.close(db, room)
+            return
+        room_study.assign_host(db, room, replacement, utcnow())
+    rooms.leave(db, room, member)
     db.flush()
     session = db.get(RoomSession, room.session_id) if room.session_id else None
     if session and room.phase in room_study.ACTIVE_PHASES and not rooms.authorized_deck(db, room):

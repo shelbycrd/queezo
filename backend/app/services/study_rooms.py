@@ -16,6 +16,7 @@ CAPACITY = 6
 MAX_OPEN_ROOMS = 3
 MAX_ROOMS = 100
 MAX_PREPARING = 8
+ACTIVE_PHASES = ('preparing', 'countdown', 'waiting', 'question', 'reveal')
 GRACE = timedelta(seconds=45)
 IDLE = timedelta(minutes=30)
 HEARTBEAT = timedelta(seconds=20)
@@ -202,7 +203,7 @@ def start(db, room, user_id):
     if blocked := readiness(room, active):
         fail(409, blocked)
     if db.scalar(select(func.count()).select_from(StudyRoom)
-                 .where(StudyRoom.phase.in_(('preparing','waiting','question','reveal')),
+                 .where(StudyRoom.phase.in_(ACTIVE_PHASES),
                         select(RoomQuestion.position).where(RoomQuestion.session_id == StudyRoom.session_id,
                             RoomQuestion.options.is_(None), RoomQuestion.failed.is_(False)).exists())) >= MAX_PREPARING:
         fail(429, 'Room preparation is busy. Try again shortly.')

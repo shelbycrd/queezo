@@ -46,7 +46,7 @@ test('Multiple-Choice uses distinct original cues and respects study mute', asyn
   Object.defineProperty(globalThis,'window',{configurable:true,value:{AudioContext:Audio}});
   Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:() => muted ? 'off' : 'on'}});
   try {
-    const {preparePageSound, playAnswerSound} = await import('../js/audio.js?answer-sounds');
+    const {preparePageSound, playAnswerSound, playRoomLockSound} = await import('../js/audio.js?answer-sounds');
     preparePageSound();
     playAnswerSound(true);
     assert.equal(pitches.length,3);
@@ -54,9 +54,12 @@ test('Multiple-Choice uses distinct original cues and respects study mute', asyn
     playAnswerSound(false);
     assert.equal(pitches.length,5);
     assert.ok(pitches[3] > pitches[4]);
+    playRoomLockSound();
+    assert.equal(pitches[5],520);
     muted = true;
     playAnswerSound(true);
-    assert.equal(pitches.length,5);
+    playRoomLockSound();
+    assert.equal(pitches.length,6);
   } finally {
     for (const [key,descriptor] of Object.entries(previous)) {
       if (descriptor) Object.defineProperty(globalThis,key,descriptor);

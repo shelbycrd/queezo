@@ -15,6 +15,7 @@ from app.database import engine, init_database
 from app.ownership_migration import assign_legacy, list_unowned
 from app.sqlite_ops import pre_migration_snapshot
 from app.models import User, AuthSession, Deck, StudySession, ActivityDay, ProfileReport, utcnow
+from app.services.distractor_cache import clear_cached_distractors
 from app.services.presenters import iso
 
 
@@ -148,6 +149,8 @@ def main(argv=None):
         command_parser.add_argument('--uid', required=True)
         if command == 'delete-user':
             command_parser.add_argument('--confirm', help='Repeat the exact UID to confirm deletion; otherwise prompts')
+    cache = commands.add_parser("clear-distractors", help="Clear one card’s saved multiple-choice distractors")
+    cache.add_argument("--card-id", type=int, required=True)
     commands.add_parser("list-unowned", help="List preserved legacy decks that have no account owner")
     reports = commands.add_parser('list-profile-reports', help='List the latest 100 profile reports for operator review')
     reports.add_argument('--include-reviewed', action='store_true')
@@ -162,6 +165,12 @@ def main(argv=None):
         if args.command == "create-user":
             return provision_user()
         init_database()
+        if args.command == "clear-distractors":
+            with Session(engine) as db, db.begin():
+                db.execute(text("BEGIN IMMEDIATE"))
+                cleared = clear_cached_distractors(db, args.card_id)
+            print("Cleared the card’s distractors." if cleared else "This card has no saved distractors.")
+            return 0
         if args.command in {'list-users','show-user','delete-user','revoke-sessions'}:
             return manage_accounts(args)
         if args.command in {'list-profile-reports', 'review-profile-report'}:

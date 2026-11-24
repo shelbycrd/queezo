@@ -200,7 +200,7 @@ async def measure(factory, engine, decks, args, scenario, outage_ids=()):
 
     def traced_lookup(*values):
         result = lookup(*values)
-        CARD.get()["cache_hit"] = result[-1] is not None
+        CARD.get()["cache_hit"] = result[3] is not None
         return result
 
     async def traced_generate(front, back, *, model):

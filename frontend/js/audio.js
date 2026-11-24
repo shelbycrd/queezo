@@ -41,20 +41,28 @@ export function playPageTurn() {
   } catch { /* The visual workflow remains available on muted/unsupported browsers. */ }
 }
 
-export function playAnswerSound(correct) {
+export function playAnswerSound(correct, delay = 0) {
+  if (correct) playTones([659.25, 880, 1108.73], 'sine', .065, .2, .12, delay);
+  else playTones([246.94, 185], 'triangle', .09, .14, .12, delay);
+}
+
+export function playRoomLockSound() {
+  playTones([520], 'sine', 0, .09, .055);
+}
+
+function playTones(notes, type, interval, duration, volume, delay = 0) {
   if (!soundsEnabled() || context?.state !== 'running') return;
   try {
-    const notes = correct ? [659.25, 880, 1108.73] : [246.94, 185];
-    const start = context.currentTime;
+    const start = context.currentTime + delay;
     notes.forEach((pitch, index) => {
-      const time = start + index * (correct ? 0.065 : 0.09);
-      const end = time + (correct ? 0.2 : 0.14);
+      const time = start + index * interval;
+      const end = time + duration;
       const tone = context.createOscillator();
       const gain = context.createGain();
-      tone.type = correct ? 'sine' : 'triangle';
+      tone.type = type;
       tone.frequency.value = pitch;
       gain.gain.setValueAtTime(0.001, time);
-      gain.gain.linearRampToValueAtTime(0.12, time + 0.012);
+      gain.gain.linearRampToValueAtTime(volume, time + 0.012);
       gain.gain.exponentialRampToValueAtTime(0.001, end);
       tone.connect(gain);
       gain.connect(context.destination);

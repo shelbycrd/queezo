@@ -1,3 +1,6 @@
+import os
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
@@ -163,32 +166,62 @@ def test_collaborative_reveal_and_reconnect(anonymous_client, monkeypatch):
     result = wait_for_state(bob,path,'reveal')
     assert result['question']['correct_id'] in {option['id'] for option in opts}
     assert len(result['question']['responses']) == 2
-    assert alice.post(path + '/pause',json={'paused':True}).status_code == 204
+    review = {'session_id':result['session']['id'], 'position':result['session']['position']}
+    assert alice.post(path + '/pause',json={**review,'position':149,'paused':True}).status_code == 409
+    assert alice.post(path + '/pause',json={**review,'paused':True}).status_code == 204
     assert wait_for_state(bob,path,'reveal')['session']['paused']
-    assert bob.post(path + '/pause',json={'paused':False}).status_code == 403
-    assert alice.post(path + '/pause',json={'paused':False}).status_code == 204
+    assert bob.post(path + '/pause',json={**review,'paused':False}).status_code == 403
+    assert alice.post(path + '/pause',json={**review,'paused':False}).status_code == 204
 
 
 def test_challenge_timer_clamps_late_answers_and_ranks_by_points(anonymous_client, monkeypatch):
     from datetime import datetime, timedelta
+    from threading import get_ident
 
-    from app.models import utcnow
+    import pytest
+    from fastapi import HTTPException
+
+    from app.database import write_transaction
+    from app.models import RoomMember, StudyRoom, utcnow
     from app.services import room_study
     from app.services.presenters import iso
 
     async def generate(*args, **kwargs):
         return ['Distractor one','Distractor two','Distractor three']
     monkeypatch.setattr(room_study, 'get_or_generate_distractors', generate)
-    make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
+    users = make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
     alice, bob = map(sign_in, ('alice','bob'))
     path = make_room(alice)
     configure_room(alice,bob,path,deck(alice),mode='challenge')
+    countdown = wait_for_state(alice,path,'countdown')
+    guest_countdown = bob.get(path).json()
+    assert guest_countdown['phase'] == 'countdown'
+    assert guest_countdown['session']['deadline'] == countdown['session']['deadline']
+    assert 'question' not in countdown and 'question' not in guest_countdown
+    early_answer = {'session_id':countdown['session']['id'], 'position':0, 'option_id':'a3abf7f5-9207-4f47-aad3-a0e41f136cac'}
+    assert alice.post(path + '/answer',json=early_answer).status_code == 409
     view = wait_for_state(alice,path,'question')
     with anonymous_client.factory() as db:
         session = db.get(RoomSession,view['session']['id'])
         question = db.get(RoomQuestion,(session.id,0))
         assert (session.deadline - session.opened_at).total_seconds() == 30
         correct_id = question.correct_id
+    room_id = path.rsplit('/',1)[-1]
+    test_thread = get_ident()
+    with write_transaction(anonymous_client.factory) as db, monkeypatch.context() as clock:
+        room = db.get(StudyRoom, room_id)
+        session = db.get(RoomSession, view['session']['id'])
+        bob_member = db.get(RoomMember, (room_id, users['bob']))
+        alice_member = db.get(RoomMember, (room_id, users['alice']))
+        deadline = session.deadline
+        for elapsed in (timedelta(0), timedelta(microseconds=1)):
+            current = deadline + elapsed
+            clock.setattr(room_study, 'utcnow', lambda: current if get_ident() == test_thread else utcnow())
+            with pytest.raises(HTTPException) as rejected:
+                room_study.submit(db, room, bob_member, users['bob'], session.id, 0, correct_id)
+            assert rejected.value.status_code == 409
+        clock.setattr(room_study, 'utcnow', lambda: deadline - timedelta(microseconds=1) if get_ident() == test_thread else utcnow())
+        room_study.submit(db, room, alice_member, users['alice'], session.id, 0, correct_id)
     assert alice.post(path + '/answer',json=answer_for(view,correct_id)).status_code == 204
     with anonymous_client.factory.begin() as db:
         db.get(RoomSession,view['session']['id']).deadline = utcnow() - timedelta(seconds=1)
@@ -216,7 +249,7 @@ def test_chat_replay_transfer_and_close(anonymous_client, monkeypatch):
         return ['Distractor one','Distractor two','Distractor three']
     monkeypatch.setattr(room_study, 'get_or_generate_distractors', generate)
 
-    make_users(anonymous_client, ('alice','bob','carol','david'), [
+    make_users(anonymous_client, ('alice','carol','bob','david'), [
         ('alice','bob'),('alice','carol'),('bob','david'),
     ])
     alice, bob, carol, david = map(sign_in, ('alice','bob','carol','david'))
@@ -245,13 +278,16 @@ def test_chat_replay_transfer_and_close(anonymous_client, monkeypatch):
     assert not any(participant['spectator'] or participant['ready'] for participant in lobby['participants'])
 
     assert bob.post(path + '/leave',json={'action':'end'}).status_code == 403
-    assert alice.post(path + '/leave',json={'action':'leave'}).status_code == 422
-    assert alice.post(path + '/leave',json={'action':'transfer','username':'bob'}).status_code == 204
+    assert alice.post(path + '/leave',json={'action':'leave'}).status_code == 204
     assert alice.get(path).status_code == 404
     assert bob.get(path).json()['is_host']
     assert bob.get(path).json()['deck'] is None
     assert bob.post(path + '/invite',json={'username':'david'}).status_code == 204
-    assert bob.post(path + '/leave',json={'action':'end'}).status_code == 204
+    assert not carol.get(path).json()['is_host']
+    assert carol.post(path + '/leave',json={'action':'leave'}).status_code == 204
+    assert bob.get(path).json()['is_host']
+    assert bob.post(path + '/leave',json={'action':'leave'}).status_code == 204
+    assert bob.get(path).status_code == 404
     assert carol.get(path).status_code == 404
     assert david.get('/api/rooms').json()['invites'] == []
     with anonymous_client.factory() as db:
@@ -290,6 +326,72 @@ def test_disconnected_host_transfers_after_grace_and_room_expires(anonymous_clie
     room_study.tick(anonymous_client.factory, None)
     assert alice.get(path).status_code == 404
     assert bob.get('/api/rooms').json()['rooms'] == []
+
+
+def test_first_reconnection_snapshot_marks_member_connected(anonymous_client):
+    from datetime import timedelta
+
+    from app.auth.config import get_settings
+    from app.auth.service import hash_token
+    from app.models import AuthSession, RoomMember, utcnow
+    from app.routers.study_rooms import notification_state, socket_state
+
+    users = make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
+    alice, bob = map(sign_in, ('alice','bob'))
+    path = make_room(alice)
+    assert join(bob,path).status_code == 204
+    room_id = path.rsplit('/',1)[-1]
+    with anonymous_client.factory.begin() as db:
+        member = db.get(RoomMember, (room_id, users['bob']))
+        member.seen_at = member.disconnected_at = utcnow() - timedelta(seconds=3)
+    token = bob.cookies[get_settings().cookie_name]
+    _, snapshot = socket_state(anonymous_client.factory, room_id, hash_token(token), refresh=True, reconnect=True)
+    assert next(member for member in snapshot['participants'] if member['you'])['connected']
+
+    token_hash = hash_token(token)
+    with anonymous_client.factory.begin() as db:
+        db.get(AuthSession, token_hash).expires_at = utcnow() - timedelta(seconds=1)
+    assert socket_state(anonymous_client.factory, room_id, token_hash, refresh=True) is None
+    assert notification_state(anonymous_client.factory, token_hash) is None
+
+
+def test_concurrent_answers_score_once_and_session_finishes_when_only_spectators_remain(anonymous_client, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import timedelta
+
+    from app.models import utcnow
+    from app.services import room_study
+
+    async def generate(*args, **kwargs):
+        return ['Distractor one','Distractor two','Distractor three']
+
+    monkeypatch.setattr(room_study, 'get_or_generate_distractors', generate)
+    make_users(anonymous_client, ('alice','bob','carol'), [('alice','bob'),('alice','carol')])
+    alice, bob, carol = map(sign_in, ('alice','bob','carol'))
+    path = make_room(alice)
+    deck_id = deck(alice, 2)
+    assert alice.patch(f'/api/decks/{deck_id}', json={'visibility':'public'}).status_code == 200
+    configure_room(alice,bob,path,deck_id)
+    first = wait_for_state(alice,path,'question')
+    assert alice.post(path + '/invite',json={'username':'carol'}).status_code == 204
+    assert join(carol,path).status_code == 204
+    answer = answer_for(first, first['question']['options'][0]['id'])
+    with ThreadPoolExecutor(max_workers=2) as workers:
+        replies = [workers.submit(browser.post, path + '/answer', json=answer) for browser in (alice,bob)]
+        assert [reply.result().status_code for reply in replies] == [204,204]
+    revealed = wait_for_state(carol,path,'reveal')
+    assert len(revealed['question']['responses']) == 2
+    with anonymous_client.factory.begin() as db:
+        db.get(RoomSession,first['session']['id']).deadline = utcnow() - timedelta(seconds=1)
+    second = wait_for_state(alice,path,'question')
+    assert second['session']['position'] == 1
+    for browser in (alice,bob):
+        assert browser.post(path + '/leave',json={'action':'leave'}).status_code == 204
+    room_study.tick(anonymous_client.factory, None)
+    final = carol.get(path).json()
+    assert final['phase'] == 'results'
+    assert [result['answered'] for result in final['results']] == [1,1]
+    assert [result['questions'] for result in final['results']] == [1,1]
 
 
 def test_preparation_skips_failed_questions_in_the_persisted_order(anonymous_client, monkeypatch):
@@ -519,3 +621,134 @@ def test_room_settings_reject_a_stale_revision(anonymous_client):
     assert alice.patch(path + '/settings',json=settings).status_code == 204
     assert alice.patch(path + '/settings',json={**settings,'seconds':70}).status_code == 409
     assert alice.get(path).json()['seconds'] == 45
+
+
+@pytest.mark.parametrize("variant", [
+    "solo-ollama", "room-fallback",
+    pytest.param("live-ollama", marks=pytest.mark.skipif(
+        os.getenv("QUEEZO_TEST_LIVE_SHARED") != "1", reason="requires local Ollama",
+    )),
+])
+def test_distractors_shared_across_solo_readers_and_rooms(anonymous_client, monkeypatch, variant):
+    from time import monotonic, sleep
+    from unittest.mock import AsyncMock
+
+    import httpx
+
+    from app.models import Deck, FlashcardDistractorCache
+    from app.services import distractor_cache, distractors
+    from app.services.distractors import DistractorGenerationError
+    from test_multiple_choice import wait_for_state as wait_for_solo
+
+    monkeypatch.setattr(distractor_cache, "SessionLocal", anonymous_client.factory)
+    make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
+    alice, bob = map(sign_in, ('alice','bob'))
+    # Keep both clients on the lifespan’s event loop so solo jobs outlive the POST.
+    alice.portal = bob.portal = anonymous_client.portal
+    live = variant == 'live-ollama'
+    room_first = variant == 'room-fallback'
+    deck_id = deck(alice, 0 if live else 4)
+    if live:
+        for country, capital in [('France','Paris'),('Japan','Tokyo'),('Italy','Rome'),('Egypt','Cairo')]:
+            assert alice.post(f'/api/decks/{deck_id}/cards', json={
+                'front':f'What is the capital of {country}?', 'back':capital,
+            }).status_code == 201
+    assert alice.patch(f'/api/decks/{deck_id}', json={'visibility':'public'}).status_code == 200
+    with anonymous_client.factory() as db:
+        token = db.get(Deck, deck_id).share_token
+        assert db.scalars(select(FlashcardDistractorCache)).all() == []
+
+    requests = []
+    if live:
+        original = httpx.AsyncClient.post
+
+        async def counted_post(client, url, **kwargs):
+            if str(url).endswith('/api/chat'):
+                requests.append(url)
+            return await original(client, url, **kwargs)
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", counted_post)
+        generate = AsyncMock(wraps=distractors.generate_distractors)
+    elif room_first:
+        generate = AsyncMock(side_effect=DistractorGenerationError("Offline", reason="ollama_unavailable"))
+    else:
+        generate = AsyncMock(return_value=['First distractor','Second distractor','Third distractor'])
+    monkeypatch.setattr(distractors, "generate_distractors", generate)
+
+    def prepare_solo(browser, shared=False):
+        before = monotonic()
+        endpoint = f'/api/shared/decks/{token}/multiple-choice' if shared else f'/api/decks/{deck_id}/multiple-choice'
+        start = browser.post(endpoint)
+        assert start.status_code == 202, start.text
+        state = start.json()
+        path = f"/api/multiple-choice/{state['id']}"
+        if live:
+            deadline = monotonic() + 180
+            while monotonic() < deadline:
+                ready = browser.get(path).json()
+                if ready['status'] in ('active', 'failed'):
+                    break
+                sleep(.15)
+            assert ready['status'] == 'active', ready['failures']
+        else:
+            ready = wait_for_solo(browser, path, "active")
+        assert ready['progress']['ready'] == 4
+        return path, ready, monotonic() - before
+
+    def prepare_room():
+        # A non-owner hosts the same public deck. The other member sees the same snapshot.
+        path = make_room(bob, 'alice')
+        before = monotonic()
+        configure_room(bob,alice,path,deck_id)
+        wait_for_state(bob,path,'countdown')
+        return path, monotonic() - before
+
+    if room_first:
+        room_path, cold_time = prepare_room()
+        _, _, warm_time = prepare_solo(alice)
+    else:
+        _, _, cold_time = prepare_solo(alice)
+        room_path, warm_time = prepare_room()
+    assert generate.await_count == 4
+    initial_requests = len(requests)
+    if live:
+        assert initial_requests >= 4
+    generate.reset_mock()
+    generate.side_effect = AssertionError("Warm preparation must not call Ollama")
+    reader_path, reader, reader_time = prepare_solo(bob, shared=True)
+    assert reader['shared'] and reader['deck_id'] is None
+    question = bob.post(reader_path + '/question').json()['question']
+    assert len(question['options']) == 4 and 'correct_option_id' not in question
+    assert alice.get(reader_path).status_code == 404
+    prepare_solo(alice, shared=True)
+    history = alice.get(f'/api/decks/{deck_id}/multiple-choice/sessions').json()
+    assert len(history) == 1 and not history[0].get('shared')
+    host_question = wait_for_state(bob,room_path,'question')['question']
+    guest_question = wait_for_state(alice,room_path,'question')['question']
+    assert host_question['options'] == guest_question['options']
+    assert 'correct_id' not in guest_question
+    if not live:
+        assert {option['text'] for option in host_question['options']} >= (
+            {'Answer 0','Answer 1','Answer 2','Answer 3'} if room_first else
+            {'First distractor','Second distractor','Third distractor'}
+        )
+    generate.assert_not_awaited()
+    assert len(requests) == initial_requests
+
+    with anonymous_client.factory() as db:
+        cached = db.scalars(select(FlashcardDistractorCache)).all()
+        assert len(cached) == 4
+        fallback_entries = sum(entry.source == 'fallback' for entry in cached)
+        if not live:
+            assert fallback_entries == (4 if room_first else 0)
+    # Sharing changes revoke access without deleting valid cache rows.
+    assert alice.patch(f'/api/decks/{deck_id}', json={'visibility':'private'}).status_code == 200
+    assert bob.get(reader_path).status_code == 404
+    assert bob.post(f'/api/shared/decks/{token}/multiple-choice').status_code == 404
+    assert bob.post(f'/api/decks/{deck_id}/multiple-choice').status_code == 404
+    with anonymous_client.factory() as db:
+        assert len(db.scalars(select(FlashcardDistractorCache)).all()) == 4
+    print(f"shared-cache benchmark: {variant} cold={cold_time:.3f}s "
+          f"warm_other_mode={warm_time:.3f}s warm_reader={reader_time:.3f}s "
+          f"cold_generator_calls=4 cold_http_requests={initial_requests} warm_http_requests=0 "
+          f"fallback_entries={fallback_entries}")

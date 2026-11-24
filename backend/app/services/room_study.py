@@ -17,10 +17,10 @@ from app.services.distractor_cache import (
 from app.services.multiple_choice import START_QUESTIONS, preparation_timeout, shuffled_options
 from app.services.presenters import iso
 from app.services.study_rooms import (
-    IDLE, authorized_deck, chat_view, close, connected, eligible, fail, lobby_view, members, round_players, touch,
+    ACTIVE_PHASES, IDLE, authorized_deck, chat_view, close, connected, eligible, fail, lobby_view, members, round_players, touch,
 )
 
-ACTIVE_PHASES = ('preparing', 'waiting', 'question', 'reveal')
+COUNTDOWN = timedelta(seconds=5)
 REVIEW = timedelta(seconds=5)
 LEASE = timedelta(seconds=30)
 logger = logging.getLogger(__name__)
@@ -103,16 +103,24 @@ def progress_round(db, room, session, now):
     if not authorized_deck(db, room):
         finish(room, session, now)
         return
+    eligible_ids = {str(user.id) for member, user in round_players(db, room, session) if eligible(member, now)}
+    if not eligible_ids:
+        # Spectators cannot keep a round open after its active players are gone.
+        finish(room, session, now)
+        return
     if room.phase in {'preparing', 'waiting'}:
+        return
+    if room.phase == 'countdown':
+        if session.deadline and now >= session.deadline:
+            advance(db, room, session, 0, now)
         return
     if room.phase == 'reveal':
         if session.deadline and now >= session.deadline:
             advance(db, room, session, session.position + 1, now)
         return
     question = current_question(db, session)
-    eligible_ids = {str(user.id) for member, user in round_players(db, room, session) if eligible(member, now)}
     timed_out = session.deadline is not None and now >= session.deadline
-    if timed_out or (eligible_ids and eligible_ids <= question.answers.keys()):
+    if timed_out or eligible_ids <= question.answers.keys():
         reveal(room, session, question, now)
 
 
@@ -243,7 +251,13 @@ def open_prepared_question(db, room, session, settled):
             RoomQuestion.session_id == session.id, RoomQuestion.options.is_not(None),
         ).limit(START_QUESTIONS)))
         if settled or len(prepared) >= min(START_QUESTIONS, session.total):
-            advance(db, room, session, 0, utcnow())
+            now = utcnow()
+            if not prepared:
+                finish(room, session, now)
+                return
+            room.phase = 'countdown'
+            session.deadline = now + COUNTDOWN
+            touch(room)
 
 
 def save_question(factory, job, position, content, choices):

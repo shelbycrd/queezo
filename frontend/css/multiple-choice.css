@@ -59,7 +59,7 @@
   font-weight: 600;
   text-align: left;
 }
-.mc-choices .mc-option:enabled:hover { border-color: #9cb9e8; background: #edf5ff; }
+.mc-choices .mc-option:is(:enabled:hover, .mc-locked) { border-color: #9cb9e8; background: #edf5ff; }
 .mc-choices .mc-option:disabled { opacity: 1; cursor: default; }
 .mc-option:focus-visible, .study-type-grid label:has(input:focus-visible) {
   outline: 2px solid #d19942;
