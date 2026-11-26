@@ -1,4 +1,7 @@
 services:
+  backend:
+    volumes:
+      - queezo_backup_status:/backup-status:ro
   backup:
     build:
       context: .
@@ -10,9 +13,11 @@ services:
     environment:
       DATABASE_URL: sqlite:////data/queezo.db
       BACKUP_DIRECTORY: /backups
+      BACKUP_STATUS_DIRECTORY: /backup-status
     volumes:
       - queezo_data:/data:ro
       - queezo_backups:/backups
+      - queezo_backup_status:/backup-status
     depends_on:
       backend:
         condition: service_healthy
@@ -20,3 +25,4 @@ services:
 
 volumes:
   queezo_backups:
+  queezo_backup_status:

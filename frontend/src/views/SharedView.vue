@@ -24,7 +24,7 @@ async function copy() {
 }
 </script>
 <template>
-  <ResourceState v-if="!deck" :error="error"/>
+  <ResourceState v-if="!deck" :error="error" variant="list"/>
   <div v-else class="deck-workspace"><div class="page-heading"><div><span class="badge">{{ deck.visibility === 'public' ? 'Public' : 'Unlisted' }} deck</span><h1>{{ deck.title }}</h1><p class="muted">{{ deck.cards.length }} cards</p></div>
     <div class="actions" :aria-busy="pending"><button id="copy-shared" class="secondary" :disabled="pending" @click="copy()">Save private copy</button><button id="study-shared" :disabled="pending || !deck.cards.length" @click="chooseSharedStudy(token)">Study</button></div></div>
     <div class="card-list"><article v-for="(card,index) in deck.cards" :key="index" class="saved-card"><span class="content-label">Card {{ index + 1 }}</span><CardContent :text="card.front" :image="card.front_image" alt="Question photo"/>

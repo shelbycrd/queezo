@@ -111,7 +111,7 @@ def login_account(factory, payload, address, old):
         db.flush()
         bucket = db.get(LoginThrottle, bucket_key)
         reservation = bucket.window_started, bucket.attempts
-        credential = db.execute(select(User.id, User.uid, User.password_hash).where(User.email == email)).one_or_none() if valid else None
+        credential = db.execute(select(User.id, User.uid, User.password_hash).where(User.email == email, User.suspended_at.is_(None))).one_or_none() if valid else None
 
     stored_hash = credential.password_hash if credential else DUMMY_HASH
     verified = verify_password(stored_hash, password if valid else 'invalid')
@@ -122,7 +122,8 @@ def login_account(factory, payload, address, old):
     with write_transaction(factory) as db:
         user = db.get(User, credential.id)
         # Deletion, identity reuse and credential changes must invalidate this verification.
-        if not user or user.uid != credential.uid or user.email != email or user.password_hash != stored_hash:
+        if (not user or user.uid != credential.uid or user.email != email or user.password_hash != stored_hash
+                or user.suspended_at is not None):
             return login_error()
         if replacement:
             user.password_hash = replacement
@@ -161,7 +162,8 @@ def replace_password(user_id, uid, factory, payload, _address, old):
     with write_transaction(factory) as db:
         user = db.get(User, user_id)
         session = db.get(AuthSession, hash_token(old))
-        if not user or user.uid != uid or not session or session.user_id != user_id or session.expires_at <= utcnow():
+        if (not user or user.uid != uid or user.suspended_at is not None or not session
+                or session.user_id != user_id or session.expires_at <= utcnow()):
             return error('Please log in again to change your password.', 401)
         if user.password_hash != stored_hash:
             return error('Your password changed. Try again with your current password.', 409)

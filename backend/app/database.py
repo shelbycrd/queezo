@@ -36,7 +36,7 @@ engine = make_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +71,7 @@ def init_database(target=engine):
             if version == SCHEMA_VERSION:
                 connection.commit()
                 return
-            if version not in {0, 1, 2}:
+            if version not in {0, 1, 2, 3}:
                 raise RuntimeError("Unsupported SQLite schema version. Use the matching Queezo release.")
             existing = connection.exec_driver_sql(
                 "SELECT 1 FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
@@ -84,7 +84,9 @@ def init_database(target=engine):
             Base.metadata.create_all(connection)
             if version == 0:
                 upgrade_baseline(connection)
-            upgrade_shared_distractors(connection)
+            if version < 3:
+                upgrade_shared_distractors(connection)
+            upgrade_admin_console(connection)
             connection.exec_driver_sql(f"PRAGMA user_version={SCHEMA_VERSION}")
             connection.commit()
             logger.info("SQLite schema upgraded to version %s", SCHEMA_VERSION)
@@ -108,6 +110,17 @@ def upgrade_shared_distractors(connection):
     session_columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(multiple_choice_sessions)")}
     if "shared_access" not in session_columns:
         connection.exec_driver_sql("ALTER TABLE multiple_choice_sessions ADD COLUMN shared_access VARCHAR(64)")
+
+
+def upgrade_admin_console(connection):
+    for table, column, declaration in (
+        ("users", "suspended_at", "DATETIME"),
+        ("decks", "unpublished_at", "DATETIME"),
+        ("profile_reports", "disposition", "VARCHAR(9) CHECK (disposition IN ('resolved', 'dismissed'))"),
+    ):
+        present = {row[1] for row in connection.exec_driver_sql(f"PRAGMA table_info({table})")}
+        if column not in present:
+            connection.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {declaration}")
 
 
 def upgrade_baseline(connection):

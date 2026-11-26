@@ -34,8 +34,10 @@ def identity(user):
 def membership(db, room_id, user_id):
     room = db.get(StudyRoom, room_id)
     member = db.get(RoomMember, (room_id, user_id)) if room else None
-    if not room or not member or room.phase == 'closed':
+    if not room or not member:
         fail(404, 'Study room not found.')
+    if room.phase == 'closed':
+        fail(404, 'This study room has closed.')
     return room, member
 
 
@@ -129,7 +131,7 @@ def respond(db, room_id, user_id, accept):
 
 def authorized_deck(db, room):
     deck = db.get(Deck, room.deck_id) if room.deck_id is not None else None
-    if not deck or deck.owner_id != room.deck_owner_id:
+    if not deck or deck.unpublished_at is not None or deck.owner_id != room.deck_owner_id:
         return None
     if deck.visibility == 'public':
         return deck
@@ -150,7 +152,7 @@ def configure(db, room, user_id, settings):
     if settings.expected_revision and settings.expected_revision != settings_revision(room):
         fail(409, 'Room settings changed. Check the latest settings and try again.')
     deck = db.get(Deck, settings.deck_id) if settings.deck_id is not None else None
-    if settings.deck_id is not None and (not deck or deck.owner_id is None or
+    if settings.deck_id is not None and (not deck or deck.unpublished_at is not None or deck.owner_id is None or
             (deck.owner_id != user_id and deck.visibility != 'public')):
         fail(404, 'Deck not available.')
     # Selecting an owned private or unlisted deck grants access only in this room.

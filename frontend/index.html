@@ -7,9 +7,19 @@
   <title>Queezo • Home</title>
   <link rel="icon" type="image/svg+xml" href="/assets/queezo-cloud.svg">
   <link rel="preload" href="/assets/fonts/Quicksand.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/css/skeleton.css">
   <script type="module" src="/src/main.js"></script>
 </head>
 <body>
-  <div id="queezo-root"><main id="app" tabindex="-1"><p class="muted">Loading Queezo…</p></main></div>
+  <div id="queezo-root"><main id="app" tabindex="-1">
+    <div class="skeleton skeleton-page boot-skeleton" role="status" aria-live="polite" aria-busy="true">
+      <span class="sr-only">Loading Queezo…</span>
+      <div aria-hidden="true">
+        <span class="sk sk-title"></span>
+        <div class="sk sk-panel"><span class="sk sk-line" style="width:78%"></span><span class="sk sk-line" style="width:64%"></span><span class="sk sk-line" style="width:50%"></span></div>
+        <div class="sk-grid"><span class="sk sk-tile"></span><span class="sk sk-tile"></span><span class="sk sk-tile"></span></div>
+      </div>
+    </div>
+  </main></div>
 </body>
 </html>

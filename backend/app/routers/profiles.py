@@ -69,7 +69,7 @@ class ReportInput(BaseModel):
 
 def public_decks(owner_id):
     return select(Deck).where(Deck.owner_id == owner_id, Deck.visibility == 'public',
-                              Deck.share_token.is_not(None))
+                              Deck.unpublished_at.is_(None), Deck.share_token.is_not(None))
 
 
 def deck_summaries(db, statement):

@@ -3,6 +3,7 @@ import {computed, onScopeDispose, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
 import {avatarUrl} from '../services/profiles.js';
 import {showNotice} from '../services/notice.js';
+import LoadingSkeleton from './LoadingSkeleton.vue';
 
 const props = defineProps({path:String,revision:String,full:Boolean});
 const open = ref(false), page = ref(1), data = ref(null), busy = ref(false), sending = ref(null), error = ref('');
@@ -53,7 +54,7 @@ async function send(friend) {
   <details class="room-invite-friends" @toggle="open = $event.currentTarget.open">
     <summary>Invite Friends</summary>
     <p v-if="error" role="status">{{ error }}</p>
-    <p v-else-if="busy && !data" role="status">Loading friends…</p>
+    <LoadingSkeleton v-else-if="busy && !data" variant="list" label="Loading friends…"/>
     <p v-else-if="!items.length" class="muted">No friends on this page.</p>
     <ul v-else aria-label="Friends to invite" :aria-busy="busy">
       <li v-for="friend in items" :key="friend.username" :class="{'is-unavailable':full || friend.status !== 'available'}">

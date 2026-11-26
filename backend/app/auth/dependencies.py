@@ -23,7 +23,8 @@ def optional_user(request: Request, db: Session = Depends(get_db)):
     if not 40 <= len(token) <= 128:
         return None
     result = db.execute(select(User, AuthSession).join(AuthSession, AuthSession.user_id == User.id).where(
-        AuthSession.token_hash == hash_token(token), AuthSession.expires_at > utcnow())).first()
+        AuthSession.token_hash == hash_token(token), AuthSession.expires_at > utcnow(),
+        User.suspended_at.is_(None))).first()
     if result is None:
         return None
     if request.method not in {'GET', 'HEAD', 'OPTIONS'}:

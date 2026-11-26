@@ -100,7 +100,7 @@ const ratings = [['hard','Hard','More practice'],['normal','Normal','Getting the
 <template>
   <div v-if="!card" class="study-shell">
     <div class="study-heading"><RouterLink class="button secondary flat-button study-exit" to="/decks" aria-label="Return to Flashcards" v-html="closeIcon"/></div>
-    <ResourceState :error="error"/>
+    <ResourceState :error="error" variant="card"/>
   </div>
   <div v-else class="study-shell" :aria-busy="pending">
     <div class="study-heading"><button type="button" class="secondary flat-button study-exit" aria-label="Return to deck" :disabled="pending" @click="leave()" v-html="closeIcon"></button><div><p class="eyebrow">A little focused recall</p><h1>{{ state.deck_title }}</h1></div></div>

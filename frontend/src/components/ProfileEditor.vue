@@ -4,6 +4,7 @@ import {api} from '../../js/api.js';
 import {avatars, avatarUrl, dateTime, visibility} from '../services/profiles.js';
 import {showNotice} from '../services/notice.js';
 import {useLifetime} from '../composables/lifecycle.js';
+import LoadingSkeleton from './LoadingSkeleton.vue';
 
 const props = defineProps({profile:{type:Object,required:true}, mode:{type:String,required:true}});
 const emit = defineEmits(['close','saved']);
@@ -65,7 +66,7 @@ async function save() {
         <div v-else><label for="profile-feature">Featured public deck</label><select id="profile-feature" v-model="value" :disabled="pending || !options">
           <option :value="null">No featured deck</option><option v-for="deck in options" :key="deck.id" :value="deck.id">{{ deck.title }}</option></select>
           <p v-if="choicesError" class="hint">Deck options couldn’t load. <button class="secondary small flat-button" type="button" @click="loadOptions">Retry</button></p>
-          <p v-else-if="!options" class="hint" role="status">Loading public decks…</p>
+          <LoadingSkeleton v-else-if="!options" variant="lines" :count="1" label="Loading public decks…"/>
         </div>
         <p v-if="problem" class="settings-error" role="alert">{{ problem }}</p>
         <div class="actions"><button type="submit" :disabled="pending || unchanged">{{ pending ? 'Saving…' : mode === 'avatar' ? 'Save picture' : 'Save' }}</button><button type="button" class="secondary flat-button" :disabled="pending" @click="dialog.close()">Cancel</button></div>

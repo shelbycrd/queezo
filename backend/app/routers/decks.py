@@ -71,6 +71,10 @@ def rename_deck(deck_id: int, data: DeckPatch, user: User = Depends(require_user
     changes = data.model_dump(exclude_unset=True)
     if not changes:
         raise HTTPException(422, 'Choose a title or visibility to update.')
+    if deck.unpublished_at is not None:
+        if changes.get('visibility', deck.visibility) != deck.visibility:
+            raise HTTPException(409, 'Only an administrator can restore sharing for this deck.')
+        changes.pop('visibility', None)
     if changes.get('visibility') in {'public','unlisted'}:
         try:
             no_urls(changes.get('title', deck.title))

@@ -23,7 +23,7 @@ def shared_view(db, deck):
 @router.get('/community/decks')
 def community(user: User = Depends(require_user), db: Session = Depends(get_db)):
     decks = db.scalars(select(Deck).where(Deck.visibility == 'public', Deck.owner_id.is_not(None),
-                        Deck.share_token.is_not(None)).order_by(Deck.created_at.desc(),Deck.id.desc()).limit(20))
+                        Deck.unpublished_at.is_(None), Deck.share_token.is_not(None)).order_by(Deck.created_at.desc(),Deck.id.desc()).limit(20))
     return [shared_view(db, deck) for deck in decks]
 
 

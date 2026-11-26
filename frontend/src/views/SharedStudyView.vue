@@ -8,6 +8,7 @@ import {useEvent, useResource} from '../composables/lifecycle.js';
 import {closeIcon} from '../services/format.js';
 import {sharedMultipleChoiceRoute} from '../services/study-dialog.js';
 import CardContent from '../components/CardContent.vue';
+import LoadingSkeleton from '../components/LoadingSkeleton.vue';
 
 const {token} = defineProps({token:String});
 const {query} = useRoute(), router = useRouter();
@@ -85,7 +86,7 @@ useEvent(document,'keydown', event => {
     </div>
 
     <p v-if="error" class="muted" role="alert">{{ error }}</p>
-    <p v-else-if="!deck" class="muted" role="status">{{ multiple ? 'Preparing your session…' : 'Loading deck…' }}</p>
+    <LoadingSkeleton v-else-if="!deck" variant="card" :label="multiple ? 'Preparing your session…' : 'Loading deck…'"/>
     <p v-else-if="!cards.length" class="muted">This deck has no cards to study yet.</p>
     <section v-else-if="done" class="panel mc-panel" aria-labelledby="shared-summary">
       <h2 id="shared-summary">{{ expired ? 'Time is up' : 'Practice complete' }}</h2>

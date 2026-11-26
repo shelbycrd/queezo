@@ -9,6 +9,7 @@ import {playAnswerSound, preparePageSound} from '../../js/audio.js';
 import {closeIcon,plural} from '../services/format.js';
 import {useLifetime} from '../composables/lifecycle.js';
 import CardContent from '../components/CardContent.vue';
+import LoadingSkeleton from '../components/LoadingSkeleton.vue';
 
 const FAILURE_LABELS = {
   generation_failed:'Could not prepare three distinct choices. Retry the failed cards.',
@@ -169,7 +170,7 @@ async function again() {
           <button type="button" class="secondary flat-button" :disabled="Boolean(pending)" @click="controller.transition('cancel')">{{ pending === 'cancel' ? 'Cancelling…' : 'Cancel preparation' }}</button>
         </div>
       </section>
-      <p v-else class="muted" role="status">Loading study session…</p>
+      <LoadingSkeleton v-else variant="card" label="Loading study session…"/>
     </div>
   </div>
 </template>

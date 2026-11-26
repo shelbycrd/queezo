@@ -13,6 +13,7 @@ import ProfileEditor from '../components/ProfileEditor.vue';
 import ProfileAbout from '../components/ProfileAbout.vue';
 import ProfileSettings from '../components/ProfileSettings.vue';
 import ReportProfileDialog from '../components/ReportProfileDialog.vue';
+import LoadingSkeleton from '../components/LoadingSkeleton.vue';
 
 const props = defineProps({username:String});
 const path = props.username ? profileApi(props.username) : '/profiles/me';
@@ -95,7 +96,7 @@ function saved(data) {
       <p class="muted">{{ error === 'Profile not found.' ? 'This profile may be private or the link may be incorrect.' : error }}</p>
       <a href="/#/dashboard" class="button secondary flat-button">Back to Queezo</a>
     </section>
-    <p v-else-if="!profile" class="muted" role="status">Loading profile…</p>
+    <LoadingSkeleton v-else-if="!profile" label="Loading profile…"/>
     <template v-else>
       <section class="panel profile-card profile-header" aria-label="Profile">
         <div class="profile-picture-wrap">
@@ -135,7 +136,7 @@ function saved(data) {
               <form role="search" class="new-deck-form" @submit.prevent="search"><div><label class="sr-only" for="profile-deck-search">Search decks</label><input id="profile-deck-search" v-model="input" type="search" maxlength="120" placeholder="Search by title…" @search="search"></div><button type="submit" class="secondary flat-button">Search</button></form>
               <div><label for="profile-deck-sort">Sort decks</label><select id="profile-deck-sort" v-model="sort" @change="page = 1"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="alphabetical">Alphabetical</option></select></div>
             </div>
-            <p v-if="loading" class="muted" role="status">Loading public decks…</p>
+            <LoadingSkeleton v-if="loading" variant="grid" :count="3" label="Loading public decks…"/>
             <div v-else-if="deckError" class="panel" role="status"><p>{{ deckError }}</p><button type="button" class="secondary flat-button" @click="reload++">Retry</button></div>
             <div v-else-if="decks?.items.length" class="deck-grid profile-deck-grid"><DeckTile v-for="deck in decks.items" :key="deck.share_token" :deck="deck" shared/></div>
             <div v-else-if="decks" class="empty"><p>{{ q ? 'No public decks match your search.' : profile.featured_deck ? 'No other public decks yet.' : 'No public decks yet.' }}</p></div>

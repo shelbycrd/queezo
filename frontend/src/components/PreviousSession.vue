@@ -4,6 +4,7 @@ import {api} from '../../js/api.js';
 import {SESSION_LABELS} from '../../js/multiple-choice-session.js';
 import {date, duration, plural} from '../services/format.js';
 import {useLifetime} from '../composables/lifecycle.js';
+import LoadingSkeleton from './LoadingSkeleton.vue';
 
 const {deckId} = defineProps({deckId:String});
 const {signal, active} = useLifetime();
@@ -48,7 +49,7 @@ async function load() {
 <template>
   <details class="session-history" @toggle="$event.target.open && load()">
     <summary>Previous Session <span v-if="sessions" class="muted">({{ sessions.length }})</span></summary>
-    <p v-if="busy" role="status" class="muted">Loading previous sessions…</p>
+    <LoadingSkeleton v-if="busy" variant="lines" label="Loading previous sessions…"/>
     <template v-else-if="error">
       <p role="status" class="muted">Could not load previous sessions.</p>
       <button type="button" class="secondary small flat-button" @click="load">Try again</button>

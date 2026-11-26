@@ -34,7 +34,7 @@ async function submit() {
 }
 </script>
 <template>
-  <ResourceState v-if="!items" :error="error"/>
+  <ResourceState v-if="!items" :error="error" variant="grid"/>
   <template v-else>
     <div class="page-heading"><div><h1>Your Decks</h1></div><span class="deck-total">{{ plural(items.length,'deck') }}</span></div>
     <div class="deck-tools"><form id="deck-search" class="new-deck-form" role="search" @submit.prevent><div><label for="deck-search-input">Search decks</label><input id="deck-search-input" ref="searchBox" v-model="search" type="search" placeholder="Search your decks…" autocomplete="off"></div><button type="submit" class="secondary">Search</button></form><button id="open-create-deck" type="button" @click="openCreate"><span v-html="icon('plus')"></span> Create Deck</button></div>

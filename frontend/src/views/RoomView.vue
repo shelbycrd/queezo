@@ -13,6 +13,7 @@ import RoomChat from '../components/RoomChat.vue';
 import {avatarUrl} from '../services/profiles.js';
 import {accuracy, remainingSeconds, roomApi,roomModes,roomSocketUrl} from '../services/rooms.js';
 import {showNotice} from '../services/notice.js';
+import LoadingSkeleton from '../components/LoadingSkeleton.vue';
 
 const {roomId} = defineProps({roomId:String});
 const path = roomApi(roomId);
@@ -333,6 +334,7 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearTimeout(se
             </template>
             <section v-else-if="room.phase === 'preparing' || room.phase === 'waiting'" class="room-loading" aria-live="polite">
               <h2>{{ room.phase === 'waiting' ? 'Loading the next question…' : 'Getting the session ready…' }}</h2>
+              <LoadingSkeleton variant="card" label=""/>
             </section>
             <div v-else-if="room.phase === 'countdown'" class="room-start-countdown" role="timer" aria-label="Study starts in">
               {{ countdown }}

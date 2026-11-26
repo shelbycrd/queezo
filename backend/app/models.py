@@ -19,6 +19,7 @@ class Deck(Base):
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(120))
     visibility: Mapped[str] = mapped_column(String(8), default='private', server_default='private')
+    unpublished_at: Mapped[datetime | None] = mapped_column(DateTime)
     share_token: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, default=lambda: secrets.token_urlsafe(32))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
@@ -212,6 +213,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(80), default='Learner')
     email: Mapped[str] = mapped_column(String(254, collation="NOCASE"), unique=True)
     password_hash: Mapped[str] = mapped_column(String(512))
+    suspended_at: Mapped[datetime | None] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     profile_visibility: Mapped[str] = mapped_column(String(8), default='unlisted', server_default='unlisted')
     bio: Mapped[str] = mapped_column(String(200), default='', server_default='')
@@ -239,7 +241,31 @@ class ProfileReport(Base):
     explanation: Mapped[str] = mapped_column(String(400), default='')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime)
-    __table_args__ = (CheckConstraint("target_id <> reporter_id"), {"sqlite_autoincrement": True})
+    disposition: Mapped[str | None] = mapped_column(String(9))
+    __table_args__ = (CheckConstraint("target_id <> reporter_id"),
+                      CheckConstraint("disposition IN ('resolved', 'dismissed')"),
+                      {"sqlite_autoincrement": True})
+
+
+class AdminCredential(Base):
+    __tablename__ = "admin_credential"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    operator: Mapped[str] = mapped_column(String(32))
+    password_hash: Mapped[str] = mapped_column(String(512))
+    revision: Mapped[int] = mapped_column(Integer)
+    __table_args__ = (CheckConstraint("id = 1"),)
+
+
+class AdminAudit(Base):
+    __tablename__ = "admin_audit"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    operator: Mapped[str] = mapped_column(String(32))
+    action: Mapped[str] = mapped_column(String(40))
+    target: Mapped[str] = mapped_column(String(64))
+    reason: Mapped[str | None] = mapped_column(String(240))
+    outcome: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    __table_args__ = ({"sqlite_autoincrement": True},)
 
 
 class AuthSession(Base):

@@ -19,7 +19,7 @@ WORKDIR /app
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
     && useradd --create-home --uid 10001 queezo \
-    && mkdir -p /data && chown queezo:queezo /data
+    && mkdir -p /data /backup-status && chown queezo:queezo /data /backup-status
 COPY backend/ ./
 USER queezo
 EXPOSE 8000

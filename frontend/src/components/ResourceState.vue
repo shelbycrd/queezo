@@ -1,5 +1,6 @@
 <script setup>
-defineProps({error:String});
+import LoadingSkeleton from './LoadingSkeleton.vue';
+defineProps({error:String, variant:{type:String, default:'page'}});
 </script>
 <template>
   <template v-if="error">
@@ -7,5 +8,5 @@ defineProps({error:String});
     <p class="muted">Check the message above, or try refreshing the page.</p>
     <a class="button secondary" href="#/decks">Return to Flashcards</a>
   </template>
-  <p v-else class="muted" role="status">Loading…</p>
+  <LoadingSkeleton v-else :variant="variant"/>
 </template>

@@ -1,6 +1,6 @@
 # Account setup
 
-Queezo requires an account to use its study apps. Users can register on the website or an operator can create accounts through the backend CLI. Account deletion and session revocation are operator CLI commands. Email verification, password recovery, password resets, and a web admin page are not implemented.
+Queezo requires an account to use its study apps. Users can register on the website or an operator can create accounts through the backend CLI. Account deletion and session revocation are operator CLI commands. Student email verification and password recovery are unavailable. Server operators can use the separate [Admin Console](docs/ADMIN_CONSOLE.md).
 
 ## Start locally
 

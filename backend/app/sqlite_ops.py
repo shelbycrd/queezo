@@ -138,7 +138,16 @@ def save_backup(source, directory, retention, *, daily=None):
     return snapshot
 
 
-def schedule(source, directory, retention):
+def publish_success(marker, day):
+    temporary = marker.with_name(f'.last-success-{uuid4().hex}')
+    try:
+        temporary.write_text(day.isoformat(), encoding='ascii')
+        temporary.replace(marker)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def schedule(source, directory, retention, status_directory=None):
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     marker = directory / '.last-success'
     while True:
@@ -150,13 +159,10 @@ def schedule(source, directory, retention):
                 last = None
             if last != today:
                 snapshot = save_backup(source, directory, retention, daily=today)
-                temporary_marker = directory / f'.last-success-{uuid4().hex}'
-                try:
-                    temporary_marker.write_text(today.isoformat(), encoding='ascii')
-                    temporary_marker.replace(marker)
-                finally:
-                    temporary_marker.unlink(missing_ok=True)
+                publish_success(marker, today)
                 print(f'Verified daily snapshot: {snapshot.name}', flush=True)
+            if status_directory is not None:
+                publish_success(status_directory / marker.name, today)
         except (OSError, RuntimeError, ValueError, sqlite3.Error):
             print('Daily database backup failed. Check storage and backup configuration; retrying within an hour.',
                   file=sys.stderr, flush=True)
@@ -201,7 +207,8 @@ def main(argv=None):
             if args.command == 'backup':
                 print('Verified snapshot:', save_backup(configured_database(), directory, retention).name)
             else:
-                schedule(configured_database(), directory, retention)
+                status_directory = os.getenv('BACKUP_STATUS_DIRECTORY')
+                schedule(configured_database(), directory, retention, Path(status_directory) if status_directory else None)
         return 0
     except (OSError, RuntimeError, ValueError, sqlite3.Error):
         print('Database operation failed. Check the paths, permissions, backup configuration and application logs.',

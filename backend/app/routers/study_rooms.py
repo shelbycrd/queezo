@@ -142,7 +142,8 @@ def room_decks(room_id: UUID, user: User = Depends(require_user), db: Session = 
     rooms.host_only(room, user.id)
     counts = select(func.count()).select_from(Flashcard).where(Flashcard.deck_id == Deck.id).scalar_subquery()
     return [dict(row) for row in db.execute(select(Deck.id, Deck.title, Deck.visibility, counts.label('card_count'))
-            .where((Deck.owner_id == user.id) | ((Deck.visibility == 'public') & Deck.owner_id.is_not(None)))
+            .where(Deck.unpublished_at.is_(None),
+                   (Deck.owner_id == user.id) | ((Deck.visibility == 'public') & Deck.owner_id.is_not(None)))
             .order_by((Deck.owner_id == user.id).desc(), Deck.updated_at.desc()).limit(200)).mappings()]
 
 
@@ -162,9 +163,15 @@ def answer(room_id: UUID, body: AnswerInput, user: User = Depends(require_user),
     room_study.submit(db, room, member, user.id, str(body.session_id), body.position, str(body.option_id))
 
 
+def _live_session(db, token_hash, now):
+    return db.scalar(select(AuthSession).join(User, User.id == AuthSession.user_id).where(
+        AuthSession.token_hash == token_hash, AuthSession.expires_at > now, User.suspended_at.is_(None),
+    ))
+
+
 def _socket_room(db, room_id, token_hash, now):
-    session = db.get(AuthSession, token_hash)
-    if not session or session.expires_at <= now:
+    session = _live_session(db, token_hash, now)
+    if not session:
         return None
     room = db.get(StudyRoom, room_id)
     member = db.get(RoomMember, (room_id, session.user_id))
@@ -208,8 +215,8 @@ def socket_session_hash(socket):
 def notification_state(factory, token_hash):
     with factory() as db:
         consistent_read(db)
-        session = db.get(AuthSession, token_hash)
-        if session and session.expires_at > utcnow():
+        session = _live_session(db, token_hash, utcnow())
+        if session:
             return session.user_id, overview_for(db, session.user_id)
     return None
 

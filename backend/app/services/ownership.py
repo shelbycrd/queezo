@@ -12,7 +12,8 @@ def owned_flashcards(user_id: int):
 
 def shared_deck(db, token):
     deck = db.scalar(select(Deck).where(
-        Deck.share_token == token, Deck.owner_id.is_not(None), Deck.visibility.in_(('public', 'unlisted')),
+        Deck.share_token == token, Deck.owner_id.is_not(None), Deck.unpublished_at.is_(None),
+        Deck.visibility.in_(('public', 'unlisted')),
     ))
     if deck is None:
         raise HTTPException(404, 'Shared deck not found.')

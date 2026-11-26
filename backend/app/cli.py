@@ -160,8 +160,19 @@ def main(argv=None):
     assignment.add_argument("--email", required=True, help="Existing account email")
     assignment.add_argument("--deck-id", action="append", type=int, required=True,
                             help="Unowned deck ID; repeat this option to select multiple decks")
+    admin = commands.add_parser('admin', help='Open the authenticated administrator console')
+    admin_modes = admin.add_subparsers(dest='admin_command')
+    setup = admin_modes.add_parser('setup', help='Set up the operator credential as container root')
+    setup.add_argument('--operator', required=True, type=normalize_username, help='Operator identifier for the audit log')
+    admin_modes.add_parser('rotate', help='Authenticate and change the administrator password')
+    recovery = admin_modes.add_parser('recover', help='Recover the credential as container root')
+    recovery.add_argument('--reason', required=True)
+    recovery.add_argument('--yes', action='store_true', required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == 'admin':
+            from app.admin_cli import run
+            return run(args, secure_password)
         if args.command == "create-user":
             return provision_user()
         init_database()
@@ -189,7 +200,8 @@ def main(argv=None):
     except InsecurePasswordInput as exc:
         print(str(exc), file=sys.stderr)
     except (KeyboardInterrupt, EOFError):
-        print("Command cancelled. No account was created.", file=sys.stderr)
+        print('Command cancelled.' if args.command == 'admin' else
+              'Command cancelled. No account was created.', file=sys.stderr)
     except ValueError as exc:
         # This branch handles ownership selection errors, not password inputs.
         print(str(exc), file=sys.stderr)

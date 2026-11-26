@@ -69,14 +69,15 @@ def _owned_deck(db, deck_id, user_id):
 
 def _authorized_session(db, statement):
     row = db.execute(
-        statement.join(Deck).add_columns(Deck.owner_id, Deck.visibility, Deck.share_token)
+        statement.join(Deck).add_columns(Deck.owner_id, Deck.visibility, Deck.share_token, Deck.unpublished_at)
     ).one_or_none()
     if row is None:
         return None
-    session, deck_owner, visibility, token = row
+    session, deck_owner, visibility, token, unpublished_at = row
     if session.shared_access is None:
         return session if session.owner_id == deck_owner else None
-    if deck_owner is not None and visibility in ('public', 'unlisted') and token and hash_token(token) == session.shared_access:
+    if (deck_owner is not None and unpublished_at is None and visibility in ('public', 'unlisted')
+            and token and hash_token(token) == session.shared_access):
         return session
     return None
 
