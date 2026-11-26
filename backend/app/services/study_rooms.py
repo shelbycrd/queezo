@@ -8,7 +8,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 from sqlalchemy import and_, case, delete, func, or_, select
 
-from app.models import Deck, Flashcard, Friendship, RoomInvite, RoomMember, RoomMessage, RoomQuestion, RoomSession, StudyRoom, User, utcnow
+from app.models import Deck, Flashcard, Friendship, LoginThrottle, RoomInvite, RoomMember, RoomMessage, RoomQuestion, RoomSession, StudyRoom, User, utcnow
 from app.services.distractor_cache import _fingerprint
 from app.services.presenters import iso
 
@@ -21,6 +21,10 @@ GRACE = timedelta(seconds=45)
 IDLE = timedelta(minutes=30)
 HEARTBEAT = timedelta(seconds=20)
 FRIENDS_PER_PAGE = 4
+# Per sender-recipient pair, rolling window. Never echo these values to clients.
+INVITE_PAIR_LIMIT = 5
+INVITE_PAIR_WINDOW = timedelta(seconds=60)
+INVITE_PAIR_MESSAGE = "You've sent too many invitations to this user. Please try again later."
 
 
 def fail(status, message):
@@ -69,11 +73,37 @@ def eligible_friend(db, user_id, username):
     return other
 
 
+def reserve_invite_attempt(db, sender_id, recipient_id):
+    """Record one invitation attempt, or reject once the rolling pair window is full.
+
+    Callers hold the BEGIN IMMEDIATE write transaction, so concurrent attempts
+    serialize here and cannot all observe a free slot. Each of the fixed slots
+    stores one attempt time; the generic throttle cleanup prunes stale rows.
+    """
+    now = utcnow()
+    keys = [f'room-invite-pair:{sender_id}:{recipient_id}:{slot}' for slot in range(INVITE_PAIR_LIMIT)]
+    slots = {row.key: row for row in db.scalars(select(LoginThrottle).where(LoginThrottle.key.in_(keys)))}
+    free = next((key for key in keys if key not in slots), None)
+    if free is not None:
+        db.add(LoginThrottle(key=free, window_started=now, attempts=1))
+        return
+    oldest = min(slots.values(), key=lambda row: row.window_started)
+    if oldest.window_started > now - INVITE_PAIR_WINDOW:
+        fail(429, INVITE_PAIR_MESSAGE)
+    oldest.window_started = now
+
+
 def invite_friend(db, room, sender_id, other):
     if len(members(db, room)) >= CAPACITY:
         fail(409, 'This room is full.')
     if db.get(RoomMember, (room.id, other.id)):
         fail(409, 'That friend is already in the room.')
+    # One active invitation per sender-recipient pair: a newer room supersedes older ones.
+    stale = db.scalars(select(StudyRoom).join(RoomInvite, RoomInvite.room_id == StudyRoom.id).where(
+        RoomInvite.sender_id == sender_id, RoomInvite.user_id == other.id, RoomInvite.room_id != room.id))
+    for previous in stale:
+        db.execute(delete(RoomInvite).where(RoomInvite.room_id == previous.id, RoomInvite.user_id == other.id))
+        touch(previous)
     if not db.get(RoomInvite, (room.id, other.id)):
         db.add(RoomInvite(room_id=room.id, user_id=other.id, sender_id=sender_id))
         touch(room)
@@ -81,12 +111,24 @@ def invite_friend(db, room, sender_id, other):
 
 def invite(db, room, sender_id, username):
     other = eligible_friend(db, sender_id, username)
+    reserve_invite_attempt(db, sender_id, other.id)
     invite_friend(db, room, sender_id, other)
     return other.id
 
 
+def pending_lobby(db, sender_id, recipient_id):
+    return db.scalar(select(StudyRoom.id).join(RoomInvite, RoomInvite.room_id == StudyRoom.id).where(
+        StudyRoom.host_id == sender_id, StudyRoom.phase == 'lobby',
+        RoomInvite.sender_id == sender_id, RoomInvite.user_id == recipient_id).limit(1))
+
+
 def create(db, user_id, username):
     other = eligible_friend(db, user_id, username)
+    reserve_invite_attempt(db, user_id, other.id)
+    # Repeating "Invite to Study" reuses the pending lobby instead of opening duplicates.
+    existing = pending_lobby(db, user_id, other.id)
+    if existing:
+        return existing, other.id
     if db.scalar(select(func.count()).select_from(StudyRoom)
                  .where(StudyRoom.host_id == user_id, StudyRoom.phase != 'closed')) >= MAX_OPEN_ROOMS:
         fail(429, 'Close an existing room before creating another.')

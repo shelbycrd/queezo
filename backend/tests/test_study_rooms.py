@@ -752,3 +752,62 @@ def test_distractors_shared_across_solo_readers_and_rooms(anonymous_client, monk
           f"warm_other_mode={warm_time:.3f}s warm_reader={reader_time:.3f}s "
           f"cold_generator_calls=4 cold_http_requests={initial_requests} warm_http_requests=0 "
           f"fallback_entries={fallback_entries}")
+
+
+def test_invites_are_limited_per_pair_in_a_rolling_window_without_revealing_the_limit(anonymous_client):
+    from datetime import timedelta
+    from app.models import LoginThrottle, utcnow
+    from app.services import study_rooms
+
+    make_users(anonymous_client, ('alice','bob','carol'), [('alice','bob'), ('alice','carol')])
+    alice, bob = sign_in('alice'), sign_in('bob')
+    path = make_room(alice)
+    for _ in range(study_rooms.INVITE_PAIR_LIMIT - 1):
+        assert alice.post(path + '/invite',json={'username':'bob'}).status_code == 204
+    for attempt in (lambda: alice.post(path + '/invite',json={'username':'bob'}),
+                    lambda: alice.post('/api/rooms',json={'username':'bob'})):
+        refused = attempt()
+        assert refused.status_code == 429
+        body = refused.text
+        assert refused.json()['error']['message'] == "You've sent too many invitations to this user. Please try again later."
+        assert 'retry-after' not in {key.lower() for key in refused.headers}
+        assert not any(str(value) in body for value in ('5', '60', 'remaining', 'seconds'))
+    assert len(bob.get('/api/rooms').json()['invites']) == 1
+    assert alice.post(path + '/invite',json={'username':'carol'}).status_code == 204
+    # Rolling window: once the oldest attempt ages out, exactly one more slot opens.
+    with anonymous_client.factory.begin() as db:
+        oldest = min(db.scalars(select(LoginThrottle).where(LoginThrottle.key.like('room-invite-pair:%'))),
+                     key=lambda row: row.window_started)
+        oldest.window_started = utcnow() - timedelta(seconds=61)
+    assert alice.post(path + '/invite',json={'username':'bob'}).status_code == 204
+    assert alice.post(path + '/invite',json={'username':'bob'}).status_code == 429
+
+
+def test_concurrent_invites_cannot_bypass_the_pair_limit_or_duplicate(anonymous_client):
+    from concurrent.futures import ThreadPoolExecutor
+    from app.models import RoomInvite, StudyRoom
+    from app.services import study_rooms
+
+    make_users(anonymous_client, ('alice','bob'), [('alice','bob')])
+    alice = sign_in('alice')
+    with ThreadPoolExecutor(8) as pool:
+        codes = list(pool.map(lambda _: alice.post('/api/rooms',json={'username':'bob'}).status_code, range(12)))
+    assert codes.count(201) == study_rooms.INVITE_PAIR_LIMIT
+    assert set(codes) == {201, 429}
+    with anonymous_client.factory() as db:
+        assert len(list(db.scalars(select(StudyRoom)))) == 1
+        assert len(list(db.scalars(select(RoomInvite)))) == 1
+
+
+def test_repeated_invites_keep_one_active_invitation_per_pair(anonymous_client):
+    make_users(anonymous_client, ('alice','bob','carol'), [('alice','bob'), ('alice','carol')])
+    alice, bob, carol = map(sign_in, ('alice','bob','carol'))
+    first = make_room(alice)
+    assert make_room(alice) == first
+    second = make_room(alice, 'carol')
+    assert alice.post(second + '/invite',json={'username':'bob'}).status_code == 204
+    invites = bob.get('/api/rooms').json()['invites']
+    assert [item['room_id'] for item in invites] == [second.rsplit('/',1)[1]]
+    assert join(bob, first).status_code == 404
+    assert join(bob, second).status_code == 204
+    assert len(carol.get('/api/rooms').json()['invites']) == 1

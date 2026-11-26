@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {accuracy,remainingSeconds,roomSocketUrl} from '../src/services/rooms.js';
+import {accuracy,arrivedInvites,remainingSeconds,roomSocketUrl} from '../src/services/rooms.js';
 
 test('room sockets preserve the origin and use encrypted transport on HTTPS', () => {
   assert.equal(roomSocketUrl('room','https://example.test/u/name'),'wss://example.test/api/rooms/room/live');
@@ -17,4 +17,11 @@ test('room countdown rounds up and never reports negative time', () => {
 test('room accuracy uses the number of rounds, including unanswered rounds', () => {
   assert.equal(accuracy({correct:2,questions:3}),67);
   assert.equal(accuracy({correct:0,questions:0}),0);
+});
+
+test('only invitations missing from the previous snapshot trigger the popup', () => {
+  const invites = [{room_id:'new'},{room_id:'old'}];
+  assert.deepEqual(arrivedInvites(new Set(['old']),invites).map(invite => invite.room_id),['new']);
+  assert.deepEqual(arrivedInvites(new Set(['old','new']),invites),[]);
+  assert.deepEqual(arrivedInvites(new Set(['gone']),[]),[]);
 });

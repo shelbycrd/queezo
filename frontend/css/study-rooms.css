@@ -184,3 +184,5 @@ body:has(.room-page) { overflow: hidden; }
   .room-round-controls .room-options .mc-option { min-height: 42px; padding: 7px 10px; }
   .room-round-controls { max-height: 73%; }
 }
+.signed-in .study-invite-alert { top: 24px; bottom: auto; }
+.study-invite-alert > .actions { display: flex; gap: 8px; }

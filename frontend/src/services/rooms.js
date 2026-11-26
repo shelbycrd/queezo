@@ -16,3 +16,8 @@ export function roomSocketUrl(id, origin) {
 export function accuracy(result) {
   return result.questions ? Math.round(100 * result.correct / result.questions) : 0;
 }
+
+// Invitations present now that were not in the previously seen set, newest first.
+export function arrivedInvites(seen, invites) {
+  return invites.filter(invite => !seen.has(invite.room_id));
+}
