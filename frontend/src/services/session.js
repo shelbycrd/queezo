@@ -46,7 +46,7 @@ export function initAuthentication(router) {
     if (ticket !== sequence || !active()) return;
     adopt(user);
     channel?.postMessage({type:'changed'});
-    await router.replace(typeof target === 'string' && /^\/shared\/[A-Za-z0-9_-]{32,64}$/.test(target) ? target : '/dashboard');
+    await router.replace(typeof target === 'string' && /^\/shared\/[A-Za-z0-9_-]{32,64}$/.test(target) ? target : '/home');
   }
   async function changePassword(body) {
     const ticket = ++sequence;
@@ -72,7 +72,7 @@ export function initAuthentication(router) {
       const previous = account.value.id;
       const user = await restore();
       if (!user) expire();
-      else if (user.id !== previous) await router.replace('/dashboard');
+      else if (user.id !== previous) await router.replace('/home');
     } catch { /* Keep the session during a transient network error. */ }
   }
   onUnauthorized(expire);
@@ -84,7 +84,7 @@ export function initAuthentication(router) {
     if (!['signed-out','changed'].includes(data?.type)) return;
     expire(data.type === 'signed-out' ? 'You have been logged out.' : 'Your account session changed.');
     if (data.type === 'changed') void restore().then(user => {
-      if (user) return router.replace('/dashboard');
+      if (user) return router.replace('/home');
     }).catch(() => {});
   };
   for (const [target, type] of [[window,'focus'],[document,'visibilitychange']]) {

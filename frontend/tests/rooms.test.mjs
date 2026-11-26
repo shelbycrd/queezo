@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {accuracy,arrivedInvites,remainingSeconds,roomSocketUrl} from '../src/services/rooms.js';
+import {accuracy,arrivedInvites,remainingSeconds,roomPath,roomSocketUrl} from '../src/services/rooms.js';
 
 test('room sockets preserve the origin and use encrypted transport on HTTPS', () => {
   assert.equal(roomSocketUrl('room','https://example.test/u/name'),'wss://example.test/api/rooms/room/live');
@@ -24,4 +24,8 @@ test('only invitations missing from the previous snapshot trigger the popup', ()
   assert.deepEqual(arrivedInvites(new Set(['old']),invites).map(invite => invite.room_id),['new']);
   assert.deepEqual(arrivedInvites(new Set(['old','new']),invites),[]);
   assert.deepEqual(arrivedInvites(new Set(['gone']),[]),[]);
+});
+
+test('study room links use the public short code', () => {
+  assert.equal(roomPath('2C9F10C8'),'/rooms/2C9F10C8');
 });

@@ -13,6 +13,7 @@ from app.routers.decks import owned_query, require
 from app.schemas import PresentationInput, RatingInput
 from app.services.presenters import session_view, summary_view
 from app.services.study_scheduler import apply_rating, choose_next
+from app.services import achievements
 from app.services.activity import mark_study_day
 from app.services.limits import require_study_slot
 
@@ -104,6 +105,7 @@ def rate(session_id: str, data: RatingInput, user: User = Depends(require_user),
     if next_card is None:
         session.status = "completed"
         session.completed_at = utcnow()
+        achievements.record(db, user.id, 'study_completed', at=session.completed_at)
     return session_view(db, session)
 
 

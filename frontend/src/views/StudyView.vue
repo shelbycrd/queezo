@@ -99,7 +99,7 @@ const ratings = [['hard','Hard','More practice'],['normal','Normal','Getting the
 </script>
 <template>
   <div v-if="!card" class="study-shell">
-    <div class="study-heading"><RouterLink class="button secondary flat-button study-exit" to="/decks" aria-label="Return to Flashcards" v-html="closeIcon"/></div>
+    <div class="study-heading"><RouterLink class="button secondary flat-button study-exit" to="/flashcards" aria-label="Return to Flashcards" v-html="closeIcon"/></div>
     <ResourceState :error="error" variant="card"/>
   </div>
   <div v-else class="study-shell" :aria-busy="pending">

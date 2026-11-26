@@ -13,6 +13,7 @@ import RoomChat from '../components/RoomChat.vue';
 import {avatarUrl} from '../services/profiles.js';
 import {accuracy, remainingSeconds, roomApi,roomModes,roomSocketUrl} from '../services/rooms.js';
 import {showNotice} from '../services/notice.js';
+import {navigate} from '../services/navigation.js';
 import LoadingSkeleton from '../components/LoadingSkeleton.vue';
 
 const {roomId} = defineProps({roomId:String});
@@ -153,7 +154,7 @@ function requestLeave() {
 async function leaveRoom() {
   if (await act('leave',{action:'leave'})) {
     leaveDialog.value?.close();
-    location.hash = '/dashboard';
+    void navigate('/home');
   }
 }
 let fetching = false;
@@ -273,7 +274,7 @@ onScopeDispose(() => { socket?.close(); clearTimeout(reconnect); clearTimeout(se
 
 <template>
   <section class="room-page">
-    <div v-if="!room" class="panel"><p role="status">{{ error || 'Opening study room…' }}</p><a class="button secondary flat-button" href="/#/dashboard">Return home</a></div>
+    <div v-if="!room" class="panel"><p role="status">{{ error || 'Opening study room…' }}</p><a class="button secondary flat-button" href="/home">Return home</a></div>
     <template v-else>
       <button v-if="drawer" class="room-drawer-scrim" type="button" tabindex="-1" aria-label="Close room drawer" @click="closeDrawer"></button>
       <div class="room-layout">

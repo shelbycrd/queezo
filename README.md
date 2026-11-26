@@ -20,6 +20,14 @@ Decks default to **Private**. **Public** decks appear in Community Decks on Home
 
 Rated flashcards and completed study intervals count toward streaks using Asia/Manila calendar days. Profile shows your total decks and longest streak. Pomodoro settings and tasks stay in the current browser under your account. In-app alerts work while Queezo is open, and desktop alerts require browser permission.
 
+Profiles show **Achievements**. You see every achievement with its progress and unlock date; visitors see only the names of achievements you have earned. Achievements are permanent once earned:
+
+| Achievement | How to earn it |
+| --- | --- |
+| **Deck Master** | Create 10 original decks. Copies of community decks do not count, and deleting a deck does not reduce progress. |
+| **Studious** | Complete 10 Classic or Multiple-Choice sessions in one Asia/Manila calendar day. Repeating a deck counts; exited or cancelled sessions do not. Unfinished progress restarts each day. |
+| **Hoster** | Start and host 6 different Study Rooms through a session that plays to the end. Replays in the same room and taking over as host do not count. |
+
 Open **Friends** from the top bar to search your list, send requests by username, and view a friend’s public profile. Friends appear online when Queezo has recently been open in an active tab. Study invitations, email verification, and password recovery are unavailable.
 
 ## Getting started

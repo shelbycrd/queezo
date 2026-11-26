@@ -1,4 +1,4 @@
-export const roomPath = id => '/#/rooms/' + encodeURIComponent(id);
+export const roomPath = id => '/rooms/' + encodeURIComponent(id);
 export const roomApi = id => '/rooms/' + encodeURIComponent(id);
 export const roomModes = {collaborative:'Collaborative',challenge:'Challenge'};
 

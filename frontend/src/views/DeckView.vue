@@ -51,7 +51,7 @@ const pageCount = computed(() => Math.max(1,Math.ceil(matches.value.length / PAG
 const saved = computed(() => matches.value.slice((page.value - 1) * PAGE_SIZE,page.value * PAGE_SIZE));
 const full = computed(() => cards.value.length >= 150 && !editing.value);
 const numberOf = card => cards.value.findIndex(item => item.id === card.id) + 1;
-const share = computed(() => deck.value?.share_token ? new URL('/#shared/' + deck.value.share_token,location.origin).href : '');
+const share = computed(() => deck.value?.share_token ? new URL('/shared/' + deck.value.share_token,location.origin).href : '');
 watch(pageCount,value => { page.value = Math.min(page.value,value); }, {immediate:false});
 function focusQuestion() { form.value?.elements.front?.focus(); }
 function shortcut(event) {
@@ -148,7 +148,7 @@ async function changeDeck(remove) {
   if (remove ? !window.confirm('Delete “' + deck.value.title + '”? This permanently removes its cards and study history.') : title === null) return;
   deckBusy.value = true;
   try {
-    if (remove) { await api(path,{method:'DELETE'}); if (active()) await router.push('/decks'); }
+    if (remove) { await api(path,{method:'DELETE'}); if (active()) await router.push('/flashcards'); }
     else {
       const changed = await api(path,{method:'PATCH',body:{title}});
       if (active()) Object.assign(deck.value,changed);
@@ -171,7 +171,7 @@ async function deleteCard(card) {
 <template>
   <ResourceState v-if="!deck" :error="error" variant="list"/>
   <div v-else class="deck-workspace" @click="menu && !menu.contains($event.target) && (menu.open = false)">
-    <div class="breadcrumbs"><a href="#/decks">Flashcards</a><span>/</span><span>{{ deck.title }}</span></div>
+    <div class="breadcrumbs"><a href="/flashcards">Flashcards</a><span>/</span><span>{{ deck.title }}</span></div>
     <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>{{ deck.title }}</h1><p class="muted"><span data-card-count>{{ cards.length }}</span> / 150 cards</p></div>
       <div class="actions deck-heading-actions"><button type="submit" form="card-form" id="study-deck" data-intent="study" :disabled="pending || deckBusy">Study deck</button>
         <details class="deck-actions" ref="menu" @keydown.esc="menu.open = false; menu.querySelector('summary').focus()"><summary class="button secondary flat-button" aria-label="Deck actions" title="Deck actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary>
@@ -190,7 +190,7 @@ async function deleteCard(card) {
         <EditorSide v-model="draft.back" side="back" label="Answer" placeholder="Write the answer here…" :photo="images.back" :disabled="full" @photo="choosePhoto('back',$event)" @remove="removePhoto('back')"/></div>
       <p class="hint">250 characters per side · One photo per card</p><p class="hint"><kbd>Ctrl / ⌘ + Enter</kbd> {{ editing ? 'Save changes' : 'Save and continue' }}</p>
       <div class="composer-actions"><span id="card-count" class="muted" role="status" aria-live="polite"><span data-card-count>{{ cards.length }}</span> cards saved<span v-for="id in increments" :key="id" class="saved-increment" aria-hidden="true">+1</span></span>
-        <div class="actions"><a v-if="editing" :href="'#/deck/' + deckId" class="button secondary">Cancel edit</a><button ref="saveButton" type="submit" id="next-card" data-intent="save" :disabled="full || pending || deckBusy">{{ editing ? 'Save changes' : 'Next Card →' }}</button></div>
+        <div class="actions"><a v-if="editing" :href="'/deck/' + deckId" class="button secondary">Cancel edit</a><button ref="saveButton" type="submit" id="next-card" data-intent="save" :disabled="full || pending || deckBusy">{{ editing ? 'Save changes' : 'Next Card →' }}</button></div>
       </div>
     </fieldset></form>
     <div class="section-heading"><h2>Cards <span class="muted">(<span data-card-count>{{ cards.length }}</span>)</span></h2><label class="sr-only" for="card-order">Card order</label><select id="card-order" class="card-order" v-model="order" @change="page = 1"><option value="desc">Most recent first</option><option value="asc">Least recent first</option></select></div>
@@ -198,7 +198,7 @@ async function deleteCard(card) {
     <div id="saved-cards" ref="savedList" class="card-list">
       <article v-for="card in saved" :key="card.id" class="saved-card" :class="{'is-editing':card.id === editing?.id}">
         <div class="saved-card-heading"><span class="badge">Card {{ numberOf(card) }}</span><div class="actions">
-          <a class="button secondary small card-icon-action flat-button" :aria-label="'Edit card ' + numberOf(card)" title="Edit card" :href="'#/deck/' + deckId + '/edit/' + card.id"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a3.5 3.5 0 0 0-5-5L4 14z"/></svg></a>
+          <a class="button secondary small card-icon-action flat-button" :aria-label="'Edit card ' + numberOf(card)" title="Edit card" :href="'/deck/' + deckId + '/edit/' + card.id"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a3.5 3.5 0 0 0-5-5L4 14z"/></svg></a>
           <button type="button" class="danger small card-icon-action flat-button" :data-delete="card.id" :aria-label="'Delete card ' + numberOf(card)" title="Delete card" :disabled="deleting" @click="deleteCard(card)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg></button>
         </div></div>
         <div class="saved-card-sides"><div class="saved-side"><span class="content-label">Question</span><CardContent :text="card.front" :image="card.front_image" alt="Question photo" preview/></div>

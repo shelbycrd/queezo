@@ -27,13 +27,13 @@ async function load() {
         mode:'Classic', started:classic.started_at, status:classicLabels[classic.status],
         detail:plural(classic.total_reviews, 'review') + ' · ' + plural(classic.total_unique_cards, 'card') +
           ' studied · ' + duration(classic.duration_seconds),
-        href:'#/' + (classic.status === 'active' ? 'study' : 'summary') + '/' + encodeURIComponent(classic.session_id),
+        href:'/' + (classic.status === 'active' ? 'study' : 'summary') + '/' + encodeURIComponent(classic.session_id),
         action:classic.status === 'active' ? 'Resume' : 'Summary',
       },
       multiple && {
         mode:'Multiple-Choice', started:multiple.created_at, status:SESSION_LABELS[multiple.status],
         detail:multiple.answered + ' of ' + multiple.progress.ready + ' answered · ' + multiple.correct + ' correct',
-        href:'#/multiple-choice/' + encodeURIComponent(multiple.id),
+        href:'/multiple-choice/' + encodeURIComponent(multiple.id),
         action:multiple.status === 'completed' ? 'Summary' :
           ['active','preparing','failed'].includes(multiple.status) ? 'Open session' : 'Details',
       },

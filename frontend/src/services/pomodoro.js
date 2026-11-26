@@ -1,5 +1,6 @@
 import {ref, shallowRef, triggerRef} from 'vue';
 import {api} from '../../js/api.js';
+import {navigate} from './navigation.js';
 import {advanceTimer, createState, pauseTimer, remainingMs, restoreState} from '../../js/pomodoro-core.js';
 
 const STORAGE_PREFIX = 'queezo.pomodoro.v1.user.';
@@ -63,7 +64,7 @@ async function notify(event, generation) {
       liveNotifications.add(notification);
       notification.onclose = () => liveNotifications.delete(notification);
       notification.onclick = () => {
-        if (generation === accountGeneration && storageKey) { window.focus(); location.hash = '#/pomodoro'; }
+        if (generation === accountGeneration && storageKey) { window.focus(); void navigate('/pomodoro'); }
         notification.close();
       };
     }

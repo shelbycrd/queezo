@@ -11,6 +11,7 @@ import CopyButton from '../components/CopyButton.vue';
 import DeckTile from '../components/DeckTile.vue';
 import ProfileEditor from '../components/ProfileEditor.vue';
 import ProfileAbout from '../components/ProfileAbout.vue';
+import ProfileAchievements from '../components/ProfileAchievements.vue';
 import ProfileSettings from '../components/ProfileSettings.vue';
 import ReportProfileDialog from '../components/ReportProfileDialog.vue';
 import LoadingSkeleton from '../components/LoadingSkeleton.vue';
@@ -94,7 +95,7 @@ function saved(data) {
     <section v-if="!profile && error" class="panel">
       <h1>{{ error === 'Profile not found.' ? 'Profile unavailable' : 'Couldn’t load this profile' }}</h1>
       <p class="muted">{{ error === 'Profile not found.' ? 'This profile may be private or the link may be incorrect.' : error }}</p>
-      <a href="/#/dashboard" class="button secondary flat-button">Back to Queezo</a>
+      <a href="/home" class="button secondary flat-button">Back to Queezo</a>
     </section>
     <LoadingSkeleton v-else-if="!profile" label="Loading profile…"/>
     <template v-else>
@@ -110,8 +111,8 @@ function saved(data) {
           <button v-if="profile.is_owner" type="button" @click="editing = 'settings'">Settings</button>
           <button type="button" class="secondary flat-button" @click="shareDialog.showModal()">Share Profile</button>
           <button v-if="account && !profile.is_owner" type="button" class="secondary flat-button" @click="reporting = true">Report Profile</button>
-          <a v-if="profile.is_owner" href="/#/people" class="button secondary flat-button">Find profiles</a>
-          <a v-else-if="!account" href="/#/login" class="button">Add Friend</a>
+          <a v-if="profile.is_owner" href="/people" class="button secondary flat-button">Find profiles</a>
+          <a v-else-if="!account" href="/login" class="button">Add Friend</a>
           <details v-else-if="profile.friendship === 'friends'" ref="friendshipMenu" class="deck-actions profile-friendship" @keydown.esc.stop="closeFriendshipMenu">
             <summary class="button secondary flat-button">Friends ✔</summary>
             <div class="deck-actions-list"><button type="button" class="danger small flat-button" :disabled="friendshipPending" @click="changeFriendship">Unfriend</button></div>
@@ -124,6 +125,7 @@ function saved(data) {
       <div class="profile-layout">
         <aside class="profile-sidebar">
           <ProfileAbout :profile="profile" @saved="saved"/>
+          <ProfileAchievements :achievements="profile.achievements" :owner="profile.is_owner"/>
         </aside>
         <div class="profile-main">
           <section v-if="profile.featured_deck" class="profile-featured">

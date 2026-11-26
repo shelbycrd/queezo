@@ -48,7 +48,8 @@ def test_profile_privacy_controls_search_and_public_payload(client):
     public = client.get(path)
     assert public.status_code == 200
     assert set(public.json()) == {'username', 'display_name', 'joined_at', 'bio', 'interest_tags', 'avatar',
-                                  'is_owner', 'featured_deck'}
+                                  'is_owner', 'featured_deck', 'achievements'}
+    assert public.json()['achievements'] == []  # visitors never receive locked progress
     assert not public.json()['is_owner']
     assert public.json()['bio'] == '<script>text stays plain</script>'
     assert public.headers['Cache-Control'] == 'no-store'

@@ -35,14 +35,14 @@ async function submit() {
 </script>
 <template>
   <section v-if="!signup" class="panel login-panel">
-    <p class="eyebrow">Welcome to Queezo</p><h1>Log in to Queezo.</h1><p class="muted">New here? <a href="#/signup">Create an account</a>.</p>
+    <p class="eyebrow">Welcome to Queezo</p><h1>Log in to Queezo.</h1><p class="muted">New here? <a href="/signup">Create an account</a>.</p>
     <form id="login-form" @submit.prevent="submit"><label for="login-email">Email</label><input id="login-email" v-model="form.email" name="email" type="email" autocomplete="username" maxlength="254" required>
       <label for="login-password">Password</label><PasswordField id="login-password" v-model="form.password" label="Password" name="password" autocomplete="current-password" required />
       <p id="login-message" class="hint" role="status"></p><button type="submit" :disabled="pending">{{ pending ? 'Logging in…' : 'Log in' }}</button>
     </form>
   </section>
   <section v-else class="panel signup-panel">
-    <h1>Create your account</h1><p class="muted">Already have an account? <a href="#/login">Log in</a>.</p>
+    <h1>Create your account</h1><p class="muted">Already have an account? <a href="/login">Log in</a>.</p>
     <form id="signup-form" @submit.prevent="submit"><div class="signup-fields">
       <div><label for="signup-name">Display name</label><input id="signup-name" v-model="form.display_name" name="display_name" autocomplete="nickname" maxlength="80" required></div>
       <div><label for="signup-username">Username</label><input id="signup-username" v-model="form.username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]{3,32}" required><p class="hint">3–32 letters, numbers, or underscores. Must be unique.</p></div>

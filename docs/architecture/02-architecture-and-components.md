@@ -4,7 +4,7 @@
 
 ## Vue application
 
-`frontend/src/main.js` creates Vue and Vue Router, restores account state before mounting, installs guards and shared styles, and lazy-loads route views. Most routes use hash navigation. Clean `/u/:username` profile entries use history routing, with Nginx's SPA fallback serving the entry page. Views compose feature components and own their local state. `App.vue` provides navigation, shell-level messages, the study dialog, account controls, the room invitation subscriber, and the Pomodoro clock. The router's view scope is keyed by account and route path so old view state is torn down at navigation.
+`frontend/src/main.js` creates Vue and Vue Router, restores account state before mounting, installs guards and shared styles, and lazy-loads route views. All routes use HTML5 history URLs such as `/home`, `/flashcards`, `/gwa-calculator`, `/pomodoro`, and `/rooms/2C9F10C8`. Nginx's `try_files` fallback and Vite's default SPA fallback serve `index.html` for direct loads and refreshes, while `/api`, `/gwa/`, and API docs stay proxied. Earlier `/#/…` bookmarks are rewritten at boot, and old `/dashboard`, `/decks`, and `/gwa` paths redirect. One document-level click handler routes same-origin links through the router to avoid full page loads ([navigation helpers](../../frontend/src/services/navigation.js)). Views compose feature components and own their local state. `App.vue` provides navigation, shell-level messages, the study dialog, account controls, the room invitation subscriber, and the Pomodoro clock. The router's view scope is keyed by account and route path so old view state is torn down at navigation.
 
 | Area | Component or module |
 | --- | --- |
@@ -40,6 +40,22 @@ Sources: [router registration and lifespan](../../backend/app/main.py), [GWA ent
 Profile views separate public payloads from owner-only fields. The owner API supports a 128-character bio, up to five distinct known interests, avatar choice, visibility, and an eligible public featured deck. Display name changes are limited to once in 14 days, and avatar changes to ten per hour. Public deck listings on a profile support title filtering, ordering, and paginated card counts. The profile report API stores authenticated reports under per-target and per-reporter limits, with CLI review. [Profiles API](../../backend/app/routers/profiles.py), [allowed interests](../../backend/app/interests.txt), [operator CLI](../../backend/app/cli.py)
 
 Friendship stores one canonical user pair and the requester's identity. A pending pair is visible to the requester and recipient, and acceptance enables friendship actions and presence. A user is online when an unexpired session has a heartbeat newer than two minutes. This social presence clock is separate from room connection presence. Room notifications project invitation state from SQLite and wake the recipient's browser through a dedicated WebSocket, with REST recovery. [Friendship API](../../backend/app/routers/friends.py), [presence predicate](../../backend/app/services/presence.py), [invitation component](../../frontend/src/components/RoomInvitations.vue)
+
+## Achievements
+
+[`services/achievements.py`](../../backend/app/services/achievements.py) holds the catalog (key, name, description, goal, `lifetime` or `daily` scope, and whether subjects must be distinct) and one entry point, `record(db, user_id, event)`. Gameplay calls it inside the write transaction that completed the action, so progress commits or rolls back with that action and adds no extra SQLite writer:
+
+| Event | Emitted by | Advances |
+| --- | --- | --- |
+| `deck_created` | `POST /api/decks` after the insert. The community copy route does not emit it. | Deck Master (10) |
+| `study_completed` | The Classic rating that sets status `completed`, and `_mark_completed` for Multiple-Choice (all questions answered or deck time over). Exited and cancelled sessions never emit it. | Studious (10 per Asia/Manila day) |
+| `room_hosted` | `room_study.credit_host` when `advance()` runs out of questions after at least one prepared question was played, the starting host (`study_room_sessions.host_id`, set at start) is still a member. Abort paths that call `finish()` do not emit it. | Hoster (6 distinct rooms) |
+
+Idempotency comes from the transitions themselves: each fires once because the status guard or insert happens in the same serialized transaction. Hoster also inserts a `user_achievement_credits` row keyed by room, so replays in one room count once. Rows are created lazily. A daily row resets when an event arrives for a later Manila day, and the profile shows zero for a stale day, so no scheduled job is needed. Unlocked rows stop changing.
+
+`GET /api/profiles/me` and `GET /api/profiles/users/{username}` include `achievements`, read by the `user_achievements` primary key. Owners get every catalog entry with `progress`, `goal`, `scope`, and `unlocked_at`. Visitors get only `key`, `name`, `description`, and `unlocked` for earned achievements, under the existing profile visibility rules. The profile sidebar renders them with [`ProfileAchievements.vue`](../../frontend/src/components/ProfileAchievements.vue) and [`AchievementBadge.vue`](../../frontend/src/components/AchievementBadge.vue).
+
+To add an achievement: add an `Achievement` to `CATALOG`, map its event in `EVENTS` (or add a new event), call `record` where that action succeeds in its write transaction, add a badge glyph and tint, and cover the threshold and duplicate cases in [`test_achievements.py`](../../backend/tests/test_achievements.py). No schema change is needed unless the rule needs data that is not yet recorded.
 
 ## Calculator and timer
 

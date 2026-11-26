@@ -17,6 +17,7 @@ from starlette.concurrency import run_in_threadpool
 from app.auth.service import hash_token
 from app.database import SessionLocal
 from app.models import Deck, Flashcard, MultipleChoiceQuestion, MultipleChoiceSession, User, utcnow
+from app.services import achievements
 from app.services.activity import mark_study_day
 from app.services.distractor_cache import (
     InsufficientDistractorsError, cached_choices_for_deck, get_or_generate_distractors,
@@ -304,10 +305,19 @@ def _next_question(db, session_id):
     ).order_by(MultipleChoiceQuestion.position).limit(1))
 
 
+def _mark_completed(db, session, finished_at):
+    """The single persisted transition to completed; reports the achievement event once."""
+    # Cancelled sessions never earn credit, even if a later settle marks them completed.
+    already = session.status in {"completed", "cancelled"}
+    session.status = "completed"
+    session.finished_at = finished_at
+    if not already:
+        achievements.record(db, session.owner_id, 'study_completed', at=finished_at or utcnow())
+
+
 def _complete_if_done(db, session, now):
     if session.preparation_finished_at is not None and _next_question(db, session.id) is None:
-        session.status = "completed"
-        session.finished_at = now
+        _mark_completed(db, session, now)
 
 
 def _present(question):
@@ -368,8 +378,7 @@ def open_question(db, session):
     now = utcnow()
     status = _status(session, now)
     if status == "completed" and session.status in {"active", "failed"}:
-        session.status = "completed"
-        session.finished_at = session.deck_deadline
+        _mark_completed(db, session, session.deck_deadline)
     if status != "active" or _deck_time_over(session, now):
         return {"session": session_view(db, session), "question": None, "remaining_ms": None}
 
@@ -432,8 +441,7 @@ def _settle(db, session, failure):
     session.preparation_finished_at = now
     if _deck_time_over(session, now):
         _fail_pending(db, session.id, "study_timeout")
-        session.status = "completed"
-        session.finished_at = session.deck_deadline
+        _mark_completed(db, session, session.deck_deadline)
         return
     _fail_pending(db, session.id, failure)
     if session.expires_at <= now:

@@ -5,6 +5,7 @@ import {account} from '../services/session.js';
 import {roomApi,roomPath,roomSocketUrl} from '../services/rooms.js';
 import {showNotice} from '../services/notice.js';
 import {arrivedInvites} from '../services/rooms.js';
+import {navigate} from '../services/navigation.js';
 import {buttonFeedback as vButtonFeedback} from './ButtonFeedback.js';
 
 const emit = defineEmits(['count','navigate']);
@@ -67,7 +68,8 @@ watch(() => account.value?.id, (id, _, cleanup) => {
   });
 }, {immediate:true});
 
-async function respond(id,accept) {
+async function respond(invitation,accept) {
+  const {room_id:id,code} = invitation;
   const userId = account.value?.id;
   if (pending.value || !userId) return;
   pending.value = true;
@@ -78,7 +80,7 @@ async function respond(id,accept) {
     if (data.value) apply({...data.value,invites:data.value.invites.filter(invite => invite.room_id !== id)});
     if (accept) {
       emit('navigate');
-      location.href = roomPath(id);
+      void navigate(roomPath(code));
     }
     void load?.();
   } catch (error) { if (account.value?.id === userId) showNotice(error.message); }
@@ -91,9 +93,9 @@ async function respond(id,accept) {
     <aside v-if="popup" v-button-feedback class="pomodoro-alert study-invite-alert" aria-label="Study invitation">
       <div role="status" aria-live="polite"><strong>Study invitation</strong><p>{{ popup.sender.display_name }} invited you to study.</p></div>
       <div class="actions">
-        <button class="small" type="button" :disabled="pending" @click="respond(popup.room_id,true)">Accept</button>
-        <button class="secondary flat-button small" type="button" :disabled="pending" @click="respond(popup.room_id,false)">Decline</button>
-        <button class="secondary flat-button small" type="button" aria-label="Dismiss study invitation popup" @click="popup = null">×</button>
+        <button class="secondary flat-button small invite-later" type="button" aria-label="Hide invitation popup; it stays in Notifications" @click="popup = null">Later</button>
+        <button class="secondary small" type="button" :disabled="pending" @click="respond(popup,false)">Decline</button>
+        <button class="small" type="button" :disabled="pending" @click="respond(popup,true)">Accept</button>
       </div>
     </aside>
   </Teleport>
@@ -102,13 +104,13 @@ async function respond(id,accept) {
     <article v-for="invite in data.invites" :key="invite.room_id">
       <p>{{ invite.sender.display_name }} invited you to study.</p>
       <div class="actions">
-        <button class="small" type="button" :disabled="pending" @click="respond(invite.room_id,true)">Accept</button>
-        <button class="secondary flat-button small" type="button" :disabled="pending" @click="respond(invite.room_id,false)">Decline</button>
+        <button class="small" type="button" :disabled="pending" @click="respond(invite,true)">Accept</button>
+        <button class="secondary flat-button small" type="button" :disabled="pending" @click="respond(invite,false)">Decline</button>
       </div>
     </article>
   </section>
   <section v-if="data?.rooms.length" class="room-invitations" aria-label="Your study rooms">
     <h3>Your study rooms</h3>
-    <ul><li v-for="room in data.rooms" :key="room.id"><a :href="roomPath(room.id)" @click="emit('navigate')">Study Room {{ room.code }}</a></li></ul>
+    <ul><li v-for="room in data.rooms" :key="room.id"><a :href="roomPath(room.code)" @click="emit('navigate')">Study Room {{ room.code }}</a></li></ul>
   </section>
 </template>

@@ -184,5 +184,8 @@ body:has(.room-page) { overflow: hidden; }
   .room-round-controls .room-options .mc-option { min-height: 42px; padding: 7px 10px; }
   .room-round-controls { max-height: 73%; }
 }
-.signed-in .study-invite-alert { top: 24px; bottom: auto; }
-.study-invite-alert > .actions { display: flex; gap: 8px; }
+/* Mirrors the #pomodoro-alert card in the bottom-right corner; stacks above it when both are visible. */
+.signed-in .study-invite-alert { right: 22px; bottom: 22px; z-index: 90; width: min(480px, calc(100% - 44px)); box-shadow: 0 10px 35px #43557226; }
+.study-invite-alert > .actions { align-self: stretch; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.study-invite-alert .invite-later { margin-right: auto; }
+.signed-in:not(.study-focus):has(#pomodoro-alert:not([hidden])) .study-invite-alert { bottom: 158px; }

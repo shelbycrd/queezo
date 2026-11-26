@@ -289,6 +289,26 @@ class ActivityDay(Base):
     day: Mapped[date] = mapped_column(Date, primary_key=True)
 
 
+class UserAchievement(Base):
+    """Lazily created per-user progress row; definitions live in services/achievements.py."""
+    __tablename__ = "user_achievements"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    achievement_key: Mapped[str] = mapped_column(String(32), primary_key=True)
+    progress: Mapped[int] = mapped_column(Integer, default=0)
+    period_date: Mapped[date | None] = mapped_column(Date)
+    unlocked_at: Mapped[datetime | None] = mapped_column(DateTime)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    __table_args__ = (CheckConstraint("progress >= 0"),)
+
+
+class AchievementCredit(Base):
+    """Distinct subjects already counted toward an achievement (e.g. one credit per hosted room)."""
+    __tablename__ = "user_achievement_credits"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    achievement_key: Mapped[str] = mapped_column(String(32), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(64), primary_key=True)
+
+
 class Friendship(Base):
     __tablename__ = "friendships"
     first_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
@@ -311,6 +331,9 @@ class SessionPresence(Base):
 class StudyRoom(Base):
     __tablename__ = "study_rooms"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    # Public 8-character uppercase hex code for URLs; the UUID stays internal.
+    code: Mapped[str] = mapped_column(String(8), unique=True, index=True,
+                                      default=lambda: secrets.token_hex(4).upper())
     host_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     deck_id: Mapped[int | None] = mapped_column(ForeignKey("decks.id", ondelete="SET NULL"))
     deck_owner_id: Mapped[int | None] = mapped_column(Integer)
@@ -348,6 +371,8 @@ class RoomSession(Base):
     deck_title: Mapped[str] = mapped_column(String(120))
     mode: Mapped[str] = mapped_column(String(16))
     players: Mapped[dict] = mapped_column(JSON)
+    # Host when the session started; later handoffs do not change it.
+    host_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     scores: Mapped[dict] = mapped_column(JSON, default=dict)
     position: Mapped[int] = mapped_column(Integer, default=0)
     total: Mapped[int] = mapped_column(Integer)

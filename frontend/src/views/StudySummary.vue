@@ -22,12 +22,12 @@ async function again() {
 <template>
   <ResourceState v-if="!summary" :error="error"/>
   <template v-else>
-    <a class="subpage-back" :href="'#/deck/' + summary.deck_id" aria-label="Go back" v-html="backIcon"></a>
+    <a class="subpage-back" :href="'/deck/' + summary.deck_id" aria-label="Go back" v-html="backIcon"></a>
     <div class="study-shell"><div class="summary-heading"><div class="check" aria-hidden="true">✓</div><p class="eyebrow">{{ summary.deck_title }}</p><h1>{{ summary.status === 'completed' ? 'Study session complete' : 'Study session ended' }}</h1>
       <p class="muted">{{ summary.status === 'completed' ? 'Every card has finished its reviews. A little more knowledge, a little more confidence.' : 'Your progress is saved in your session history.' }}</p></div>
       <p v-if="summary.status !== 'completed' && timing.scope === 'deck' && timing.deadline <= Date.now()" class="timed-session-ended">Your deck time limit was reached.</p>
       <div class="summary-grid"><div v-for="[label,value] in stats" :key="label" class="stat"><p class="muted">{{ label }}</p><div class="value">{{ value }}</div></div></div>
-      <div class="actions summary-actions"><a class="button secondary" :href="'#/deck/' + summary.deck_id">Return to deck</a><button id="study-again" :disabled="choosing" @click="again">Study again →</button></div>
+      <div class="actions summary-actions"><a class="button secondary" :href="'/deck/' + summary.deck_id">Return to deck</a><button id="study-again" :disabled="choosing" @click="again">Study again →</button></div>
     </div>
   </template>
 </template>

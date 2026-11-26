@@ -39,8 +39,8 @@ const route = useRoute();
 const sharedToken = computed(() => typeof route.query.shared === 'string' &&
   /^[A-Za-z0-9_-]{32,64}$/.test(route.query.shared) ? route.query.shared : null);
 const deckPath = computed(() => session.value?.shared || (!session.value && sharedToken.value)
-  ? (sharedToken.value ? '/shared/' + sharedToken.value : '/dashboard')
-  : session.value ? '/deck/' + session.value.deck_id : '/decks');
+  ? (sharedToken.value ? '/shared/' + sharedToken.value : '/home')
+  : session.value ? '/deck/' + session.value.deck_id : '/flashcards');
 const deckLink = computed(() => '#' + deckPath.value);
 const phase = computed(() => {
   if (problem.value) return 'problem';

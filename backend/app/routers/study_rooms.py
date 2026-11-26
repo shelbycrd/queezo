@@ -14,7 +14,7 @@ from starlette.concurrency import run_in_threadpool
 from app.auth.config import get_settings
 from app.auth.dependencies import require_user
 from app.auth.service import hash_token, reserve_account_action
-from app.database import get_db, get_write_db, write_transaction
+from app.database import get_db, get_db_factory, get_write_db, write_transaction
 from app.models import AuthSession, Deck, Flashcard, RoomInvite, RoomMember, RoomSession, StudyRoom, User, utcnow
 from app.services import room_study, study_rooms as rooms
 
@@ -47,7 +47,7 @@ def overview_for(db, user_id):
     joined = db.scalars(select(StudyRoom).join(RoomMember).where(
         RoomMember.user_id == user_id, StudyRoom.phase != 'closed').order_by(StudyRoom.updated_at.desc()).limit(20))
     return {'invites': rooms.invitations(db, user_id),
-            'rooms': [{'id': room.id, 'code': room.id[:8].upper(), 'phase': room.phase} for room in joined]}
+            'rooms': [{'id': room.id, 'code': room.code, 'phase': room.phase} for room in joined]}
 
 
 async def notify_invitation_changes(engine, user_ids):
@@ -68,7 +68,25 @@ def create(body: InviteInput, request: Request, tasks: BackgroundTasks, user: Us
         rooms.fail(429, 'Too many room creations. Try again later.')
     room_id, recipient = rooms.create(db, user.id, body.username)
     tasks.add_task(notify_invitation_changes, request.app.state.room_engine, (user.id, recipient))
-    return {'id': room_id}
+    return {'id': room_id, 'code': db.get(StudyRoom, room_id).code}
+
+
+ROOM_LOOKUP_MISSES = 30
+
+
+@router.get('/resolve/{reference}')
+def resolve(reference: str, user: User = Depends(require_user), factory=Depends(get_db_factory)):
+    """Map a public room code to the room for its members. Misses look identical and are throttled."""
+    reference = reference[:36]
+    with write_transaction(factory) as db:
+        room = rooms.member_room(db, reference, user.id)
+        if room:
+            return {'id': room.id, 'code': room.code}
+        # Commit the miss before failing so probing counts even though nothing is returned.
+        blocked = reserve_account_action(db, f'room-lookup:{user.id}', ROOM_LOOKUP_MISSES)
+    if blocked:
+        rooms.fail(429, 'Too many room lookups. Try again later.')
+    rooms.fail(404, 'Study room not found.')
 
 
 @router.post('/{room_id}/invitation', status_code=204)

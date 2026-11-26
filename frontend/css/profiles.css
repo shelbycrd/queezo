@@ -94,3 +94,32 @@
 .profile-settings-form label { margin: 8px 0 4px; }
 .profile-settings-form input { padding: 8px 10px; }
 .settings-error { color: #a03242; margin: 8px 0 0; font-size: .86rem; }
+
+/* Achievements: pastel medallions with one tint per badge; locked badges are muted. */
+.achievement-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.achievement-item { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; align-items: start; }
+.achievement-copy { min-width: 0; }
+.achievement-copy h3 { font-size: .92rem; margin: 2px 0 2px; color: #3f5f99; }
+.achievement-description { font-size: .8rem; color: var(--muted); margin: 0; overflow-wrap: anywhere; }
+.achievement-meta { font-size: .74rem; color: #7b8ea6; margin: 4px 0 0; }
+.achievement-progress { height: 6px; margin-top: 8px; border: 0; border-radius: 10px; overflow: hidden; accent-color: #8fb0e0; background: #e6eef9; }
+.achievement-progress::-webkit-progress-bar { background: #e6eef9; border-radius: 10px; }
+.achievement-progress::-webkit-progress-value { background: #8fb0e0; border-radius: 10px; }
+.achievement-progress::-moz-progress-bar { background: #8fb0e0; border-radius: 10px; }
+.achievement-item.locked h3 { color: #7b8ea6; }
+
+.achievement-badge { --badge-ring: #a9c4ea; --badge-face: #eef5ff; --badge-ink: #5b86c9; --badge-accent: #f2c46d;
+  position: relative; display: inline-grid; width: 52px; height: 52px; flex-shrink: 0; }
+.achievement-badge > svg { width: 100%; height: 100%; }
+.achievement-badge .badge-ring { fill: var(--badge-ring); }
+.achievement-badge .badge-face { fill: var(--badge-face); }
+.achievement-badge .badge-glyph { stroke: var(--badge-ink); stroke-width: 1.8; }
+.achievement-badge .badge-fill { fill: var(--badge-accent); stroke: none; }
+.achievement-badge .badge-accent { stroke: var(--badge-accent); }
+.achievement-badge.badge-deck-master { --badge-ring: #9fc0ef; --badge-face: #edf4ff; --badge-ink: #4f7fca; --badge-accent: #f3c35f; }
+.achievement-badge.badge-studious { --badge-ring: #a9d8cf; --badge-face: #effaf7; --badge-ink: #3f8f82; --badge-accent: #f0b660; }
+.achievement-badge.badge-hoster { --badge-ring: #c3b5ec; --badge-face: #f5f1ff; --badge-ink: #6b58b8; --badge-accent: #f2bf62; }
+.achievement-badge.locked { --badge-ring: #dbe3ee; --badge-face: #f6f8fb; --badge-ink: #a5b2c4; --badge-accent: #cfd8e4; }
+.achievement-badge .badge-lock { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center;
+  width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 1px solid #dbe3ee; }
+.achievement-badge .badge-lock svg { width: 12px; height: 12px; stroke: #8d9bb0; stroke-width: 1.6; }

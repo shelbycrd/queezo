@@ -7,6 +7,7 @@ import {showNotice} from '../services/notice.js';
 import {useEvent} from '../composables/lifecycle.js';
 import {buttonFeedback as vButtonFeedback} from './ButtonFeedback.js';
 import {roomPath} from '../services/rooms.js';
+import {navigate} from '../services/navigation.js';
 import {avatarUrl, profilePath} from '../services/profiles.js';
 import LoadingSkeleton from './LoadingSkeleton.vue';
 
@@ -87,7 +88,7 @@ async function inviteToStudy(username) {
     const room = await api('/rooms',{method:'POST',body:{username}});
     if (ticket === generation && friendsOpen.value) {
       closeFriends();
-      location.href = roomPath(room.id);
+      void navigate(roomPath(room.code));
     }
   } catch (error) {
     if (ticket === generation && friendsOpen.value) showNotice(error.message);

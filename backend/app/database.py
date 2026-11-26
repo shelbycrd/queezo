@@ -36,7 +36,7 @@ engine = make_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 6
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +71,7 @@ def init_database(target=engine):
             if version == SCHEMA_VERSION:
                 connection.commit()
                 return
-            if version not in {0, 1, 2, 3}:
+            if version not in {0, 1, 2, 3, 4, 5}:
                 raise RuntimeError("Unsupported SQLite schema version. Use the matching Queezo release.")
             existing = connection.exec_driver_sql(
                 "SELECT 1 FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
@@ -87,6 +87,9 @@ def init_database(target=engine):
             if version < 3:
                 upgrade_shared_distractors(connection)
             upgrade_admin_console(connection)
+            upgrade_room_codes(connection)
+            if version < 6:
+                upgrade_achievements(connection)
             connection.exec_driver_sql(f"PRAGMA user_version={SCHEMA_VERSION}")
             connection.commit()
             logger.info("SQLite schema upgraded to version %s", SCHEMA_VERSION)
@@ -121,6 +124,69 @@ def upgrade_admin_console(connection):
         present = {row[1] for row in connection.exec_driver_sql(f"PRAGMA table_info({table})")}
         if column not in present:
             connection.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {declaration}")
+
+
+def upgrade_room_codes(connection):
+    """Add public room codes additively and backfill every existing room with a unique random code."""
+    import secrets
+
+    present = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(study_rooms)")}
+    if "code" not in present:
+        connection.exec_driver_sql("ALTER TABLE study_rooms ADD COLUMN code VARCHAR(8)")
+    used = {row[0] for row in connection.exec_driver_sql("SELECT code FROM study_rooms WHERE code IS NOT NULL")}
+    for (room_id,) in connection.exec_driver_sql("SELECT id FROM study_rooms WHERE code IS NULL").fetchall():
+        code = secrets.token_hex(4).upper()
+        while code in used:
+            code = secrets.token_hex(4).upper()
+        used.add(code)
+        connection.exec_driver_sql("UPDATE study_rooms SET code = ? WHERE id = ?", (code, room_id))
+    connection.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_study_rooms_code ON study_rooms (code)")
+
+
+def upgrade_achievements(connection):
+    """V6: record each room session's starting host and backfill Studious from reliable history.
+
+    Only completed Classic and Multiple-Choice sessions carry trustworthy completion times, so
+    only Studious is backfilled. Deck Master cannot separate copied decks from original ones and
+    misses deleted decks, and past room sessions never recorded their starting host, so those
+    start at zero instead of guessing. Runs once (guarded by the schema version), before any
+    request can emit events, so backfilled completions are never counted again.
+    """
+    from collections import defaultdict
+    from datetime import date, datetime, timedelta, timezone
+
+    present = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(study_room_sessions)")}
+    if "host_id" not in present:
+        connection.exec_driver_sql(
+            "ALTER TABLE study_room_sessions ADD COLUMN host_id INTEGER REFERENCES users (id) ON DELETE SET NULL")
+    manila = timezone(timedelta(hours=8))
+    completions = defaultdict(list)
+    for user_id, finished in connection.exec_driver_sql("""
+        SELECT owner_id, completed_at FROM study_sessions
+         WHERE status = 'completed' AND completed_at IS NOT NULL AND owner_id IN (SELECT id FROM users)
+        UNION ALL
+        SELECT owner_id, finished_at FROM multiple_choice_sessions
+         WHERE status = 'completed' AND finished_at IS NOT NULL AND owner_id IN (SELECT id FROM users)
+    """):
+        moment = finished if isinstance(finished, datetime) else datetime.fromisoformat(str(finished))
+        day = moment.replace(tzinfo=timezone.utc).astimezone(manila).date()
+        completions[(user_id, day)].append(moment)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    today = now.replace(tzinfo=timezone.utc).astimezone(manila).date()
+    goal = 10
+    best = {}
+    for (user_id, day), moments in sorted(completions.items()):
+        moments.sort()
+        if len(moments) >= goal and (user_id not in best or best[user_id][0] != "unlocked"):
+            best[user_id] = ("unlocked", day, goal, moments[goal - 1])
+        elif day == today and user_id not in best:
+            best[user_id] = ("progress", day, len(moments), None)
+    for user_id, (_, day, progress, unlocked_at) in best.items():
+        connection.exec_driver_sql(
+            "INSERT OR IGNORE INTO user_achievements (user_id, achievement_key, progress, period_date, unlocked_at, updated_at)"
+            " VALUES (?, 'studious', ?, ?, ?, ?)",
+            (user_id, progress, date.isoformat(day), unlocked_at.isoformat(sep=' ') if unlocked_at else None,
+             now.isoformat(sep=' ')))
 
 
 def upgrade_baseline(connection):

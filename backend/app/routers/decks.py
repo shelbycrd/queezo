@@ -7,6 +7,7 @@ from app.auth.dependencies import require_user
 from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, StudySession, StudySessionCard, User, utcnow
 from app.schemas import CardInput, CardPatch, DeckInput, DeckPatch
+from app.services import achievements
 from app.services.content_policy import no_urls
 from app.services.ownership import owned_flashcards
 from app.services.limits import MAX_CARDS, media_bytes, require_card_media, require_deck_slot
@@ -57,6 +58,8 @@ def create_deck(data: DeckInput, user: User = Depends(require_user), db: Session
     deck = Deck(title=data.title, visibility=data.visibility, owner_id=user.id)
     db.add(deck)
     db.flush()
+    # Only original decks count; community copies use a separate route and do not.
+    achievements.record(db, user.id, 'deck_created')
     return deck_view(db, deck)
 
 

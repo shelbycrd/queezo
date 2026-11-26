@@ -1,6 +1,8 @@
 """Membership and lobby operations for private multiplayer study rooms."""
 
 import random
+import re
+import secrets
 from datetime import timedelta
 from hashlib import sha256
 from uuid import uuid4
@@ -25,6 +27,10 @@ FRIENDS_PER_PAGE = 4
 INVITE_PAIR_LIMIT = 5
 INVITE_PAIR_WINDOW = timedelta(seconds=60)
 INVITE_PAIR_MESSAGE = "You've sent too many invitations to this user. Please try again later."
+
+
+ROOM_CODE = re.compile(r'[0-9A-Fa-f]{8}')
+ROOM_UUID = re.compile(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}')
 
 
 def fail(status, message):
@@ -134,7 +140,7 @@ def create(db, user_id, username):
         fail(429, 'Close an existing room before creating another.')
     if db.scalar(select(func.count()).select_from(StudyRoom).where(StudyRoom.phase != 'closed')) >= MAX_ROOMS:
         fail(429, 'Study rooms are busy. Try again later.')
-    room = StudyRoom(id=str(uuid4()), host_id=user_id)
+    room = StudyRoom(id=str(uuid4()), code=new_code(db), host_id=user_id)
     db.add(room)
     db.flush()
     db.add(RoomMember(room_id=room.id, user_id=user_id, seen_at=utcnow()))
@@ -143,13 +149,34 @@ def create(db, user_id, username):
     return room.id, other.id
 
 
+def new_code(db):
+    # Writers are serialized, so a code checked here cannot be claimed concurrently.
+    while True:
+        code = secrets.token_hex(4).upper()
+        if not db.scalar(select(StudyRoom.id).where(StudyRoom.code == code)):
+            return code
+
+
+def member_room(db, reference, user_id):
+    """Resolve a public code (or a legacy UUID link) to a room only for its current members."""
+    if ROOM_CODE.fullmatch(reference):
+        room = db.scalar(select(StudyRoom).where(StudyRoom.code == reference.upper()))
+    elif ROOM_UUID.fullmatch(reference):
+        room = db.get(StudyRoom, reference.lower())
+    else:
+        return None
+    if not room or room.phase == 'closed' or not db.get(RoomMember, (room.id, user_id)):
+        return None
+    return room
+
+
 def invitations(db, user_id):
-    rows = db.execute(select(RoomInvite, User).join(User, User.id == RoomInvite.sender_id)
+    rows = db.execute(select(RoomInvite, User, StudyRoom.code).join(User, User.id == RoomInvite.sender_id)
                       .join(StudyRoom, StudyRoom.id == RoomInvite.room_id)
                       .where(RoomInvite.user_id == user_id, StudyRoom.phase != 'closed')
                       .order_by(RoomInvite.created_at.desc()))
-    return [{'room_id': row.room_id, 'sender': identity(sender), 'sent_at': iso(row.created_at)}
-            for row, sender in rows]
+    return [{'room_id': row.room_id, 'code': code, 'sender': identity(sender), 'sent_at': iso(row.created_at)}
+            for row, sender, code in rows]
 
 
 def respond(db, room_id, user_id, accept):
@@ -257,7 +284,7 @@ def start(db, room, user_id):
     random.shuffle(cards)
     players = {str(user.id): identity(user) for _, user in active}
     session = RoomSession(id=str(uuid4()), room_id=room.id, deck_title=deck.title, mode=room.mode,
-                          players=players, total=len(cards))
+                          players=players, host_id=room.host_id, total=len(cards))
     db.add(session)
     db.flush()
     db.add_all(RoomQuestion(session_id=session.id, position=position, card_id=card.id,
@@ -279,7 +306,7 @@ def lobby_view(db, room, viewer_id):
     blockers = readiness(room, lineup) if room.phase == 'lobby' else None
     count, newest = db.execute(select(func.count(),func.max(RoomInvite.created_at)).where(RoomInvite.room_id == room.id)).one()
     return {
-        'id': room.id, 'code': room.id[:8].upper(), 'name': 'Study Room',
+        'id': room.id, 'code': room.code, 'name': 'Study Room',
         'phase': room.phase, 'mode': room.mode, 'seconds': room.seconds, 'settings_revision': settings_revision(room),
         'readiness_blocker': blockers, 'readiness': {'ready': sum(member.ready for member in guests), 'total': len(guests)},
         'invite_revision': [count, iso(newest)],

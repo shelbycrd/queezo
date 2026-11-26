@@ -14,6 +14,7 @@ from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, Friendship, ProfileAvatarChange, ProfileReport, User, utcnow
 from app.services.presenters import iso
 from app.services.presence import online_presence
+from app.services.achievements import achievements_view
 
 router = APIRouter(prefix='/api/profiles', tags=['Profiles'])
 INTERESTS = tuple(dict.fromkeys((Path(__file__).resolve().parents[1] / 'interests.txt')
@@ -112,6 +113,8 @@ def profile_view(db, profile, owner):
         'joined_at': iso(profile.created_at), 'bio': profile.bio,
         'interest_tags': profile.interest_tags, 'avatar': profile.avatar,
         'is_owner': owner, 'featured_deck': featured[0] if featured else None,
+        # Visitors only receive unlocked achievement names; progress and dates stay owner-only.
+        'achievements': achievements_view(db, profile.id, owner),
     }
     if owner:
         changes = avatar_times(db, profile.id, utcnow())

@@ -140,6 +140,8 @@ def test_collaborative_reveal_and_reconnect(anonymous_client, monkeypatch):
     original = wait_for_state(alice,path,'question')
     with anonymous_client.factory() as db:
         assert order == list(db.scalars(select(RoomQuestion.card_id).order_by(RoomQuestion.position)))
+        # The starting host is recorded for achievements and survives later handoffs.
+        assert db.scalar(select(RoomSession.host_id)) == alice.get('/api/auth/me').json()['id']
 
     for browser, origin in ((carol,'http://testserver'), (alice,'https://invalid.example')):
         with pytest.raises(WebSocketDisconnect), browser.websocket_connect(path + '/live',headers={'origin':origin}):
@@ -811,3 +813,73 @@ def test_repeated_invites_keep_one_active_invitation_per_pair(anonymous_client):
     assert join(bob, first).status_code == 404
     assert join(bob, second).status_code == 204
     assert len(carol.get('/api/rooms').json()['invites']) == 1
+
+
+ROOM_CODE = r'[0-9A-F]{8}'
+
+
+def test_rooms_get_unique_public_codes_used_by_links_and_notifications(anonymous_client):
+    import re
+
+    make_users(anonymous_client, ('alice','bob','carol'), [('alice','bob'), ('alice','carol')])
+    alice, bob = sign_in('alice'), sign_in('bob')
+    created = alice.post('/api/rooms', json={'username':'bob'}).json()
+    second = alice.post('/api/rooms', json={'username':'carol'}).json()
+    assert re.fullmatch(ROOM_CODE, created['code']) and created['code'] != second['code']
+    assert created['code'] != created['id'][:8].upper()
+    invite = bob.get('/api/rooms').json()['invites'][0]
+    assert (invite['room_id'], invite['code']) == (created['id'], created['code'])
+    assert join(bob, '/api/rooms/' + created['id']).status_code == 204
+    assert bob.get('/api/rooms').json()['rooms'][0]['code'] == created['code']
+    assert alice.get('/api/rooms/' + created['id']).json()['code'] == created['code']
+
+
+def test_room_codes_resolve_only_for_members_and_throttle_probing(anonymous_client):
+    from app.routers.study_rooms import ROOM_LOOKUP_MISSES
+
+    make_users(anonymous_client, ('alice','bob','carol','dave'), [('alice','bob'), ('alice','carol')])
+    alice, bob, carol, dave = map(sign_in, ('alice','bob','carol','dave'))
+    room = alice.post('/api/rooms', json={'username':'bob'}).json()
+    assert alice.post('/api/rooms/' + room['id'] + '/invite', json={'username':'carol'}).status_code == 204
+    expected = {'id':room['id'], 'code':room['code']}
+    assert alice.get('/api/rooms/resolve/' + room['code']).json() == expected
+    assert alice.get('/api/rooms/resolve/' + room['code'].lower()).json() == expected
+    assert alice.get('/api/rooms/resolve/' + room['id']).json() == expected  # legacy UUID links
+    assert TestClient(app).get('/api/rooms/resolve/' + room['code']).status_code == 401
+    # Invitees and strangers cannot distinguish a real room from a missing one.
+    for browser in (bob, carol, dave):
+        assert browser.get('/api/rooms/resolve/' + room['code']).json() == \
+            dave.get('/api/rooms/resolve/00000000').json()
+    assert join(bob, '/api/rooms/' + room['id']).status_code == 204
+    assert bob.get('/api/rooms/resolve/' + room['code']).json() == expected
+    for _ in range(ROOM_LOOKUP_MISSES - 4):  # dave already missed four times above
+        assert dave.get('/api/rooms/resolve/ABCDEF12').status_code == 404
+    assert dave.get('/api/rooms/resolve/not-a-code').status_code == 429
+    assert dave.get('/api/rooms/resolve/' + room['code']).status_code == 429
+    assert alice.get('/api/rooms/resolve/' + room['code']).status_code == 200
+    assert carol.get('/api/rooms/' + room['id']).status_code == 404
+
+
+def test_v4_migration_backfills_unique_room_codes_without_losing_rooms(tmp_path):
+    import re
+    from app.database import SCHEMA_VERSION, init_database, make_engine
+
+    database = tmp_path / 'rooms.db'
+    engine = make_engine(f'sqlite:///{database.as_posix()}')
+    ids = [f'00000000-0000-4000-8000-00000000000{n}' for n in range(4)]
+    with engine.begin() as connection:
+        connection.exec_driver_sql("CREATE TABLE study_rooms (id VARCHAR(36) PRIMARY KEY, phase VARCHAR(16))")
+        for room_id in ids:
+            connection.exec_driver_sql("INSERT INTO study_rooms VALUES (?, 'lobby')", (room_id,))
+        connection.exec_driver_sql('PRAGMA user_version=4')
+    init_database(engine)
+    with engine.connect() as connection:
+        assert connection.exec_driver_sql('PRAGMA user_version').scalar_one() == SCHEMA_VERSION
+        rows = connection.exec_driver_sql('SELECT id, phase, code FROM study_rooms ORDER BY id').all()
+        assert [(row[0], row[1]) for row in rows] == [(room_id, 'lobby') for room_id in ids]
+        codes = [row[2] for row in rows]
+        assert len(set(codes)) == len(ids) and all(re.fullmatch(ROOM_CODE, code) for code in codes)
+        indexes = connection.exec_driver_sql("PRAGMA index_list(study_rooms)").all()
+        assert any(row[1] == 'ix_study_rooms_code' and row[2] == 1 for row in indexes)
+    assert len(list((tmp_path / '.migration-backups' / database.name).glob('pre-migration-*.db'))) == 1
+    engine.dispose()

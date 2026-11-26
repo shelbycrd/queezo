@@ -10,7 +10,8 @@ from sqlalchemy import or_, select
 from starlette.concurrency import run_in_threadpool
 
 from app.database import write_transaction
-from app.models import Flashcard, RoomQuestion, RoomSession, StudyRoom, User, utcnow
+from app.models import Flashcard, RoomMember, RoomQuestion, RoomSession, StudyRoom, User, utcnow
+from app.services import achievements
 from app.services.distractor_cache import (
     InsufficientDistractorsError, _fingerprint, get_or_generate_distractors,
 )
@@ -39,12 +40,29 @@ def finish(room, session, now):
     touch(room)
 
 
+def credit_host(db, room, session, now):
+    """Credit the starting host once per room after a session played to its end.
+
+    Only this path is a successful completion; other finish() calls are aborts. The host must
+    still be a member, and at least one prepared, non-failed question must have been played.
+    """
+    host = session.host_id
+    if host is None or db.get(RoomMember, (room.id, host)) is None:
+        return
+    played = db.scalar(select(RoomQuestion.position).where(
+        RoomQuestion.session_id == session.id, RoomQuestion.failed.is_(False), RoomQuestion.options.is_not(None),
+    ).limit(1))
+    if played is not None:
+        achievements.record(db, host, 'room_hosted', at=now, subject=room.id)
+
+
 def advance(db, room, session, position, now):
     question = db.scalar(select(RoomQuestion).where(
         RoomQuestion.session_id == session.id, RoomQuestion.position >= position, RoomQuestion.failed.is_(False),
     ).order_by(RoomQuestion.position).limit(1))
     if question is None:
         finish(room, session, now)
+        credit_host(db, room, session, now)
         return
     session.position = question.position
     if question.options is None:
