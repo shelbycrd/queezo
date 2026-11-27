@@ -1,5 +1,5 @@
 """Shared read access never broadens owner-only editing or study history."""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
@@ -21,9 +21,13 @@ def shared_view(db, deck):
 
 
 @router.get('/community/decks')
-def community(user: User = Depends(require_user), db: Session = Depends(get_db)):
-    decks = db.scalars(select(Deck).where(Deck.visibility == 'public', Deck.owner_id.is_not(None),
-                        Deck.unpublished_at.is_(None), Deck.share_token.is_not(None)).order_by(Deck.created_at.desc(),Deck.id.desc()).limit(20))
+def community(q: str = Query('', max_length=120), user: User = Depends(require_user), db: Session = Depends(get_db)):
+    statement = select(Deck).where(Deck.visibility == 'public', Deck.owner_id.is_not(None),
+                                   Deck.unpublished_at.is_(None), Deck.share_token.is_not(None))
+    if q.strip():
+        # Same public-only rules as the unfiltered list; the term only narrows by title.
+        statement = statement.where(func.lower(Deck.title).contains(q.strip().lower(), autoescape=True))
+    decks = db.scalars(statement.order_by(Deck.created_at.desc(), Deck.id.desc()).limit(20))
     return [shared_view(db, deck) for deck in decks]
 
 

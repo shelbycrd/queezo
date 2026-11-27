@@ -301,6 +301,54 @@ class UserAchievement(Base):
     __table_args__ = (CheckConstraint("progress >= 0"),)
 
 
+class ScheduleSubject(Base):
+    """A class the user attends; its weekly meetings live in ScheduleMeeting."""
+    __tablename__ = "schedule_subjects"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    code: Mapped[str | None] = mapped_column(String(20))
+    instructor: Mapped[str | None] = mapped_column(String(80))
+    location: Mapped[str | None] = mapped_column(String(80))
+    color: Mapped[str] = mapped_column(String(12), default="blue", server_default="blue")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+    __table_args__ = (CheckConstraint("length(trim(name)) BETWEEN 1 AND 80"), {"sqlite_autoincrement": True})
+
+
+class ScheduleMeeting(Base):
+    """One recurring weekly slot. Times are minutes after midnight, independent of 12H/24H display."""
+    __tablename__ = "schedule_meetings"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    subject_id: Mapped[int] = mapped_column(ForeignKey("schedule_subjects.id", ondelete="CASCADE"), index=True)
+    weekday: Mapped[int] = mapped_column(Integer)  # 0 = Monday … 6 = Sunday
+    start_minute: Mapped[int] = mapped_column(Integer)
+    end_minute: Mapped[int] = mapped_column(Integer)
+    location: Mapped[str | None] = mapped_column(String(80))  # Overrides the subject's room when set.
+    __table_args__ = (
+        CheckConstraint("weekday BETWEEN 0 AND 6"),
+        CheckConstraint("start_minute >= 0 AND end_minute <= 1439 AND start_minute < end_minute"),
+        {"sqlite_autoincrement": True},
+    )
+
+
+class ScheduleSetting(Base):
+    __tablename__ = "schedule_settings"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    time_format: Mapped[str] = mapped_column(String(3), default="12h", server_default="12h")
+    __table_args__ = (CheckConstraint("time_format IN ('12h', '24h')"),)
+
+
+class ScheduleArchive(Base):
+    """The timetable as it was immediately before it was cleared or replaced."""
+    __tablename__ = "schedule_archives"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    archived_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    subjects: Mapped[list[dict]] = mapped_column(JSON)
+    __table_args__ = {"sqlite_autoincrement": True}
+
+
 class AchievementCredit(Base):
     """Distinct subjects already counted toward an achievement (e.g. one credit per hosted room)."""
     __tablename__ = "user_achievement_credits"

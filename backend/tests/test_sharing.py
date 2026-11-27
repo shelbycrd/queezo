@@ -155,3 +155,25 @@ def test_sharing_migration_is_private_idempotent_and_preserves_rows(tmp_path):
     with Session(engine) as db:
         assert db.get(Deck,7).share_token == token
     engine.dispose()
+
+
+def test_public_deck_search_matches_titles_and_keeps_visibility_rules(client):
+    biology = make_deck(client, 'public', 'Cell Biology')
+    make_deck(client, 'public', 'World History')
+    make_deck(client, 'unlisted', 'Biology Notes (link only)')
+    make_deck(client, 'private', 'Private biology')
+    make_deck(client, 'public', '100%_literal')
+    switch_account(client)
+    search = lambda term: [item['title'] for item in client.get('/api/community/decks', params={'q': term}).json()]
+    assert search('BIOLOGY') == ['Cell Biology']  # case-insensitive; unlisted and private never appear
+    assert search('  history ') == ['World History']
+    assert search('%') == ['100%_literal'] and search('_') == ['100%_literal']  # LIKE wildcards are literal
+    assert search('nothing here') == []
+    assert len(search('')) == 3  # an empty term is the normal newest-first feed
+    assert set(search('')) == {'Cell Biology', 'World History', '100%_literal'}
+    assert client.get('/api/community/decks', params={'q': 'x' * 121}).status_code == 422
+    result = client.get('/api/community/decks', params={'q': 'cell'}).json()[0]
+    assert set(result) == {'title', 'card_count', 'visibility', 'share_token', 'created_at', 'updated_at'}
+    assert result['share_token'] == biology['share_token']
+    client.cookies.clear()
+    assert client.get('/api/community/decks', params={'q': 'cell'}).status_code == 401

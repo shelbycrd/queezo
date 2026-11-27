@@ -65,10 +65,14 @@ def online_snapshot(source, destination, *, revoke_sessions=False):
                     copy.execute('DELETE FROM auth_sessions')
                     copy.commit()
         verify_snapshot(temporary)
-        with temporary.open('rb') as file:
+        # Windows requires a writable handle to flush the verified snapshot.
+        with temporary.open('rb+') as file:
             os.fsync(file.fileno())
-        # Same-directory hard link publishes a complete file without overwriting a concurrent backup.
-        os.link(temporary, destination)
+        # Publish the complete file without overwriting a concurrent backup.
+        if os.name == 'nt':
+            temporary.rename(destination)  # Windows rename fails if the destination exists.
+        else:
+            os.link(temporary, destination)
         if os.name == 'posix':
             directory = os.open(destination.parent, os.O_RDONLY)
             try:

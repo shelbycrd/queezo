@@ -515,8 +515,8 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
   .signed-in .site-header::after { display: none; }
   .signed-in .site-header .brand { flex-direction: row; gap: 7px; margin: 0; font-size: 1.28rem; align-items: center; max-width: 135px; }
   .signed-in .brand-cloud { width: 36px; height: 36px; }
-  .site-header nav { display: flex; flex-direction: row; order: 3; flex-basis: 100%; gap: 5px; justify-content: space-between; }
-  .site-header nav > a { flex: 1; flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; min-height: 54px; border-radius: 17px; font-size: .63rem; line-height: 1.25; white-space: nowrap; }
+  .signed-in .site-header nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+  .site-header nav > a { flex: 1; flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; min-height: 54px; border-radius: 17px; font-size: .63rem; line-height: 1.25; white-space: normal; }
   .nav-icon svg { width: 19px; height: 19px; }
   .site-header nav > a[aria-current=page] { box-shadow: 0 3px 8px #6384c422; }
   .signed-in main { width: 100%; margin: 0; max-width: none; padding: 22px 17px 93px; min-height: calc(100dvh - 121px); }
@@ -596,4 +596,46 @@ body:not(.signed-in) main { margin: 0 auto; padding: 32px 24px 48px; max-width: 
   .welcome-cloud { animation: none; }
   button, .button { transition: none; }
   button:active:not(:disabled), .button:active { transform: none; }
+}
+
+/* Home dashboard: main column + widget column beside the app sidebar (three columns on desktop). */
+.home-dashboard { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.home-main, .home-widgets { min-width: 0; }
+.home-widgets { display: grid; gap: 20px; align-content: start; }
+.home-greeting { font-size: clamp(1.5rem, 2.6vw, 2.1rem); color: #4f78c2; letter-spacing: -.03em; margin: 0 0 18px; overflow-wrap: anywhere; }
+@media (min-width: 1200px) {
+  .home-dashboard { grid-template-columns: minmax(0, 1fr) minmax(260px, 310px); gap: 28px; }
+  .home-widgets { position: sticky; top: 24px; }
+}
+@media (min-width: 761px) and (max-width: 1199px) {
+  .home-widgets { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+
+/* Explore Public Decks: heading with an Enter-to-search field. */
+.explore-heading { flex-wrap: wrap; gap: 12px 16px; }
+.explore-heading h2 { margin-right: auto; }
+.explore-search { position: relative; flex: 0 1 300px; min-width: 0; margin: 0; }
+.explore-search input { width: 100%; padding: 9px 38px 9px 14px; border-radius: 20px; }
+.explore-search input::-webkit-search-cancel-button { display: none; }
+.explore-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #7d8fa7; box-shadow: none; font-size: 1.15rem; line-height: 1; }
+.explore-clear:hover { background: #eef4ff; color: #4f7fca; }
+
+/* Widgets: Study Streak keeps its panel; Friends is a compact list. */
+.home-widgets .panel { border-radius: 26px; padding: 20px; }
+.home-widgets .section-heading { margin: 0 0 10px; }
+.home-widgets .section-heading h2 { font-size: 1.02rem; }
+.home-widgets .study-week { gap: 4px; }
+.home-widgets .day-dot svg { width: 13px; height: 13px; }
+.home-friend-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; max-height: 360px; overflow-y: auto; }
+.home-friend-list a { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 12px; text-decoration: none; color: inherit; }
+.home-friend-list a:hover { background: #f2f6ff; }
+.home-friend-list .friend-avatar { flex-basis: 32px; width: 32px; height: 32px; }
+.home-friend-list .presence-dot { width: 10px; height: 10px; }
+.home-friend-name { min-width: 0; display: grid; line-height: 1.25; }
+.home-friend-name strong { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-friend-name small { font-size: .7rem; color: var(--muted); }
+.home-friends .link-button { background: none; border: 0; padding: 0; box-shadow: none; color: #4f7fca; text-decoration: underline; font: inherit; }
+@media (max-width: 760px) {
+  .explore-search { flex: 1 1 100%; order: 3; }
+  .home-friend-list { max-height: none; }
 }

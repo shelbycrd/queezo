@@ -28,7 +28,7 @@ Inside the console, `help` lists commands, `whoami` shows the configured operato
 | AI | `ai status`, `ai stats`, `ai cache-stats` | |
 | Audit | `audit list`, `audit inspect <id>` | |
 
-Lists and search support `--limit` (1–100, default 25) and `--offset` (default 0). User search matches usernames and display names. The console prints JSON for command results.
+Lists and search support `--limit` (1–100, default 25) and `--offset` (default 0). User search matches usernames and display names. `users list` includes each account’s email and the boolean `email_verified`, which is currently always `false` because email verification is unavailable. The console prints JSON for command results.
 
 All moderation commands require a printable `--reason` of up to 240 characters and an explicit `--yes`. Use `--dry-run` in place of `--yes` to evaluate the command and record a preview without persisting the moderation change.
 

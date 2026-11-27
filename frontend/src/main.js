@@ -12,6 +12,8 @@ import '../css/cloud-theme.css';
 import '../css/multiple-choice.css';
 import '../css/profiles.css';
 import '../css/study-rooms.css';
+import '../css/schedule.css';
+import '../css/top-bar.css';
 
 // Convert old `/#/page` bookmarks (and `/#shared/token` links) to clean URLs before the router reads the location.
 const legacy = legacyHashPath(location.pathname, location.hash);
@@ -43,7 +45,9 @@ const router = createRouter({history:createWebHistory(), routes:[
   page('/gwa-calculator','gwa',() => import('./views/GwaView.vue'),'GWA Calculator'),
   {path:'/notes',redirect:'/gwa-calculator'},
   page('/rooms/:code','room',() => import('./views/RoomEntry.vue'),'Study Room',{props:true,meta:{studyFocus:true}}),
+  page('/class-schedule','class-schedule',() => import('./views/ScheduleView.vue'),'Class Schedule'),
   page('/pomodoro','pomodoro',() => import('./views/PomodoroView.vue'),'Pomodoro'),
+  page('/search','search',() => import('./views/SearchView.vue'),'Search'),
   page('/profile','profile',profile,'Profile'),
   page('/u/:username','public-profile',profile,'Profile',{props:true,meta:{guest:true}}),
   page('/people','people',() => import('./views/PeopleView.vue'),'Find profiles',{meta:{guest:true}}),

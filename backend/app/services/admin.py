@@ -70,11 +70,15 @@ def users_read(db, args):
         return {**user_view(user), 'decks': count(db, Deck, Deck.owner_id == user.id),
                 'active_sessions': count(db, AuthSession, AuthSession.user_id == user.id,
                                          AuthSession.expires_at > utcnow())}
-    filters = ()
-    if args.action == 'search':
-        filters = (or_(User.username.icontains(args.query, autoescape=True),
-                       User.display_name.icontains(args.query, autoescape=True)),)
-    return list_rows(db, User, user_view, args, *filters)
+    if args.action == 'list':
+        # Match the authentication API while email verification is unavailable.
+        return list_rows(db, User, lambda user: {
+            **user_view(user), 'email': user.email, 'email_verified': False,
+        }, args)
+    return list_rows(db, User, user_view, args, or_(
+        User.username.icontains(args.query, autoescape=True),
+        User.display_name.icontains(args.query, autoescape=True),
+    ))
 
 
 def decks_read(db, args):

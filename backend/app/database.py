@@ -36,7 +36,7 @@ engine = make_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 8
 logger = logging.getLogger(__name__)
 
 
@@ -71,7 +71,7 @@ def init_database(target=engine):
             if version == SCHEMA_VERSION:
                 connection.commit()
                 return
-            if version not in {0, 1, 2, 3, 4, 5}:
+            if version not in {0, 1, 2, 3, 4, 5, 6, 7}:
                 raise RuntimeError("Unsupported SQLite schema version. Use the matching Queezo release.")
             existing = connection.exec_driver_sql(
                 "SELECT 1 FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
@@ -90,6 +90,7 @@ def init_database(target=engine):
             upgrade_room_codes(connection)
             if version < 6:
                 upgrade_achievements(connection)
+            # V7 adds the schedule tables and V8 adds history. create_all creates the new tables.
             connection.exec_driver_sql(f"PRAGMA user_version={SCHEMA_VERSION}")
             connection.commit()
             logger.info("SQLite schema upgraded to version %s", SCHEMA_VERSION)

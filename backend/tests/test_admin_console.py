@@ -72,6 +72,16 @@ def test_dedicated_hash_attempt_limits_and_rotation(client):
     assert PASSWORD not in str(events) and REPLACEMENT not in str(events)
 
 
+def test_users_list_includes_email_and_verification_status(client, operator):
+    current = client.get('/api/auth/me').json()
+    [user] = run(client, operator, 'users list')
+    assert user['username'] == current['username']
+    assert user['email'] == 'owner@example.com'
+    assert user['email_verified'] is current['email_verified'] is False
+    assert 'password_hash' not in user
+    assert 'email' not in run(client, operator, f"users inspect {user['username']}")
+
+
 def test_parser_restricts_commands_and_values(client, operator):
     for line in ('shell ls', 'users suspend owner --yes', 'users suspend owner --reason testing',
                  'users suspend owner --reason testing --yes --dry-run', 'rooms inspect abc',
