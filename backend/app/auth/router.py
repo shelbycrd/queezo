@@ -168,8 +168,12 @@ def replace_password(user_id, uid, factory, payload, _address, old):
         if user.password_hash != stored_hash:
             return error('Your password changed. Try again with your current password.', 409)
         user.password_hash = new_hash
+        # Every session ends, including this one, so the new password must be used to sign in again.
         db.execute(delete(AuthSession).where(AuthSession.user_id == user_id))
-        return rotate_session(db, user, None)
+    signed_out = JSONResponse({'message': 'Password changed. Log in again with your new password.'})
+    settings = get_settings()
+    signed_out.delete_cookie(settings.cookie_name, path='/', secure=settings.cookie_secure, httponly=True, samesite='lax')
+    return signed_out
 
 
 async def read_json(request):

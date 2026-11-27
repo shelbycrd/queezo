@@ -5,6 +5,7 @@ import {showNotice} from './notice.js';
 
 export const account = shallowRef(null);
 export const loginMessage = ref('');
+export const loginMessageSuccess = ref(false);
 let sequence = 0;
 
 function adopt(user) {
@@ -21,9 +22,10 @@ export function updateAccountProfile({display_name,avatar}) {
 export function initAuthentication(router) {
   const events = new AbortController();
   const channel = 'BroadcastChannel' in window ? new BroadcastChannel('queezo.account') : null;
-  function expire(message = 'Your session has expired. Please log in again.') {
+  function expire(message = 'Your session has expired. Please log in again.', success = false) {
     sequence++;
     loginMessage.value = message;
+    loginMessageSuccess.value = success;
     adopt(null);
     void router.replace('/login');
   }
@@ -49,12 +51,10 @@ export function initAuthentication(router) {
     await router.replace(typeof target === 'string' && /^\/shared\/[A-Za-z0-9_-]{32,64}$/.test(target) ? target : '/home');
   }
   async function changePassword(body) {
-    const ticket = ++sequence;
-    const user = await api('/auth/password',{method:'POST',body});
-    if (ticket !== sequence && user.id !== account.value?.id) return;
-    sequence++;
-    adopt(user);
-    channel?.postMessage({type:'refreshed'});
+    // The server ends every session after a change, this one included.
+    const result = await api('/auth/password',{method:'POST',body,ignoreUnauthorized:true});
+    channel?.postMessage({type:'password-changed'});
+    expire(result?.message || 'Password changed. Log in again with your new password.', true);
   }
   async function logout() {
     try {
@@ -75,14 +75,16 @@ export function initAuthentication(router) {
       else if (user.id !== previous) await router.replace('/home');
     } catch { /* Keep the session during a transient network error. */ }
   }
-  onUnauthorized(expire);
+  // A late 401 after an intentional sign-out must not replace that sign-out message.
+  onUnauthorized(() => { if (account.value) expire(); });
   if (channel) channel.onmessage = ({data}) => {
     if (data?.type === 'refreshed') {
       if (account.value) void check();
       return;
     }
-    if (!['signed-out','changed'].includes(data?.type)) return;
-    expire(data.type === 'signed-out' ? 'You have been logged out.' : 'Your account session changed.');
+    if (!['signed-out','changed','password-changed'].includes(data?.type)) return;
+    expire({'signed-out':'You have been logged out.', 'password-changed':'Your password was changed. Log in again with your new password.'}[data.type]
+      || 'Your account session changed.');
     if (data.type === 'changed') void restore().then(user => {
       if (user) return router.replace('/home');
     }).catch(() => {});

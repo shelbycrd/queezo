@@ -138,3 +138,13 @@
 .achievement-badge .badge-lock { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center;
   width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 1px solid #dbe3ee; }
 .achievement-badge .badge-lock svg { width: 12px; height: 12px; stroke: #8d9bb0; stroke-width: 1.6; }
+
+/* Settings → Security: Change Password */
+.profile-security { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+.profile-security h3 { font-size: .95rem; margin: 0 0 4px; }
+.profile-password-form { border-top: 0; margin-top: 0; padding-top: 0; }
+.profile-password-form legend { font-weight: 700; font-size: .86rem; padding: 0; }
+.profile-password-form .hint { margin: 4px 0 6px; }
+.profile-password-form .password-control { display: flex; gap: 8px; align-items: center; }
+.profile-password-form .password-control input { flex: 1; min-width: 0; }
+.profile-password-form .actions { margin-top: 12px; }

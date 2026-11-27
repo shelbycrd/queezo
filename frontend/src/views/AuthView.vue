@@ -1,7 +1,7 @@
 <script setup>
 import {computed, inject, onMounted, reactive, ref, watch} from 'vue';
 import {passwordStrength} from '../../js/password-strength.js';
-import {loginMessage} from '../services/session.js';
+import {loginMessage, loginMessageSuccess} from '../services/session.js';
 import {showNotice} from '../services/notice.js';
 import {useLifetime} from '../composables/lifecycle.js';
 import PasswordField from '../components/PasswordField.vue';
@@ -17,8 +17,9 @@ watch(() => [form.password, form.confirm_password], () => {
 });
 onMounted(() => {
   if (!props.signup && loginMessage.value) {
-    showNotice(loginMessage.value);
+    showNotice(loginMessage.value, loginMessageSuccess.value);
     loginMessage.value = '';
+    loginMessageSuccess.value = false;
   }
 });
 async function submit() {

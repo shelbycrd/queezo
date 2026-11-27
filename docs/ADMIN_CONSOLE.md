@@ -20,7 +20,7 @@ Inside the console, `help` lists commands, `whoami` shows the configured operato
 
 | Area | Read commands | Moderation commands |
 | --- | --- | --- |
-| Users | `users list`, `users search <query>`, `users inspect <username>` | `users suspend <username>`, `users unsuspend <username>`, `users revoke-sessions <username>` |
+| Users | `users list`, `users search <query>`, `users inspect <username>` | `users suspend <username>`, `users unsuspend <username>`, `users revoke-sessions <username>`, `users changepassword <username>` |
 | Decks | `decks list`, `decks inspect <id>` | `decks unpublish <id>`, `decks restore <id>` |
 | Reports | `reports list`, `reports inspect <id>` | `reports resolve <id>`, `reports dismiss <id>` |
 | Study Rooms | `rooms list`, `rooms inspect <uuid>` | `rooms close <uuid>` |
@@ -35,11 +35,13 @@ All moderation commands require a printable `--reason` of up to 240 characters a
 ```text
 queezo-admin> users suspend example_user --reason "Account under review" --dry-run
 queezo-admin> users suspend example_user --reason "Account under review" --yes
+queezo-admin> users changepassword example_user --reason "Student locked out" --yes
 queezo-admin> audit list --limit 10
 ```
 
 - **Suspend** blocks sign-in and revokes all current sessions. Existing cookies are rejected on their next authenticated request and live sockets close on revalidation. Unsuspension permits a new sign-in. Suspension leaves published material subject to the usual visibility rules. Use deck moderation when the deck itself needs review.
 - **Unpublish** withdraws a public or unlisted deck from sharing, including room access and shared Multiple-Choice sessions. It retains its original visibility setting, cards, ownership and history. The owner can still edit and study it. Restoration issues a fresh share link. An unpublished featured deck is removed from the profile and can be featured again after restoration. Copies already held by another user are independent.
+- **Change password** sets a new password for a student account, then revokes all of its sessions so every device must sign in again. Run `users changepassword <username> --reason "..." --yes` and type the new password twice at the hidden prompt. It must meet the normal 11–1024-character rule and is hashed with the same Argon2 settings as sign-up, before the database write. `--dry-run` checks the account and records a preview without asking for a password. The inline form `users changepassword <username> <new-password> --reason "..." --yes` also works but prints a warning, because the password is visible on screen while you type it. The console keeps no command history, and passwords never appear in results, errors or the audit log, which stores only the operator, action, username, reason and outcome.
 - **Resolve or dismiss** classifies a report and preserves it with its review timestamp. An existing final disposition cannot be overwritten.
 - **Close room** stops active play, retains saved scores and round data, and removes pending invites. Connected participants discover the closure through existing room revalidation and receive the closure message on refresh. Invitation lists update on the normal notification poll. Participants who return later see the closure message. This does not send an out-of-band notice.
 

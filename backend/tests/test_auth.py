@@ -420,7 +420,7 @@ def test_blocked_ip_random_emails_do_not_grow_throttle_metadata(anonymous_client
         assert buckets == {ip_key: 30, existing_email_key: 3}
 
 
-def test_password_change_checks_current_password_and_rotates_sessions(anonymous_client):
+def test_password_change_checks_current_password_and_revokes_every_session(anonymous_client):
     client = anonymous_client
     provision(client)
     cookie_name = get_settings().cookie_name
@@ -439,9 +439,10 @@ def test_password_change_checks_current_password_and_rotates_sessions(anonymous_
     assert client.post('/api/auth/password', json={**body, 'confirm_password': 'Mismatch'}).status_code == 422
     changed = client.post('/api/auth/password', json=body)
     assert changed.status_code == 200
-    current = client.cookies[cookie_name]
-    assert current not in {original, previous}
-    assert client.get('/api/auth/me').json()['csrf_token'] == changed.json()['csrf_token']
+    assert changed.json() == {'message': 'Password changed. Log in again with your new password.'}
+    assert 'csrf_token' not in changed.json()  # no replacement session is issued
+    assert cookie_name not in client.cookies  # the cookie is cleared
+    assert client.get('/api/auth/me').status_code == 401
 
     for revoked in (original, previous):
         client.cookies.clear()

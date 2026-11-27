@@ -24,6 +24,7 @@ MAX_LINE = 2048
 HELP = """Commands
   users list | search <query> | inspect <username>
   users suspend | unsuspend | revoke-sessions <username>
+  users changepassword <username>   (prompts for the new password; signs the user out everywhere)
   decks list | inspect <id> | unpublish <id> | restore <id>
   reports list | inspect <id> | resolve <id> | dismiss <id>
   rooms list | inspect <uuid> | close <uuid>
@@ -67,7 +68,8 @@ def build_parser():
     groups = parser.add_subparsers(dest='group', required=True)
     commands = {
         'users': {'list': None, 'search': None, 'inspect': normalize_username, 'suspend': normalize_username,
-                  'unsuspend': normalize_username, 'revoke-sessions': normalize_username},
+                  'unsuspend': normalize_username, 'revoke-sessions': normalize_username,
+                  'changepassword': normalize_username},
         'decks': {'list': None, 'inspect': identifier, 'unpublish': identifier, 'restore': identifier},
         'reports': {'list': None, 'inspect': identifier, 'resolve': identifier, 'dismiss': identifier},
         'rooms': {'list': None, 'inspect': room_id, 'close': room_id},
@@ -89,6 +91,9 @@ def build_parser():
                 command.add_argument('--offset', type=lambda value: bounded_int(value, 0, 1_000_000), default=0)
             if action == 'search':
                 command.add_argument('query', type=search_query)
+            if action == 'changepassword':
+                # Optional inline password for compatibility; the hidden prompt is preferred.
+                command.add_argument('password', nargs='?')
             if change:
                 command.add_argument('--reason', required=True)
                 confirmation = command.add_mutually_exclusive_group(required=True)
@@ -118,7 +123,32 @@ def read_line(timeout):
     return line.strip()
 
 
-def shell(factory, principal, *, reader=read_line):
+INLINE_PASSWORD_WARNING = ('Warning: a password typed into the command line is visible on screen. '
+                           'Prefer users changepassword <username> --reason "..." --yes and use the hidden prompt.')
+
+
+def reset_password_prompt(args, prompt):
+    """Collect a reset password without echoing it; inline passwords are allowed but warned about."""
+    if args.password is not None:
+        print(INLINE_PASSWORD_WARNING, file=sys.stderr)
+        return
+    if not args.yes:
+        return  # A dry run checks the account and records a preview without asking for a password.
+    if prompt is None:
+        raise AdminError('Secure password entry is unavailable. Nothing was changed.')
+    try:
+        first = prompt(f'New password for {args.target} (11–1024 characters): ')
+        second = prompt('Confirm new password: ')
+    except (EOFError, KeyboardInterrupt):
+        raise AdminError('Password entry cancelled. Nothing was changed.') from None
+    except RuntimeError:  # secure_password refuses to fall back to echoed input
+        raise AdminError('Secure password entry is unavailable. Nothing was changed.') from None
+    if first != second:
+        raise AdminError('Password confirmation did not match. Nothing was changed.')
+    args.password = first
+
+
+def shell(factory, principal, *, reader=read_line, prompt=None):
     parser = build_parser()
     deadline = monotonic() + IDLE_SECONDS
     while True:
@@ -154,6 +184,8 @@ def shell(factory, principal, *, reader=read_line):
                 print(principal.operator)
             else:
                 args = parse_command(parser, command)
+                if (args.group, args.action) == ('users', 'changepassword'):
+                    reset_password_prompt(args, prompt)
                 result = admin.execute(factory, principal, args)
                 print(json.dumps(result, indent=2, ensure_ascii=True))
         except AdminError as error:
@@ -217,4 +249,4 @@ def run(args, prompt):
         set_password(SessionLocal, mode, new_password(prompt), principal=principal, expected=credential)
         print('Administrator password rotated. Open consoles must sign in again.')
         return 0
-    return shell(SessionLocal, principal)
+    return shell(SessionLocal, principal, prompt=prompt)

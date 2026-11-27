@@ -7,6 +7,7 @@ import secrets
 import httpx
 from sqlalchemy import delete, func, or_, select, text
 
+from app.auth.service import hasher, validate_password
 from app.database import write_transaction
 from app.models import (
     AdminAudit, AuthSession, Deck, Flashcard, FlashcardDistractorCache, FlashcardDistractorJob,
@@ -184,6 +185,12 @@ def audit_read(db, args):
 
 def users_change(db, args):
     user = find_user(db, args.target)
+    if args.action == 'changepassword':
+        # The hash was computed before this transaction; the plaintext never reaches this point.
+        if args.password_hash is not None:
+            user.password_hash = args.password_hash
+        revoked = db.execute(delete(AuthSession).where(AuthSession.user_id == user.id)).rowcount
+        return {'password_changed': args.password_hash is not None, 'revoked_sessions': revoked}
     if args.action == 'suspend':
         if user.suspended_at is not None:
             raise AdminError('User is already suspended.')
@@ -242,11 +249,28 @@ READERS = {'users': users_read, 'decks': decks_read, 'reports': reports_read, 'r
 CHANGES = {'users': users_change, 'decks': decks_change, 'reports': reports_change, 'rooms': rooms_change}
 
 
+def prepare_password(args):
+    """Validate and hash a reset password outside the write transaction, then drop the plaintext."""
+    password, args.password, args.password_hash = getattr(args, 'password', None), None, None
+    if password is None:
+        if args.yes:
+            raise AdminError('Enter the new password at the hidden prompt. Nothing was changed.')
+        return
+    try:
+        validate_password(password)
+    except ValueError as error:
+        raise AdminError(f'{error} Nothing was changed.') from None
+    if args.yes:
+        args.password_hash = hasher.hash(password)
+
+
 def execute(factory, principal, args):
     if args.change:
         reason = normalized_reason(args.reason)
         if not (args.yes ^ args.dry_run):
             raise AdminError('Use --yes to confirm or --dry-run to preview.')
+        if (args.group, args.action) == ('users', 'changepassword'):
+            prepare_password(args)
         error = None
         action = f'{args.group} {args.action}'
         with write_transaction(factory) as db:
