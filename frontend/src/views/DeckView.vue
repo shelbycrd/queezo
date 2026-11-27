@@ -14,6 +14,7 @@ import ResourceState from '../components/ResourceState.vue';
 import EditorSide from '../components/EditorSide.vue';
 import PreviousSession from '../components/PreviousSession.vue';
 import VisibilityOptions from '../components/VisibilityOptions.vue';
+import CardImportDialog from '../components/CardImportDialog.vue';
 
 const {deckId,cardId,pageNumber,action} = defineProps({deckId:String,cardId:String,pageNumber:String,action:String});
 const router = useRouter(), path = '/decks/' + deckId;
@@ -22,7 +23,7 @@ const deck = ref(), cards = ref([]), editing = shallowRef(null);
 const draft = reactive({front:'',back:''}), images = reactive({front:null,back:null});
 const visibility = ref('private'), query = ref(''), order = ref('desc');
 const page = ref(Number(pageNumber) || 1), editPage = ref(1);
-const form = ref(), savedList = ref(), pages = ref(), menu = ref(), saveButton = ref();
+const form = ref(), savedList = ref(), pages = ref(), menu = ref(), saveButton = ref(), importer = ref();
 const pending = ref(false), savingVisibility = ref(false), deckBusy = ref(false), deleting = ref(false), increments = ref([]);
 const {error,active} = useResource(async signal => {
   const [record, fetched] = await Promise.all([path,path+'/cards'].map(url => api(url,{signal})));
@@ -53,6 +54,15 @@ const full = computed(() => cards.value.length >= 150 && !editing.value);
 const numberOf = card => cards.value.findIndex(item => item.id === card.id) + 1;
 const share = computed(() => deck.value?.share_token ? new URL('/shared/' + deck.value.share_token,location.origin).href : '');
 watch(pageCount,value => { page.value = Math.min(page.value,value); }, {immediate:false});
+function imported(created) {
+  // Append in file order; the list shows newest first, so jump to the first page to show them.
+  cards.value = [...cards.value, ...created];
+  query.value = '';
+  page.value = 1;
+}
+async function reloadCards() {
+  try { cards.value = await api(path + '/cards'); } catch (failure) { showNotice(failure.message); }
+}
 function focusQuestion() { form.value?.elements.front?.focus(); }
 function shortcut(event) {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && !event.isComposing) {
@@ -185,7 +195,7 @@ async function deleteCard(card) {
       <CopyButton id="copy-share-link" :disabled="deck.visibility === 'private' || !share" :value="share">Copy share link</CopyButton><span id="visibility-message" role="status"></span>
     </section>
     <form id="card-form" ref="form" class="card-composer panel" novalidate @keydown="shortcut" @submit.prevent="submit"><fieldset class="editor-fields" :disabled="pending || deckBusy">
-      <legend class="sr-only">{{ editing ? 'Edit flashcard' : 'Create a flashcard' }}</legend><div class="composer-heading"><h2 id="editor-card-number">Card no. {{ editing ? numberOf(editing) : Math.min(cards.length + 1,150) }}</h2><span class="badge">Question + answer</span></div>
+      <legend class="sr-only">{{ editing ? 'Edit flashcard' : 'Create a flashcard' }}</legend><div class="composer-heading"><h2 id="editor-card-number">Card no. {{ editing ? numberOf(editing) : Math.min(cards.length + 1,150) }}</h2><button type="button" id="open-card-import" class="secondary small flat-button card-import-trigger" aria-haspopup="dialog" :disabled="full || Boolean(editing)" :title="full ? 'This deck has 150 cards.' : undefined" @click="importer.open()">Import JSON</button></div>
       <div class="editor-sides"><EditorSide v-model="draft.front" side="front" label="Question" placeholder="What do you want to remember?" :photo="images.front" :disabled="full" @photo="choosePhoto('front',$event)" @remove="removePhoto('front')"/>
         <EditorSide v-model="draft.back" side="back" label="Answer" placeholder="Write the answer here…" :photo="images.back" :disabled="full" @photo="choosePhoto('back',$event)" @remove="removePhoto('back')"/></div>
       <p class="hint">250 characters per side · One photo per card</p><p class="hint"><kbd>Ctrl / ⌘ + Enter</kbd> {{ editing ? 'Save changes' : 'Save and continue' }}</p>
@@ -212,4 +222,5 @@ async function deleteCard(card) {
     </nav>
     <PreviousSession :deck-id="deckId"/>
   </div>
+  <CardImportDialog v-if="deck" ref="importer" :deck-id="deckId" :count="cards.length" @imported="imported" @refresh="reloadCards"/>
 </template>

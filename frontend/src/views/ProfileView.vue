@@ -1,13 +1,12 @@
 <script setup>
-import {computed, ref, watch} from 'vue';
+import {computed, onScopeDispose, ref, watch} from 'vue';
 import {api} from '../../js/api.js';
 import {icon} from '../../js/icons.js';
 import {useEvent, useResource} from '../composables/lifecycle.js';
 import {account, updateAccountProfile} from '../services/session.js';
-import {showNotice} from '../services/notice.js';
+import {noticeDuration, showNotice} from '../services/notice.js';
 import {avatarUrl, deckPagePath, profileApi, profilePath} from '../services/profiles.js';
 import {buttonFeedback as vButtonFeedback} from '../components/ButtonFeedback.js';
-import CopyButton from '../components/CopyButton.vue';
 import DeckTile from '../components/DeckTile.vue';
 import ProfileEditor from '../components/ProfileEditor.vue';
 import ProfileAbout from '../components/ProfileAbout.vue';
@@ -19,7 +18,10 @@ import LoadingSkeleton from '../components/LoadingSkeleton.vue';
 const props = defineProps({username:String});
 const path = props.username ? profileApi(props.username) : '/profiles/me';
 const {data:profile, error, active, signal} = useResource(signal => api(path,{signal}));
-const editing = ref(''), reporting = ref(false), shareDialog = ref();
+const editing = ref(''), reporting = ref(false), shareDialog = ref(), achievementsDialog = ref();
+const copied = ref(false);
+let copiedTimer, copying = false;
+onScopeDispose(() => clearTimeout(copiedTimer));
 const friendshipPending = ref(false), friendshipMenu = ref();
 useEvent(document,'click', event => {
   const menu = friendshipMenu.value;
@@ -66,6 +68,24 @@ async function changeFriendship() {
 const input = ref(''), q = ref(''), sort = ref('newest'), page = ref(1), reload = ref(0);
 const decks = ref(null), deckError = ref(''), loading = ref(false);
 const shareLink = computed(() => new URL(profilePath(profile.value.username),location.origin).href);
+const canViewAchievements = computed(() => profile.value?.is_owner || profile.value?.achievements?.length > 0);
+async function shareProfile() {
+  if (copying) return;
+  copying = true;
+  clearTimeout(copiedTimer);
+  copied.value = false;
+  try {
+    await navigator.clipboard.writeText(shareLink.value);
+  } catch {
+    if (active()) shareDialog.value?.showModal();
+    return;
+  } finally {
+    copying = false;
+  }
+  if (!active()) return;
+  copied.value = true;
+  copiedTimer = setTimeout(() => { copied.value = false; }, noticeDuration);
+}
 const joined = computed(() => new Date(profile.value.joined_at).toLocaleDateString(undefined,{month:'long',year:'numeric',timeZone:'UTC'}));
 watch([() => profile.value?.username,q,sort,page,reload], async ([username],_,onCleanup) => {
   if (!username) return;
@@ -109,23 +129,33 @@ function saved(data) {
         <div class="profile-identity"><h1>{{ profile.display_name }}</h1><p class="profile-username">@{{ profile.username }}</p><p class="muted profile-joined">Joined {{ joined }}</p></div>
         <div class="profile-actions">
           <button v-if="profile.is_owner" type="button" @click="editing = 'settings'">Settings</button>
-          <button type="button" class="secondary flat-button" @click="shareDialog.showModal()">Share Profile</button>
+          <div class="profile-share-actions">
+            <div class="profile-share-button">
+              <button type="button" class="secondary flat-button" @click="shareProfile"
+                :title="profile.visibility === 'private' ? 'Only you can open your private profile.' : null">Share Profile</button>
+              <span class="profile-copy-status" role="status">{{ copied ? 'Copied to Clipboard' : '' }}</span>
+            </div>
+            <button v-if="profile.is_owner" type="button" class="secondary flat-button profile-edit-icon"
+              aria-label="Profile visibility" title="Profile visibility" @click="editing = 'visibility'" v-html="icon('visibility')"></button>
+          </div>
           <button v-if="account && !profile.is_owner" type="button" class="secondary flat-button" @click="reporting = true">Report Profile</button>
-          <a v-if="profile.is_owner" href="/people" class="button secondary flat-button">Find profiles</a>
-          <a v-else-if="!account" href="/login" class="button">Add Friend</a>
-          <details v-else-if="profile.friendship === 'friends'" ref="friendshipMenu" class="deck-actions profile-friendship" @keydown.esc.stop="closeFriendshipMenu">
-            <summary class="button secondary flat-button">Friends ✔</summary>
-            <div class="deck-actions-list"><button type="button" class="danger small flat-button" :disabled="friendshipPending" @click="changeFriendship">Unfriend</button></div>
-          </details>
-          <button v-else-if="profile.friendship === 'outgoing'" type="button" class="secondary flat-button profile-request-sent" disabled>Request Sent</button>
-          <button v-else-if="profile.friendship === 'none' || profile.friendship === 'incoming'" type="button" :disabled="friendshipPending" @click="changeFriendship">{{ profile.friendship === 'incoming' ? 'Accept Request' : 'Add Friend' }}</button>
-          <span v-else class="muted" role="status">Friendship status unavailable</span>
+          <button v-if="canViewAchievements" type="button" class="secondary flat-button" aria-haspopup="dialog"
+            @click="achievementsDialog.showModal()">View Achievements</button>
+          <template v-if="!profile.is_owner">
+            <a v-if="!account" href="/login" class="button">Add Friend</a>
+            <details v-else-if="profile.friendship === 'friends'" ref="friendshipMenu" class="deck-actions profile-friendship" @keydown.esc.stop="closeFriendshipMenu">
+              <summary class="button secondary flat-button">Friends ✔</summary>
+              <div class="deck-actions-list"><button type="button" class="danger small flat-button" :disabled="friendshipPending" @click="changeFriendship">Unfriend</button></div>
+            </details>
+            <button v-else-if="profile.friendship === 'outgoing'" type="button" class="secondary flat-button profile-request-sent" disabled>Request Sent</button>
+            <button v-else-if="profile.friendship === 'none' || profile.friendship === 'incoming'" type="button" :disabled="friendshipPending" @click="changeFriendship">{{ profile.friendship === 'incoming' ? 'Accept Request' : 'Add Friend' }}</button>
+            <span v-else class="muted" role="status">Friendship status unavailable</span>
+          </template>
         </div>
       </section>
       <div class="profile-layout">
         <aside class="profile-sidebar">
           <ProfileAbout :profile="profile" @saved="saved"/>
-          <ProfileAchievements :achievements="profile.achievements" :owner="profile.is_owner"/>
         </aside>
         <div class="profile-main">
           <section v-if="profile.featured_deck" class="profile-featured">
@@ -152,11 +182,15 @@ function saved(data) {
       <ProfileEditor v-else-if="editing" :profile="profile" :mode="editing" @saved="saved" @close="editing = ''"/>
       <ReportProfileDialog v-if="reporting" :username="profile.username" @close="reporting = false"/>
       <Teleport to="body">
+        <dialog v-if="canViewAchievements" ref="achievementsDialog" v-button-feedback
+          class="profile-dialog achievements-dialog" aria-labelledby="profile-achievements-heading">
+          <ProfileAchievements :achievements="profile.achievements" :owner="profile.is_owner" @close="achievementsDialog.close()"/>
+        </dialog>
         <dialog ref="shareDialog" v-button-feedback class="profile-dialog" aria-labelledby="share-profile-title">
           <div class="dialog-heading"><h2 id="share-profile-title">Share Profile</h2><button type="button" class="secondary small flat-button" aria-label="Close share profile" @click="shareDialog.close()">×</button></div>
           <p v-if="profile.visibility === 'private'" class="hint">Your profile is private. Other people won’t be able to open this link.</p>
           <label for="profile-share-link">Profile link</label><input id="profile-share-link" :value="shareLink" readonly>
-          <div class="actions"><CopyButton :value="shareLink">Copy Link</CopyButton><button v-if="profile.is_owner" type="button" class="secondary flat-button" @click="shareDialog.close(); editing = 'visibility'">Profile visibility</button></div>
+          <p class="hint">Automatic copying is unavailable. Select and copy the link manually.</p>
         </dialog>
       </Teleport>
     </template>

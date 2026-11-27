@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import require_user
 from app.database import get_db, get_write_db
 from app.models import Deck, Flashcard, StudySession, StudySessionCard, User, utcnow
-from app.schemas import CardInput, CardPatch, DeckInput, DeckPatch
+from app.auth.service import reserve_account_action
+from app.schemas import CardImport, CardInput, CardPatch, DeckInput, DeckPatch
 from app.services import achievements
 from app.services.content_policy import no_urls
 from app.services.ownership import owned_flashcards
@@ -124,6 +125,32 @@ def add_card(deck_id: int, data: CardInput, user: User = Depends(require_user), 
     deck.updated_at = utcnow()
     db.flush()
     return card_view(card)
+
+
+@router.post("/decks/{deck_id}/cards/import", status_code=201)
+def import_cards(deck_id: int, data: CardImport, user: User = Depends(require_user),
+                 db: Session = Depends(get_write_db, scope="function")):
+    """Append validated text cards in order, all or nothing, in one write transaction.
+
+    Pydantic has already validated every card before this runs. Nothing here calls Ollama;
+    Multiple-Choice prepares distractors when the cards are first studied.
+    """
+    deck = require(db, Deck, deck_id, user)
+    # The marker commits only with the cards, so a failed import can be retried with the same ID.
+    if reserve_account_action(db, f"card-import:{user.id}:{data.import_id}", 1):
+        raise HTTPException(409, "This import was already saved.")
+    count = db.scalar(select(func.count()).select_from(Flashcard).join(Deck, Flashcard.deck_id == Deck.id).where(
+        Flashcard.deck_id == deck_id, Deck.owner_id == user.id))
+    room = MAX_CARDS - count
+    if len(data.cards) > room:
+        raise HTTPException(409, f"This deck has room for {room} more flashcard{'s' if room != 1 else ''}, "
+                                 f"but the import has {len(data.cards)}. Remove some cards and try again.")
+    created = [Flashcard(deck_id=deck_id, front=card.front, back=card.back) for card in data.cards]
+    for card in created:
+        db.add(card)
+        db.flush()  # One insert at a time keeps IDs, and therefore card order, matching the file.
+    deck.updated_at = utcnow()
+    return {"imported": len(created), "cards": [card_view(card) for card in created]}
 
 
 @router.get("/cards/recent")

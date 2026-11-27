@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.services.card_images import MAX_IMAGE_DATA_URL_LENGTH, validate_card_image
@@ -43,6 +44,22 @@ class CardInput(InputModel):
     @classmethod
     def valid_images(cls, value):
         return validate_card_image(value)
+
+
+IMPORT_TEXT_LIMIT = 250  # Matches the deck editor, so imported cards stay editable there.
+
+
+class ImportCard(InputModel):
+    """One imported text card. Only ``front`` and ``back`` are accepted."""
+    front: str = Field(min_length=1, max_length=IMPORT_TEXT_LIMIT, strict=True)
+    back: str = Field(min_length=1, max_length=IMPORT_TEXT_LIMIT, strict=True)
+    _no_links = field_validator('front', 'back')(no_urls)
+
+
+class CardImport(InputModel):
+    # Client-generated per import attempt; a repeated ID is refused so retries cannot duplicate cards.
+    import_id: UUID
+    cards: list[ImportCard] = Field(min_length=1, max_length=150)
 
 
 class CardPatch(InputModel):

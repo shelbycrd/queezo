@@ -118,3 +118,24 @@ input:focus,textarea:focus,select:focus{border-color:#6a96cd}
 /* Sharing controls stay grouped and secondary to card authoring. */
 .visibility-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 17px;margin-bottom:20px}.visibility-controls label{margin:0;font-size:.78rem}.visibility-controls select{width:auto;max-width:100%;font-size:.78rem;padding:9px}.visibility-controls button{font-size:.73rem}.visibility-controls [role=status]{font-size:.73rem;color:#456c58}.shared-answer{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.shared-answer summary{cursor:pointer;color:#43648b;font-size:.8rem;font-weight:650}.community-empty{padding:25px}
 @media(max-width:760px){.visibility-controls{gap:8px}.visibility-controls select{width:100%}.home-welcome{min-height:0}.home-welcome>div{max-width:none}}
+/* JSON import dialog: same shell as the study-options dialog. */
+.card-import-dialog{width:min(640px,calc(100% - 32px));border:0;border-radius:26px;padding:25px;color:var(--ink);box-shadow:0 24px 80px #20395930;max-height:90dvh;overflow:auto}
+.card-import-dialog::backdrop{background:#24364b55}
+.card-import-tabs{display:flex;gap:6px;background:#e9f0f9;border-radius:12px;padding:5px;margin-bottom:16px}
+.card-import-tabs [role=tab]{flex:1;background:transparent;border:0;box-shadow:none;transform:none;color:#7d8fa7;font-size:.82rem;padding:8px 12px;border-radius:9px}
+.card-import-tabs [role=tab][aria-selected=true]{background:#fff;color:#4f7fca;box-shadow:0 2px 6px #5c789c14}
+.card-import-drop{border:2px dashed #cfdcee;border-radius:18px;padding:14px;background:#f8fbff;transition:border-color .15s,background .15s}
+.card-import-drop.dragging{border-color:#7fa9d9;background:#eef5ff}
+.card-import-drop label{margin:0 0 8px;font-size:.82rem}
+.card-import-drop textarea{min-height:190px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.8rem;background:#fff;resize:vertical}
+.card-import-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:.78rem}
+.card-import-file .muted{overflow-wrap:anywhere}
+.card-import-errors{margin-top:12px}
+.card-import-errors ul{margin:0;padding-left:18px}
+.card-import-errors p{margin:6px 0 0}
+.card-import-preview{margin:12px 0 0;padding:10px 14px;border-radius:12px;background:#edf6ee;color:#3f7a52;font-size:.85rem}
+.card-import-actions{justify-content:flex-end;margin-top:18px}
+.card-import-sample{background:#f4f8fd;border:1px solid #dfe8f4;border-radius:14px;padding:14px;font-size:.78rem;overflow:auto;white-space:pre}
+.card-import-rules{padding-left:18px;margin:14px 0 0}
+@media(max-width:560px){.card-import-dialog{padding:18px}.card-import-actions{display:grid;grid-template-columns:1fr 1fr}.card-import-drop textarea{min-height:150px}}
+@media(prefers-reduced-motion:reduce){.card-import-drop{transition:none}}
