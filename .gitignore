@@ -32,6 +32,10 @@ backups/
 *.bak
 
 # Dependencies, runtime logs, and machine-generated files.
+/graphify-out/
+*.graphify-bak
+/docs/quality/results/*-rerun.*
+/docs/quality/results/*-rerun-*
 node_modules/
 /frontend/dist/
 *.log

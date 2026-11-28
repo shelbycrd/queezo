@@ -15,22 +15,9 @@ Queezo is a study workspace for students. Build your own decks, discover decks s
 | **Flashcards** | Create and organize two-sided cards with photos and lists. Use Classic Mode for timed or unlimited recall practice, or Multiple-Choice Mode for four-option questions with local Ollama generation, same-deck fallback, and server grading. |
 | **GWA Calculator** | Calculate `sum(grade × units) / sum(units)` for 1–15 courses on a 1.00–5.00 scale. Subject names are optional. Enter `175` as shorthand for `1.75`. Results include a classification and a grade-scale bar. Calculations are stateless. |
 | **Pomodoro Timer** | Customize study and break lengths, set study targets for tasks, and see alerts when intervals or tasks finish. The default is four 25-minute study sessions with three 5-minute breaks and a 15-minute long break. Each new phase waits for you to start it. |
-| **Class Schedule** | Keep your weekly classes on Home and manage them at `/class-schedule`. Each subject has a name, optional code, instructor and room, a pastel color, and one or more weekly meetings with their own day, time and optional room. Home picks today from your browser's clock, lists classes in time order, marks the class in progress as **Now** and the next as **Up Next**, and updates every minute. Times show in 12H or 24H and your choice is remembered. Overlapping classes show a warning but can still be saved. The timetable menu lets you clear the active schedule and view or restore the 10 most recent saved schedules. |
-| **Top bar and search** | A persistent top bar holds the Queezo brand, a global search box, a What's New menu (the four newest releases from `frontend/src/data/changelog.json`), friends, notifications and your account. Focusing the empty search box lists decks and profiles you visited recently; Enter opens `/search?q=…` with All, Public Decks, My Decks and Users tabs. Search only returns public decks, your own decks and public profiles. |
+| **Class Schedule** | Plan weekly classes, check the next class on Home, and save or restore timetables. |
 
-Decks default to **Private**. **Public** decks appear in Explore Public Decks on Home, which shows up to 20 recent decks and searches public deck titles when you press Enter, and on the owner's profile. **Unlisted** decks are accessible by share link. Sharing requires sign-in, and readers can save an independent private copy. The deck editor requires a question and answer and rejects URLs in titles and card text. **Import JSON** in the editor adds text cards in bulk from pasted JSON or a `.json` file, shaped as `{"cards": [{"front": "…", "back": "…"}]}`, up to 250 characters per side, 512 KB per import, and the deck's 150-card limit. An import is saved completely or not at all.
-
-Rated flashcards and completed study intervals count toward streaks using Asia/Manila calendar days. Profile shows your total decks and longest streak. Pomodoro settings and tasks stay in the current browser under your account. In-app alerts work while Queezo is open, and desktop alerts require browser permission.
-
-Profiles show **Achievements**. You see every achievement with its progress and unlock date; visitors see only the names of achievements you have earned. Achievements are permanent once earned:
-
-| Achievement | How to earn it |
-| --- | --- |
-| **Deck Master** | Create 10 original decks. Copies of community decks do not count, and deleting a deck does not reduce progress. |
-| **Studious** | Complete 10 Classic or Multiple-Choice sessions in one Asia/Manila calendar day. Repeating a deck counts; exited or cancelled sessions do not. Unfinished progress restarts each day. |
-| **Hoster** | Start and host 6 different Study Rooms through a session that plays to the end. Replays in the same room and taking over as host do not count. |
-
-Open **Friends** from the top bar to search your list, send requests by username, and view a friend’s public profile. Friends appear online when Queezo has recently been open in an active tab. Study invitations, email verification, and password recovery are unavailable.
+Discover public decks, import text flashcards from JSON, invite friends to multiplayer Study Rooms, and track achievements and study streaks.
 
 ## Getting started
 
@@ -55,7 +42,7 @@ For custom settings, copy [`.env.example`](.env.example) to `.env`. Set `AUTH_TR
 
 You can also create an account from an interactive terminal:
 ```powershell
-docker compose exec backend python -m app.cli create-user <name>
+docker compose exec backend python -m app.cli create-user
 ```
 
 The CLI also supports listing and inspecting users, revoking sessions, deleting accounts, and assigning legacy decks. See the [CLI and legacy ownership instructions](AUTH_SETUP.md).
@@ -94,13 +81,4 @@ Start a focus session and track your progress through the study and break cycle.
 
 ## Documentation
 
-- [Software architecture](docs/architecture/README.md).
-- [Administrator console setup and commands](docs/ADMIN_CONSOLE.md).
-- Local API references for [Flashcards and accounts](http://localhost:8080/docs) and [GWA](http://localhost:8080/gwa/docs). Health endpoints are `/api/health` and `/api/gwa/health`.
-- [Account setup and troubleshooting](AUTH_SETUP.md) and [authentication implementation](AUTH_IMPLEMENTATION.md).
-- [Local Ollama generation and SQLite caching for Multiple-Choice Mode](docs/OLLAMA.md).
-- [Multiplayer Study Rooms](docs/STUDY_ROOMS.md).
-- [Multiple-choice study API and preparation lifecycle](docs/MULTIPLE_CHOICE.md).
-- [Vue development and migration verification](docs/VUE_MIGRATION.md).
-- [Verification history](VERIFICATION.md) and [visual asset attribution](frontend/public/assets/README.md).
-
+Start with the [documentation index](docs/README.md) for development, architecture, operations, and QA.

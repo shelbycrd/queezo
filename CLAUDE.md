@@ -7,37 +7,11 @@ Queezo is a student workspace for two-sided flashcards, Classic and Multiple-Cho
 - [frontend/src/](frontend/src/) contains Vue 3 views, Vue Router, components, and services. [frontend/js/](frontend/js/) contains shared browser utilities. Vite builds the frontend.
 - [backend/app/](backend/app/) contains Python 3.12, FastAPI routers, Pydantic schemas, SQLAlchemy models, and services. [backend/app/gwa/](backend/app/gwa/) is a separate FastAPI service with stateless Decimal calculations. Pomodoro state lives in account-scoped browser storage.
 - [compose.yaml](compose.yaml) and [nginx/](nginx/) define the Docker services, reverse proxy, and shared SQLite volume. Ollama is a separately configured inference service.
-- Start with [AGENTS.md](AGENTS.md), the [README](README.md), and the [architecture index](docs/architecture/README.md). Use [project context](docs/PROJECT_CONTEXT.md) for background. It and the architecture snapshot can lag the current checkout. Verify details in code, especially [schema versions](backend/app/database.py) and [Admin Console behavior](docs/ADMIN_CONSOLE.md).
+- Start with [AGENTS.md](AGENTS.md), the [README](README.md), and the [architecture index](docs/architecture/README.md). Use the [documentation index](docs/README.md) to find topic guides. Historical reports describe their original checkout. Verify details in code, especially [schema versions](backend/app/database.py) and [Admin Console behavior](docs/ADMIN_CONSOLE.md).
 
 ## Development environment
 
-Run from the repository root with Docker Desktop in Linux container mode or Docker Engine with Compose.
-
-```sh
-# Production-style built frontend at http://localhost:8080
-docker compose up -d --build --wait
-
-# Alternative development workflow with Vite HMR at http://localhost:5173
-docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
-```
-
-Use one workflow at a time. Vite proxies HTTP and WebSocket traffic through Nginx. Frontend source edits hot-reload in development. Rebuild the affected API image after backend edits when testing through Compose. Use [the environment template](.env.example) for overrides. Match `AUTH_TRUSTED_ORIGINS` to the exact browser scheme, host, and port. Keep HTTPS origins and secure cookies in production. Set `OLLAMA_BASE_URL` and `OLLAMA_MODEL` for live inference. Local Compose binds to loopback and needs deployment-specific HTTPS configuration for public access.
-
-Frontend tests in PowerShell with Node 22.12 or newer
-
-```powershell
-Push-Location frontend
-npm ci
-npm test
-Pop-Location
-```
-
-Backend tests in PowerShell from the repo root. Build the image if it is missing or dependencies changed. The read-only source mount tests the current checkout, and SQLite stays inside the disposable container.
-
-```powershell
-docker compose build backend
-docker run --rm --network none --mount "type=bind,source=${PWD}\backend,target=/app,readonly" -e DATABASE_URL=sqlite:////tmp/queezo-test.db queezo-backend:latest python -m pytest -q
-```
+Use the [development guide](docs/DEVELOPMENT.md) for Compose, local Vite, and isolated test commands.
 
 ## Architecture guidelines
 

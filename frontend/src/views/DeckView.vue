@@ -179,7 +179,7 @@ async function deleteCard(card) {
 }
 </script>
 <template>
-  <ResourceState v-if="!deck" :error="error" variant="list"/>
+  <ResourceState v-if="!deck" :error="error" variant="deck"/>
   <div v-else class="deck-workspace" @click="menu && !menu.contains($event.target) && (menu.open = false)">
     <div class="breadcrumbs"><a href="/flashcards">Flashcards</a><span>/</span><span>{{ deck.title }}</span></div>
     <div class="page-heading"><div><p class="eyebrow">Your study deck</p><h1>{{ deck.title }}</h1><p class="muted"><span data-card-count>{{ cards.length }}</span> / 150 cards</p></div>

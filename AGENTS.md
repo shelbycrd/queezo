@@ -26,7 +26,7 @@ The project also includes authentication functionality.
 - Treat source code as the authority for current implementation.
 - Read additional project documentation only when relevant.
 - Do not assume that external Obsidian notes are accessible.
-- For tasks requiring project background, read docs/PROJECT_CONTEXT.md.
+- For project background, start with docs/README.md and docs/architecture/01-system-overview.md.
 - Read only additional documentation relevant to the task. Do not assume the context document is newer than the source code.
 
 ## Verification
@@ -40,3 +40,14 @@ The project also includes authentication functionality.
 - Avoid scanning unrelated directories unnecessarily.
 - Retrieve additional documentation only when needed.
 - Prioritize correctness over minimizing token usage. (PRIORITY)
+
+## Modern Web Development Standards
+
+- Consult Modern Web Guidance when implementing or reviewing frontend features.
+- This project's Baseline target is Baseline Widely available.
+- Prioritize accessibility, performance, responsiveness, and browser compatibility.
+- Prefer native web APIs over unnecessary dependencies when appropriate.
+- Preserve the existing Vue architecture and design system.
+- Avoid experimental browser features.
+- Do not refactor unrelated components without explicit approval.
+- Verify changes through testing.

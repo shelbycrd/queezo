@@ -1,5 +1,7 @@
 # Backend verification — November 12, 2026
 
+Historical record. Paths in this log are relative to the repository root. Local screenshots and private snapshots are optional historical evidence.
+
 ## Executed successfully
 
 - `docker compose config --quiet` validated the three-service configuration.
@@ -90,7 +92,7 @@ Before migration, SQLite's backup API saved `/data/queezo-before-auth-20261113.d
 
 The isolated verification stack, disposable accounts, and temporary database volume were removed after checking the volume's Compose project label. The real `queezo` volume and its backup were retained. The running frontend displays the login page; create the first real account using the CLI documented in `AUTH_SETUP.md`.
 
-See `AUTH_IMPLEMENTATION.md` for the changed-file inventory, implementation details, and remaining operational setup. Login preview: `outputs/queezo-login-preview.jpg`.
+See [the authentication report](AUTHENTICATION.md) for the changed-file inventory, implementation details, and remaining operational setup. Login preview: `outputs/queezo-login-preview.jpg`.
 
 ## Frontend redesign verification — November 14, 2026
 

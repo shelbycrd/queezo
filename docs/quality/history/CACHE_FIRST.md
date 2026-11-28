@@ -1,5 +1,7 @@
 # Phase 4B.2 Cache-first scheduling
 
+Historical record. See [Multiple-Choice performance](../PERFORMANCE.md) for current benchmark entry points.
+
 The preparation worker checks pending questions for valid cached distractors in one SQLite transaction. It saves those question snapshots at their assigned shuffled positions before queuing misses. The cache pass verifies the question content, configured model, generation version, and recorded deck-answer dependencies. It copies photo blobs within SQLite when creating the snapshots.
 
 Misses retain the normal cache recheck and per-card generation lock. A different session can fill a miss between the cache pass and the recheck. The shared model slot is acquired only around Ollama inference. SQLite reads, fallback selection, and snapshot writes run outside that slot. The worker owns no database transaction during inference.
@@ -8,7 +10,7 @@ A cached snapshot keeps its existing question position, original correct answer,
 
 ## Reproduction and comparison
 
-The before results are from [Phase 4B.1](PERFORMANCE.md), including its isolated 150-card cold repeat. The same workload generator, hardware, local model, seed, artificial hybrid outages, and mocked response schedule were used for the after runs. The timing harness supports both workers. It records the commit time of the cache pass as the time every snapshot in that batch becomes ready. Batched cards therefore share one readiness time. First-, fifth-, and last-ready comparisons use committed snapshots in both versions.
+The before results are from [Phase 4B.1](BASELINE.md), including its isolated 150-card cold repeat. The same workload generator, hardware, local model, seed, artificial hybrid outages, and mocked response schedule were used for the after runs. The timing harness supports both workers. It records the commit time of the cache pass as the time every snapshot in that batch becomes ready. Batched cards therefore share one readiness time. First-, fifth-, and last-ready comparisons use committed snapshots in both versions.
 
 Run from the repository root in PowerShell 7.
 
@@ -17,7 +19,7 @@ Run from the repository root in PowerShell 7.
 & ./docs/quality/run-performance.ps1 -Mode live -OutName performance-cache-first-live
 ~~~
 
-The benchmark uses synthetic, photo-free decks of 10, 50, and 150 cards and disposable SQLite. Run the Windows host-sample merger from [the baseline methodology](PERFORMANCE.md#reproduce) using the corresponding run names. Raw results retain individual attempts, measured cache hits, and query counts. Exact live timings vary with model residency, runtime load, and sampling noise.
+The benchmark uses synthetic, photo-free decks of 10, 50, and 150 cards and disposable SQLite. Run the Windows host-sample merger from [the baseline methodology](BASELINE.md#reproduce) using the corresponding run names. Raw results retain individual attempts, measured cache hits, and query counts. Exact live timings vary with model residency, runtime load, and sampling noise.
 
 ## Live comparison
 
@@ -71,6 +73,6 @@ Ollama still dominates cold and partially cached sessions. Cold sessions still s
 
 ## Artifacts
 
-- [After live per-card traces](results/performance-cache-first-live.json), [live summary](results/performance-cache-first-live-summary.json), [Windows host samples](results/performance-cache-first-live-host.csv), [hardware](results/performance-cache-first-live-hardware.json) and [loaded Ollama model](results/performance-cache-first-live-ollama.json)
-- [After mocked per-card traces](results/performance-cache-first-mock.json), [mocked summary](results/performance-cache-first-mock-summary.json) and [mocked host samples](results/performance-cache-first-mock-host.csv)
-- [Before measurements and raw files](PERFORMANCE.md#captured-results)
+- [After live per-card traces](../results/performance-cache-first-live.json), [Windows host samples](../results/performance-cache-first-live-host.csv), [hardware](../results/performance-cache-first-live-hardware.json) and [loaded Ollama model](../results/performance-cache-first-live-ollama.json)
+- [After mocked per-card traces](../results/performance-cache-first-mock.json) and [mocked host samples](../results/performance-cache-first-mock-host.csv)
+- [Before measurements and raw files](BASELINE.md#captured-results)

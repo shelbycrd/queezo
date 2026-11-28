@@ -20,7 +20,7 @@ async function again() {
 }
 </script>
 <template>
-  <ResourceState v-if="!summary" :error="error"/>
+  <ResourceState v-if="!summary" :error="error" variant="summary"/>
   <template v-else>
     <a class="subpage-back" :href="'/deck/' + summary.deck_id" aria-label="Go back" v-html="backIcon"></a>
     <div class="study-shell"><div class="summary-heading"><div class="check" aria-hidden="true">✓</div><p class="eyebrow">{{ summary.deck_title }}</p><h1>{{ summary.status === 'completed' ? 'Study session complete' : 'Study session ended' }}</h1>

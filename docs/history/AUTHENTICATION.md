@@ -1,5 +1,7 @@
 # Authentication implementation report
 
+Historical record. Account setup and current security guidance are in [Account setup](../../AUTH_SETUP.md) and [Authentication and security](../architecture/04-authentication-and-security.md).
+
 Implemented November 13, 2026, directly in the existing Queezo project.
 
 ## November 15 account creation update
@@ -8,7 +10,7 @@ Public signup is now available at `/#signup` and `POST /api/auth/signup`. It col
 
 CLI provisioning now also collects display name and username. `list-users`, `show-user`, `revoke-sessions`, and exact-UID-confirmed `delete-user` are available. Deletion removes only the selected account and its owned records. The additive profile migration preserved existing credentials, IDs, and academic data; all preexisting table columns/rows matched the backup after upgrade (2 accounts, 7 decks, 32 cards, 21 study sessions, 148 reviews).
 
-The sections below document the original November 13 implementation; their CLI-only registration and 12-character minimum describe that earlier release. [AUTH_SETUP.md](AUTH_SETUP.md) is the current operator guide. Email verification, password recovery/reset, and a web admin interface remain unimplemented.
+The sections below document the original November 13 implementation; their CLI-only registration and 12-character minimum describe that earlier release. [AUTH_SETUP.md](../../AUTH_SETUP.md) is the current operator guide. Email verification, password recovery/reset, and a web admin interface remain unimplemented.
 
 ## Result
 
@@ -39,7 +41,7 @@ Verified live counts before and after: 2 decks, 8 cards, 2 study sessions, 43 re
 - Pomodoro account isolation: `frontend/src/services/pomodoro.js`.
 - Frontend tests: `frontend/tests/auth-client.test.mjs`, `pomodoro-account.test.mjs`.
 - Gateway and deployment: `nginx/nginx.conf`, `nginx/security-headers.conf`, `nginx/Dockerfile`, `compose.yaml`, `.env.example`.
-- Documentation: `README.md`, `AUTH_SETUP.md`, `AUTH_IMPLEMENTATION.md`, `VERIFICATION.md`.
+- Documentation: the project README, account setup guide, this report, and the verification log.
 - Local verification artifacts: `outputs/queezo-login-preview.jpg` and the private pre-authentication backup under `outputs/backups/`.
 
 ## Validation

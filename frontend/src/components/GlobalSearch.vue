@@ -102,7 +102,7 @@ const label = item => item.kind === 'user' ? item.display_name || item.username 
     </form>
     <div v-show="showRecents" id="search-recents" class="search-dropdown" @mousedown.prevent>
       <div class="search-dropdown-heading"><strong id="recent-heading">Recent</strong><button v-if="recents.length" type="button" class="link-button" @click="forget">Clear</button></div>
-      <LoadingSkeleton v-if="loading" variant="list" :count="3" label="Loading recent visits…"/>
+      <LoadingSkeleton v-if="loading" variant="results" :count="3" label="Loading recent visits…"/>
       <p v-else-if="failed" class="muted search-note" role="alert">Couldn’t load your recent visits.</p>
       <ul v-else-if="recents.length" role="listbox" aria-labelledby="recent-heading">
         <li v-for="(item, index) in recents" :id="'recent-' + index" :key="item.ref" role="option" :aria-selected="active === index">

@@ -16,7 +16,7 @@ The supplied Compose configuration is for local HTTP development at `http://loca
 
 ## Create your first account
 
-Open `http://localhost:8080/#signup` or choose **Create an account** on the login page. Enter:
+Open `http://localhost:8080/signup` or choose **Create an account** on the login page. Enter:
 
 - Display name: 1–80 characters; other users may use the same name.
 - Username: 3–32 letters, numbers, or underscores; unique without regard to capitalization.
@@ -55,9 +55,7 @@ Listings include UID, username, display name, email, and creation time, with no 
 
 `delete-user` prompts for the exact UID. It permanently deletes the account, its login sessions, decks, cards, study history, and server activity records. Other accounts and unassigned legacy decks are preserved. Browser-local Pomodoro files are not remotely erased. For deliberate noninteractive deletion, pass `--confirm UID` with the same UID; keep a database backup before deleting anything you might need later.
 
-Existing accounts keep their email, password, internal ID, and owned data. The additive profile migration assigns missing random UIDs, available `user_<id>` usernames, and display names based on the email prefix. Existing complete profiles are left intact. Profile and `list-users` show the assigned identities; editing these identities is not yet exposed in the website.
-
-Before the November 15 signup upgrade, a consistent backup was saved at `/data/queezo-before-signup-20261115.db`, also copied to `outputs/backups/queezo-before-signup-20261115.db`. The upgrade preserved all original columns and rows for 2 users, 7 decks, 32 cards, 21 study sessions, and 148 reviews. Backups contain private data and password hashes; keep them out of Git.
+Existing accounts keep their email, password, internal ID, and owned data. The additive profile migration assigns missing random UIDs, available `user_<id>` usernames, and display names based on the email prefix. Existing complete profiles are left intact. Profile and `list-users` show the assigned identities.
 
 ## Existing decks are preserved
 
@@ -77,27 +75,13 @@ docker compose exec backend python -m app.cli assign-legacy --email you@example.
 
 Repeat `--deck-id` to select additional decks in the same command. Associated study sessions, cards, snapshots, and reviews are preserved. The command rejects nonexistent accounts/decks, already-owned decks, or conflicting session owners; it does not reassign another account's data.
 
-A pre-upgrade backup was created at `/data/queezo-before-auth-20261113.db` in the backend volume. The pre-upgrade inventory contained 2 decks, 8 cards, 2 study sessions, and 43 reviews. To keep an additional host copy:
-
-```powershell
-docker compose cp backend:/data/queezo-before-auth-20261113.db .\queezo-before-auth-20261113.db
-```
-
-A host copy was also saved at `outputs/backups/queezo-before-auth-20261113.db`. Treat backups as private academic data.
+For migration evidence, see the [historical authentication report](docs/history/AUTHENTICATION.md). Use the [database recovery runbook](docs/production/DATABASE_RELIABILITY.md) for current backup procedures.
 
 `docker compose down` preserves data. **`docker compose down -v` deletes the database volume and its backup.**
 
-## How login works
+## Authentication behavior
 
-- Passwords use **Argon2id** with random salts, 64 MiB memory, 3 iterations, and 4 parallel lanes. The database stores hashes, never plaintext or reversible encryption.
-- Login issues a cryptographically random opaque session token. Only its SHA-256 hash is stored server-side. No authentication token is stored in browser localStorage.
-- Sessions expire **7 days after login**, including across page refreshes and backend restarts. Activity does not extend that deadline. Expiration redirects you to login; logout immediately revokes the session on the server.
-- Session cookies are HttpOnly, SameSite=Lax, host-only, and Secure in HTTPS mode. Production uses the `__Host-` cookie prefix.
-- `/api/auth/me` restores the user and a session-bound CSRF token. The frontend keeps CSRF information in memory and sends it on state-changing requests. The server also checks request origins.
-- Login errors do not reveal whether an account exists. Persistent rate limits return HTTP 429 and a retry delay after excessive attempts.
-- Decks, study history, and GWA require authentication. Ownership is enforced in SQL queries. Public profiles and health probes have explicit guest access; production hides interactive API docs and OpenAPI.
-
-Pomodoro tasks remain browser-local, namespaced by account ID. Logout stops that account's timer display and clears its visible notifications. The old anonymous Pomodoro storage is not assigned to a new account. Browser-local task data is not encrypted or synced to the server; use separate browser/OS profiles when sharing a device with people who can inspect its storage.
+See [Authentication and security](docs/architecture/04-authentication-and-security.md) for cookies, CSRF, rate limits, expiration, and ownership boundaries.
 
 ## Environment configuration
 

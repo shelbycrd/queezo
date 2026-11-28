@@ -16,6 +16,66 @@
 .skeleton .sk-card{min-height:280px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;margin:28px 0 20px}
 .skeleton .sk-lines{display:grid;gap:10px;margin:8px 0}
 .skeleton .sk-lines .sk-line{height:12px}
+/* Page-specific placeholders: containers reuse the real layout classes; only the leaves below are drawn. */
+.skeleton .sk-root{display:block}
+.skeleton .sk-h1{height:2.4rem;border-radius:12px;margin-bottom:12px}
+.skeleton .sk-h2{height:1.5rem;border-radius:9px}
+.skeleton .sk-line.sk-xs{width:150px;height:14px}
+.skeleton .sk-line.sk-small{height:11px}
+.skeleton .sk-line.sk-strong{height:15px}
+.skeleton .sk-line.sk-text{height:16px;margin:8px 0}
+.skeleton .sk-line.sk-summary{height:12px;width:40%;margin-top:6px}
+.skeleton .sk-line.sk-value{height:28px;width:50%;margin:8px auto 0}
+.skeleton .sk-line.sk-streak{height:44px;width:120px;margin-bottom:8px}
+.skeleton .sk-line.sk-time{height:14px;width:54px;flex:none}
+.skeleton .sk-eyebrow{height:12px;width:90px;border-radius:7px;margin-bottom:10px}
+.skeleton .sk-label{height:11px;width:70px;border-radius:7px;margin-bottom:8px}
+.skeleton .sk-badge{height:22px;width:74px;border-radius:999px}
+.skeleton .sk-input{height:46px;border-radius:14px;width:100%}
+.skeleton .sk-input.sk-search{margin-bottom:16px}
+.skeleton .sk-input.sk-explore{flex:1;max-width:320px;height:40px}
+.skeleton .sk-select{height:40px;width:170px;border-radius:12px}
+.skeleton .sk-select.sk-select-wide{width:200px}
+.skeleton .sk-textarea{height:110px;border-radius:14px;width:100%}
+.skeleton .sk-btn{height:42px;width:96px;border-radius:999px;flex:none}
+.skeleton .sk-btn.sk-btn-small{height:33px;width:64px}
+.skeleton .sk-btn.sk-btn-wide{width:128px}
+.skeleton .sk-btn.sk-btn-small.sk-btn-wide{width:96px}
+.skeleton .sk-btn.sk-btn-icon{width:42px}
+.skeleton .sk-btn.sk-btn-small.sk-btn-icon{width:33px}
+.skeleton .sk-avatar{width:32px;height:32px;border-radius:50%;flex:none}
+.skeleton .sk-avatar.sk-avatar-lg{width:56px;height:56px}
+.skeleton .sk-avatar.sk-avatar-result{width:44px;height:44px}
+.skeleton .sk-avatar.sk-avatar-profile{width:138px;height:138px}
+.skeleton .sk-rows{display:grid;gap:4px}
+.skeleton .sk-rows-large .sk-avatar{width:48px;height:48px}
+.skeleton .sk-row-plain{display:flex;align-items:center;gap:10px;padding:5px 6px}
+.skeleton .sk-rows-large .sk-row-plain{gap:12px;padding:8px 6px}
+.skeleton .sk-stack{display:grid;gap:6px;flex:1;min-width:0}
+.skeleton .sk-schedule-rows{gap:8px;margin-top:12px}
+.skeleton .sk-schedule-row{display:grid;grid-template-columns:74px 1fr;gap:12px;align-items:center;padding:10px 14px;border-radius:16px;border:1.5px solid #d9e5f5;border-left:4px solid #cfe0f7;background:#fff}
+.skeleton .sk-day{height:44px;border-radius:14px;flex:1}
+.skeleton .sk-weekday{width:32px;height:32px;border-radius:50%}
+.skeleton .sk-center{margin-left:auto;margin-right:auto}
+.skeleton .sk-center-block{margin:0 auto}
+.skeleton .sk-check{width:64px;height:64px;border-radius:50%;margin:0 auto 14px}
+.skeleton .sk-progress{height:10px;border-radius:999px;margin:6px 0 16px}
+.skeleton .sk-rating{height:58px;border-radius:18px}
+.skeleton .sk-tt-card{height:54px;border-radius:14px;margin-bottom:8px}
+.skeleton .sk-tt-add{width:100%;margin-top:6px}
+.skeleton .sk-deck-title{height:20px;width:75%;margin-bottom:8px}
+.skeleton .sk-deck-count{height:12px;width:40%;margin-bottom:14px}
+.skeleton .sk-cover.deck-cover{background:#f1f6fd;border-color:transparent;box-shadow:none;animation:none}
+.skeleton .deck-card .deck-card-body .actions{display:flex;gap:8px}
+.skeleton .sk-editor-side{display:grid;align-content:start}
+.skeleton .sk-track{overflow:hidden}
+.skeleton .sk-track .deck-tile{flex:none}
+.skeleton .sk-sheet{display:grid;gap:18px;align-content:center;justify-items:center;text-align:center}
+.skeleton .sk-sheet .study-question{display:grid;justify-items:center;width:100%}
+.skeleton .sk-sheet .study-question .sk-line{width:var(--w,70%)}
+.skeleton .sk-results{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.skeleton .sk-stagger{animation-delay:.2s}
+.skeleton .deck-tile:nth-child(2) .sk{animation-delay:.15s}.skeleton .deck-tile:nth-child(3) .sk{animation-delay:.3s}.skeleton .deck-tile:nth-child(4) .sk{animation-delay:.45s}
 @keyframes sk-outline{0%,100%{border-color:#dfe9f7}50%{border-color:#a9c4e8}}
 @media(max-width:760px){.skeleton .sk-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.skeleton .sk-tile{min-height:250px;border-radius:17px}.skeleton .sk-panel{padding:20px}}
 @media(prefers-reduced-motion:reduce){.skeleton .sk{animation:none;border-color:#c9daf0}}

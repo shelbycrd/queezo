@@ -1,5 +1,7 @@
 # Phase 4B.1 Multiple-Choice performance
 
+Historical record. See [Multiple-Choice performance](../PERFORMANCE.md) for current benchmark entry points.
+
 This benchmark exercises Queezo's production preparation worker, owner-scoped SQLite cache, Ollama generator and hybrid fallback in an isolated process. It uses temporary SQLite databases and synthetic users. It measures the service path and excludes browser rendering, HTTP polling between the browser and FastAPI, and timer or grading flows.
 
 ## Workload
@@ -47,10 +49,10 @@ Live mode uses the installed `qwen3:1.7b` model at local port 11434. The script 
 
 Raw evidence and compact summaries are retained separately.
 
-- [150-card cold repeat](results/performance-live-150-cold-check.json), [repeat summary](results/performance-live-150-cold-check-summary.json) and [repeat host samples](results/performance-live-150-cold-check-host.csv)
-- [Live per-card and request data](results/performance-live.json), [live summary](results/performance-live-summary.json) and [live host samples](results/performance-live-host.csv)
-- [Mocked per-card and request data](results/performance-mock.json), [mocked summary](results/performance-mock-summary.json) and [mocked host samples](results/performance-mock-host.csv)
-- [Live hardware](results/performance-live-hardware.json), [mock-run hardware](results/performance-mock-hardware.json) and [loaded Ollama model](results/performance-live-ollama.json)
+- [150-card cold repeat](../results/performance-live-150-cold-check.json) and [repeat host samples](../results/performance-live-150-cold-check-host.csv)
+- [Live per-card and request data](../results/performance-live.json) and [live host samples](../results/performance-live-host.csv)
+- [Mocked per-card and request data](../results/performance-mock.json) and [mocked host samples](../results/performance-mock-host.csv)
+- [Live hardware](../results/performance-live-hardware.json), [mock-run hardware](../results/performance-mock-hardware.json) and [loaded Ollama model](../results/performance-live-ollama.json)
 
 The run used an Intel Core i5-13420H (8 physical cores, 12 logical processors), 15.64 GiB of host RAM, Windows 11 build 26200 and an NVIDIA RTX 3050 Laptop GPU with 6 GiB of VRAM. Docker 29.9.2 ran under WSL2 with 12 logical CPUs and 7.58 GiB of available RAM. The backend used Python 3.12.16, SQLite 3.46.1 in WAL mode, and one preparation worker. Ollama 0.40.16 used `qwen3:1.7b` with a 4,096-token context. It reported about 1.59 GiB of model residency, all on the GPU. The generator used version 2, JSON mode, disabled thinking, at most 3 requests and a 60-second timeout per request. The preparation deadline was 900 seconds.
 

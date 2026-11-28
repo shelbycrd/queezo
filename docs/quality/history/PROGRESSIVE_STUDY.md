@@ -1,5 +1,7 @@
 # Phase 4B.3 Progressive Multiple-Choice study
 
+Historical record. See [Multiple-Choice performance](../PERFORMANCE.md) for current benchmark entry points.
+
 A session stores one shuffle when it is created. The cache pass can save ready snapshots in a batch, and cache misses run in stored position order. The next question is always the first unanswered, nonfailed position. A pending position blocks access to the cards behind it. A permanent failure is recorded and skipped when the sequence reaches it.
 
 With five or more cards, the first five playable questions in the resolved prefix enable **Start Studying**. A failure in that prefix can be passed once it is recorded. A shorter deck settles all its positions before study begins. The start action is idempotent and does not launch another preparation job.
@@ -68,6 +70,6 @@ Slow inference inside the first five positions can delay the start. Later pauses
 ## Evidence
 
 - [Before benchmark](CACHE_FIRST.md#live-comparison)
-- [After live raw measurements](results/performance-progressive-live.json) and [live host samples](results/performance-progressive-live-host.csv)
-- [Resident 10-card cold repeat](results/performance-progressive-live-10-resident.json)
-- [After mocked raw measurements](results/performance-progressive-mock.json) and [mocked host samples](results/performance-progressive-mock-host.csv)
+- [After live raw measurements](../results/performance-progressive-live.json) and [live host samples](../results/performance-progressive-live-host.csv)
+- [Resident 10-card cold repeat](../results/performance-progressive-live-10-resident.json)
+- [After mocked raw measurements](../results/performance-progressive-mock.json) and [mocked host samples](../results/performance-progressive-mock-host.csv)

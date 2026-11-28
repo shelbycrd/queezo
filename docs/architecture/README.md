@@ -28,4 +28,4 @@ Mermaid diagrams render in compatible Markdown viewers. PlantUML diagrams includ
 - UML activities for [Multiple-Choice preparation and caching](diagrams/activities/multiple-choice.md) and [room participation and gameplay](diagrams/activities/study-rooms.md)
 - [UML deployment views](diagrams/deployment.md)
 
-For operational procedures, use the [project README](../../README.md), [account setup](../../AUTH_SETUP.md), and [database recovery runbook](../production/DATABASE_RELIABILITY.md). The [historical project context](../PROJECT_CONTEXT.md) predates parts of the current implementation. Code references in the chapters take precedence when behavior differs.
+For operational procedures, use the [project README](../../README.md), [account setup](../../AUTH_SETUP.md), and [database recovery runbook](../production/DATABASE_RELIABILITY.md). The [documentation index](../README.md) links to historical reports and current development guidance. Code references in the chapters take precedence when behavior differs.

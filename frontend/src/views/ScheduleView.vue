@@ -60,7 +60,7 @@ const entryLabel = entry => `Edit ${entry.subject.name}, ${WEEKDAYS[entry.meetin
       </div>
     </div>
 
-    <LoadingSkeleton v-if="!schedule && !loadError" variant="page" label="Loading your schedule…"/>
+    <LoadingSkeleton v-if="!schedule && !loadError" variant="schedule" label="Loading your schedule…"/>
     <section v-else-if="!schedule" class="panel" role="alert"><p>{{ loadError }}</p><button type="button" class="secondary flat-button" @click="refresh">Retry</button></section>
 
     <template v-else>

@@ -85,7 +85,7 @@ void loadFriends();
 watch(friendsOpen, open => { if (!open) void loadFriends(); });
 </script>
 <template>
-  <ResourceState v-if="!data" :error="error"/>
+  <ResourceState v-if="!data" :error="error" variant="home"/>
   <div v-else class="home-dashboard">
     <div class="home-main">
       <h1 class="home-greeting">{{ hello }}</h1>

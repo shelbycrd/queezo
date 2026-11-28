@@ -130,7 +130,7 @@ onScopeDispose(() => { controller?.abort(); clearInterval(presence); clearInterv
             <p v-if="!friends.length" class="friend-empty">{{ query ? 'No friends match your search.' : 'No friends yet. Send a request by username.' }}</p>
           </template>
           <template v-else-if="failure">Couldn’t load your friends.</template>
-          <LoadingSkeleton v-else variant="list" label="Loading friends…"/>
+          <LoadingSkeleton v-else variant="friends" label="Loading friends…"/>
         </div>
         <div v-show="section === 'requests'" id="friend-requests" class="friend-requests">
           <form id="add-friend" class="friend-request-panel" @submit.prevent="send"><label for="friend-username">Add by username</label>
@@ -143,7 +143,7 @@ onScopeDispose(() => { controller?.abort(); clearInterval(presence); clearInterv
               <button class="secondary flat-button small" type="button" :disabled="responding === person.username + ':decline'" @click="respond(person.username,'decline')">Decline</button></div></div>
             <p v-for="person in outgoing" :key="'pending-' + person.username" class="friend-request">Pending · @{{ person.username }}</p>
             <p v-if="!data && failure" class="friend-request friend-empty" role="status">Couldn’t load your requests.</p>
-            <LoadingSkeleton v-else-if="!data" variant="list" :count="2" label="Loading requests…"/>
+            <LoadingSkeleton v-else-if="!data" variant="friends" :count="2" label="Loading requests…"/>
             <p v-else-if="!incoming.length && !outgoing.length" class="friend-request friend-empty">{{ query ? 'No requests match your search.' : 'No pending requests.' }}</p>
           </section>
         </div>

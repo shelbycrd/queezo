@@ -1,5 +1,7 @@
 # Vue frontend migration
 
+Historical record. Use the [development guide](../DEVELOPMENT.md) for current commands and the [component guide](../architecture/02-architecture-and-components.md) for current routes.
+
 The baseline is commit `4f82b9c` on the `vue` branch. The original frontend used hash links, page-local JavaScript, and Nginx serving files directly. Its 61 frontend tests passed before migration. The inventory below uses the checked-out branch as the source of truth.
 
 ## Run locally

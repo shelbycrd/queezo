@@ -117,7 +117,7 @@ function saved(data) {
       <p class="muted">{{ error === 'Profile not found.' ? 'This profile may be private or the link may be incorrect.' : error }}</p>
       <a href="/home" class="button secondary flat-button">Back to Queezo</a>
     </section>
-    <LoadingSkeleton v-else-if="!profile" label="Loading profile…"/>
+    <LoadingSkeleton v-else-if="!profile" variant="profile" label="Loading profile…"/>
     <template v-else>
       <section class="panel profile-card profile-header" aria-label="Profile">
         <div class="profile-picture-wrap">

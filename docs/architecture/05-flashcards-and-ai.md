@@ -27,4 +27,4 @@ An opened question exposes opaque option IDs and text. It stores shuffled choice
 
 Sources [generator](../../backend/app/services/distractors.py), [cache and leases](../../backend/app/services/distractor_cache.py), [schema and triggers](../../backend/app/database.py), [room preparation](../../backend/app/services/room_study.py).
 
-String filtering cannot prove that a distractor is semantically wrong or that a fallback answer is plausible. See [quality findings](../quality/SHARED_DISTRACTORS.md) and [performance results](../quality/PERFORMANCE.md).
+String filtering cannot prove that a distractor is semantically wrong or that a fallback answer is plausible. See [quality findings](../quality/SHARED_DISTRACTORS.md) and [performance results](../quality/history/BASELINE.md).

@@ -43,7 +43,7 @@ void refresh();
         :class="{today:item.key === today}" @click="picked = item.key">{{ item.short }}</button>
     </div>
 
-    <LoadingSkeleton v-if="!schedule && !loadError" variant="list" :count="3" label="Loading your schedule…"/>
+    <LoadingSkeleton v-if="!schedule && !loadError" variant="schedule-rows" :count="3" label="Loading your schedule…"/>
     <p v-else-if="!schedule" class="muted" role="alert">Couldn’t load your schedule. <button type="button" class="link-button" @click="refresh">Try again</button></p>
     <template v-else>
       <p class="schedule-status" role="status" aria-live="polite">{{ message }}</p>

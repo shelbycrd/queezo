@@ -64,6 +64,9 @@ Focusing the empty box shows recent visits. The browser keeps only references pe
 
 What's New reads [changelog.json](../../frontend/src/data/changelog.json), a hand-maintained file of real releases (add the commit's own timestamp). [changelog.js](../../frontend/src/services/changelog.js) sorts newest first, keeps four, and computes Today, Yesterday and N days ago from local calendar days.
 
+## Loading skeletons
+[`LoadingSkeleton`](../../frontend/src/components/LoadingSkeleton.vue) (styled by [skeleton.css](../../frontend/css/skeleton.css)) has a page-specific variant for each screen: `decks`, `deck`, `shared-deck`, `home`, `profile`, `summary`, `study-card`, `schedule`, plus component variants `results`, `friends`, `schedule-rows`, `grid`, `track`, `list`, `card`, `lines`. [`ResourceState`](../../frontend/src/components/ResourceState.vue) passes its `variant` through. Containers reuse the real layout classes (`page-heading`, `deck-grid`, `portrait-deck`, `profile-card`, `timetable`, `study-sheet`, …), so sizes and the tablet and phone breakpoints come from the page's own CSS and cannot drift; only the leaf shapes (`.sk`) are drawn. When a page's layout changes, change its skeleton variant in the same commit. Each skeleton keeps one `role="status"` wrapper with a screen-reader label, hides the decorative shapes with `aria-hidden`, pulses only the outline colour, and stops that under `prefers-reduced-motion`. [SkeletonTile](../../frontend/src/components/SkeletonTile.vue) is the shared deck-tile placeholder.
+
 ## Achievements
 
 [`services/achievements.py`](../../backend/app/services/achievements.py) holds the catalog (key, name, description, goal, `lifetime` or `daily` scope, and whether subjects must be distinct) and one entry point, `record(db, user_id, event)`. Gameplay calls it inside the write transaction that completed the action, so progress commits or rolls back with that action and adds no extra SQLite writer:

@@ -64,7 +64,7 @@ const byline = item => item.scope === 'mine' ? item.visibility[0].toUpperCase() 
 
     <div class="search-results" role="tabpanel" :aria-busy="loading">
       <section v-if="!query" class="panel search-state"><h2>Search Queezo</h2><p class="muted">Find public decks, your own decks, and other students’ profiles.</p></section>
-      <LoadingSkeleton v-else-if="loading" variant="list" :count="4" label="Searching…"/>
+      <LoadingSkeleton v-else-if="loading" variant="results" :count="4" label="Searching…"/>
       <section v-else-if="error" class="panel search-state" role="alert"><h2>Search didn’t work</h2><p>{{ error }}</p><button type="button" class="secondary flat-button" @click="load">Try again</button></section>
       <section v-else-if="data && !total" class="panel search-state" role="status"><h2>No results</h2><p class="muted">Nothing matched “{{ query }}”. Try a different word or check the spelling.</p></section>
 

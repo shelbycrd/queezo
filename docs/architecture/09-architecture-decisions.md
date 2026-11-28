@@ -17,7 +17,7 @@ The records below describe current design choices. Historical rationale is ident
 
 ## Open risks and operational limits
 
-- Cold model timing and distractor quality depend on the host model and input. The current chat request leaves model residency to Ollama's defaults. Cache validation cannot certify an answer semantically. [Performance](../quality/PERFORMANCE.md), [distractor findings](../quality/SHARED_DISTRACTORS.md)
+- Cold model timing and distractor quality depend on the host model and input. The current chat request leaves model residency to Ollama's defaults. Cache validation cannot certify an answer semantically. [Performance](../quality/history/BASELINE.md), [distractor findings](../quality/SHARED_DISTRACTORS.md)
 - The base stack binds to loopback. Production TLS, external proxy addresses, public allowlists, and real gateway cookie behavior need environment validation. [Deployment](07-deployment-and-infrastructure.md)
 - Shared SQLite and the embedded workers are designed around one deployment. Measure lock pressure, connection polling, and failure recovery before adding replicas or public load. [Database design](03-database-design.md), [room QA](../quality/STUDY_ROOMS_QA.md)
 - An interrupted deployment or disk loss needs off-host snapshots and a practiced restore. An external backup repository, alert coverage, and a drill are environment-specific. [Recovery runbook](../production/DATABASE_RELIABILITY.md)
