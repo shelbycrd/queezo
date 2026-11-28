@@ -12,7 +12,7 @@
   display: flex; align-items: center; gap: 9px; flex: none; width: var(--sidebar); padding-left: 24px;
   color: #5685d0; font-size: 1.5rem; font-weight: 600; letter-spacing: -.04em; text-decoration: none;
 }
-.top-bar-brand img { width: 40px; height: 40px; display: block; }
+.signed-in .top-bar-brand .brand-cloud { width: 56px; height: 56px; display: block; flex: none; object-fit: contain; }
 
 /* The brand moves to the top bar while signed in; the sidebar starts below it. */
 .signed-in .site-header { top: var(--topbar); height: calc(100dvh - var(--topbar)); padding-top: 24px; }
@@ -109,7 +109,7 @@
   :root { --topbar: 60px; }
   .signed-in .top-bar { position: sticky; top: 0; padding: 0 10px 0 14px; gap: 6px; }
   .top-bar-brand { width: auto; padding: 0; margin-right: auto; font-size: 1.2rem; }
-  .top-bar-brand img { width: 34px; height: 34px; }
+  .signed-in .top-bar-brand .brand-cloud { width: 46px; height: 46px; }
   .signed-in .site-header { position: relative; top: auto; height: auto; min-height: 0; padding: 10px 12px 8px; }
   .signed-in .top-bar .account-controls { margin: 0; gap: 5px; max-width: none; }
   .signed-in .top-bar .account-controls > .topbar-icon, .global-search .search-toggle { width: 34px; height: 34px; padding: 7px; }
